@@ -1,0 +1,59 @@
+.footer {
+  background: #1e1e2f;
+  padding: 2.5rem 2rem;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  &__brand {
+    p {
+      color: #a0a0b8;
+      font-size: 0.85rem;
+      margin: 0.5rem 0 0 0;
+    }
+  }
+
+  &__logo {
+    font-size: 1.3rem;
+    font-weight: 700;
+
+    &-edu {
+      color: #ffffff;
+    }
+
+    &-core {
+      color: #356df1;
+    }
+  }
+
+  &__links {
+    display: flex;
+    gap: 2rem;
+
+    a {
+      color: #a0a0b8;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #ffffff;
+      }
+    }
+  }
+
+  &__copy {
+    p {
+      color: #787882;
+      font-size: 0.8rem;
+      margin: 0;
+    }
+  }
+}
