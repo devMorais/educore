@@ -21,3 +21,6 @@ ai-service/.env
 ai-service/venv/
 ai-service/__pycache__/
 ai-service/*.pycai-service/uploads/ 
+ai-service/google-credentials.json 
+"node_modules/" 
+"ai-service/package-lock.json" 

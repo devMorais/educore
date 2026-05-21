@@ -1,3 +1,5 @@
+from fastapi.responses import FileResponse
+import uuid
 import os
 import shutil
 import logging
@@ -30,12 +32,10 @@ async def upload_document(
     if file.size > 50 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Arquivo muito grande. Máximo 50MB")
 
-    # Salva o arquivo
     file_path = f"{UPLOAD_DIR}/{file.filename}"
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # Registra no banco
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -49,7 +49,6 @@ async def upload_document(
         document_id = cursor.fetchone()[0]
         conn.commit()
 
-        # Processa em background
         background_tasks.add_task(
             rag_service.process_document,
             file_path,
@@ -102,8 +101,6 @@ async def get_document_status(document_id: int):
 @router.post("/{document_id}/generate")
 async def generate_content(document_id: int, request: GenerationRequest):
     """Gera conteúdo (quiz, resumo, slides) a partir do documento."""
-
-    # Verifica se documento existe e está processado
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -126,7 +123,6 @@ async def generate_content(document_id: int, request: GenerationRequest):
         cursor.close()
         conn.close()
 
-    # Gera o conteúdo solicitado
     try:
         if request.type == GenerationType.QUIZ:
             result = rag_service.generate_quiz(
@@ -148,6 +144,91 @@ async def generate_content(document_id: int, request: GenerationRequest):
     except Exception as e:
         logger.error(f"Erro na geração: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{document_id}/export-slides")
+async def export_to_google_slides(document_id: int, user_email: str = None):
+    """Exporta slides para o Google Slides."""
+    from app.services.slides_service import slides_service
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "SELECT status FROM documents WHERE id = %s",
+            (document_id,)
+        )
+        doc = cursor.fetchone()
+
+        if not doc:
+            raise HTTPException(status_code=404, detail="Documento não encontrado")
+
+        if doc[0] != "completed":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Documento ainda não processado. Status: {doc[0]}"
+            )
+    finally:
+        cursor.close()
+        conn.close()
+
+    slides_data = rag_service.generate_slides(document_id)
+
+    result = slides_service.create_presentation(
+        title=slides_data.get('title', 'Apresentação EduCore'),
+        slides_data=slides_data.get('slides', []),
+        user_email=user_email
+    )
+
+    return result
+
+@router.post("/{document_id}/export-pptx")
+async def export_to_pptx(document_id: int):
+    """Gera e baixa apresentação .pptx profissional."""
+    from app.services.pptx_service import pptx_service
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "SELECT status, filename FROM documents WHERE id = %s",
+            (document_id,)
+        )
+        doc = cursor.fetchone()
+
+        if not doc:
+            raise HTTPException(status_code=404, detail="Documento não encontrado")
+
+        if doc[0] != "completed":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Documento ainda não processado. Status: {doc[0]}"
+            )
+
+        filename = doc[1]
+    finally:
+        cursor.close()
+        conn.close()
+
+    # Gera os slides via IA
+    slides_data = rag_service.generate_slides(document_id)
+
+    # Gera o arquivo .pptx
+    output_path = f"uploads/{uuid.uuid4()}.pptx"
+    pptx_service.generate(
+        title=slides_data.get('title', 'Apresentação EduCore'),
+        slides=slides_data.get('slides', []),
+        output_path=output_path
+    )
+
+    # Retorna o arquivo para download
+    return FileResponse(
+        path=output_path,
+        media_type='application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        filename=f"EduCore - {slides_data.get('title', 'Apresentacao')}.pptx"
+    )
 
 
 @router.get("/")
