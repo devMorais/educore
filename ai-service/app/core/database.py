@@ -17,10 +17,8 @@ def init_db():
     cursor = conn.cursor()
 
     try:
-        # Ativa a extensão pgvector
         cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
 
-        # Tabela de documentos
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS documents (
                 id SERIAL PRIMARY KEY,
@@ -35,27 +33,18 @@ def init_db():
             );
         """)
 
-        # Tabela de chunks com vetor
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS document_chunks (
                 id SERIAL PRIMARY KEY,
                 document_id INTEGER REFERENCES documents(id) ON DELETE CASCADE,
                 content TEXT NOT NULL,
                 chunk_index INTEGER NOT NULL,
-                embedding vector(768),
+                embedding vector(3072),
                 metadata JSONB,
                 created_at TIMESTAMP DEFAULT NOW()
             );
         """)
 
-        # Índice HNSW para busca rápida
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS chunks_embedding_idx
-            ON document_chunks
-            USING hnsw (embedding vector_cosine_ops);
-        """)
-
-        # Tabela de gerações
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS generations (
                 id SERIAL PRIMARY KEY,

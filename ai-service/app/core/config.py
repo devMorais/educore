@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     # RAG
     chunk_size: int = 512
     chunk_overlap: int = 50
-    embedding_model: str = "models/embedding-001"
-    generation_model: str = "gemini-1.5-flash"
+    embedding_model: str = "models/gemini-embedding-2"
+    generation_model: str = "models/gemini-2.5-flash"
 
     class Config:
         env_file = ".env"

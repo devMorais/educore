@@ -1,7 +1,7 @@
+import json
 import logging
 from typing import List
 from google import genai
-from google.genai import types
 from app.core.config import settings
 from app.core.database import get_connection
 
@@ -14,19 +14,19 @@ class EmbedService:
     def __init__(self):
         self.model = settings.embedding_model
 
-def generate_embedding(self, text: str) -> List[float]:
-    try:
-        result = client.models.embed_content(
-            model=self.model,
-            contents=text,
-        )
-        return result.embeddings[0].values
-    except Exception as e:
-        logger.error(f"Erro ao gerar embedding: {e}")
-        raise e
+    def generate_embedding(self, text: str) -> List[float]:
+        try:
+            result = client.models.embed_content(
+                model=self.model,
+                contents=text,
+                config={"task_type": "RETRIEVAL_DOCUMENT"}
+            )
+            return result.embeddings[0].values
+        except Exception as e:
+            logger.error(f"Erro ao gerar embedding: {e}")
+            raise e
 
     def generate_embeddings_batch(self, texts: List[str]) -> List[List[float]]:
-        """Gera embeddings para uma lista de textos."""
         embeddings = []
         for idx, text in enumerate(texts):
             try:
@@ -39,12 +39,7 @@ def generate_embedding(self, text: str) -> List[float]:
                 embeddings.append(None)
         return embeddings
 
-    def save_chunks_with_embeddings(
-        self,
-        document_id: int,
-        chunks: List[dict]
-    ) -> int:
-        """Salva chunks com embeddings no pgvector."""
+    def save_chunks_with_embeddings(self, document_id: int, chunks: List[dict]) -> int:
         conn = get_connection()
         cursor = conn.cursor()
         saved = 0
@@ -63,7 +58,7 @@ def generate_embedding(self, text: str) -> List[float]:
                         chunk["content"],
                         chunk["chunk_index"],
                         embedding,
-                        {"word_count": chunk.get("word_count", 0)}
+                        json.dumps({"word_count": chunk.get("word_count", 0)})
                     ))
                     saved += 1
 
@@ -79,13 +74,7 @@ def generate_embedding(self, text: str) -> List[float]:
             cursor.close()
             conn.close()
 
-    def search_similar_chunks(
-        self,
-        query: str,
-        document_id: int,
-        limit: int = 5
-    ) -> List[dict]:
-        """Busca chunks similares à query usando pgvector."""
+    def search_similar_chunks(self, query: str, document_id: int, limit: int = 5) -> List[dict]:
         query_embedding = self.generate_embedding(query)
 
         conn = get_connection()
