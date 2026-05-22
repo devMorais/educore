@@ -35,22 +35,19 @@ export class Auth {
   private platformId = inject(PLATFORM_ID);
   private baseUrl = environment.apiUrl;
 
-  isLoggedIn = signal<boolean>(this.hasToken());
-  currentUser = signal<AuthResponse['user'] | null>(this.getStoredUser());
+  isLoggedIn = signal<boolean>(false);
+  currentUser = signal<AuthResponse['user'] | null>(null);
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.isLoggedIn.set(!!localStorage.getItem('token'));
+      const user = localStorage.getItem('user');
+      this.currentUser.set(user ? JSON.parse(user) : null);
+    }
+  }
 
   private isBrowser(): boolean {
     return isPlatformBrowser(this.platformId);
-  }
-
-  private hasToken(): boolean {
-    if (!isPlatformBrowser(this.platformId)) return false;
-    return !!localStorage.getItem('token');
-  }
-
-  private getStoredUser(): AuthResponse['user'] | null {
-    if (!isPlatformBrowser(this.platformId)) return null;
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
   }
 
   login(credentials: LoginRequest) {
