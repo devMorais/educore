@@ -1,0 +1,119 @@
+<div class="result-page">
+  <div class="result-page__content">
+
+    <a routerLink="/upload" class="result-back">
+      <i class="fas fa-arrow-left"></i> Voltar
+    </a>
+
+    @if (!data()) {
+      <div class="result-empty">
+        <i class="fas fa-inbox"></i>
+        <p>Nenhum conteúdo para exibir. Gere algo a partir de um PDF.</p>
+      </div>
+    }
+
+    <!-- ============ RESUMO ============ -->
+    @if (data() && type() === 'summary') {
+      <div class="result-summary">
+        <h1>{{ data().title }}</h1>
+        <span class="result-summary__meta">{{ data().word_count }} palavras</span>
+
+        <div class="result-summary__body">
+          @for (p of summaryParagraphs; track p) {
+            <p>{{ p }}</p>
+          }
+        </div>
+
+        <h2>Pontos principais</h2>
+        <ul class="result-summary__points">
+          @for (point of data().key_points; track point) {
+            <li><i class="fas fa-check-circle"></i> {{ point }}</li>
+          }
+        </ul>
+      </div>
+    }
+
+    <!-- ============ QUIZ INTERATIVO ============ -->
+    @if (data() && type() === 'quiz') {
+      <div class="quiz">
+
+        <!-- jogando -->
+        @if (!finished() && currentQuestion()) {
+          <div class="quiz__header">
+            <h1>{{ data().title }}</h1>
+            <span class="quiz__counter">
+              Questão {{ currentIndex() + 1 }} de {{ questions().length }}
+            </span>
+            <div class="quiz__progress">
+              <div class="quiz__progress-bar" [style.width.%]="progressPercent()"></div>
+            </div>
+          </div>
+
+          <div class="quiz__card">
+            <h2 class="quiz__question">{{ currentQuestion()!.question }}</h2>
+
+            <div class="quiz__options">
+              @for (option of currentQuestion()!.options; track option) {
+                <button
+                  class="quiz__option"
+                  [class.quiz__option--selected]="selectedAnswer() === option"
+                  [class.quiz__option--correct]="answered() && isCorrect(option)"
+                  [class.quiz__option--wrong]="answered() && selectedAnswer() === option && !isCorrect(option)"
+                  [disabled]="answered()"
+                  (click)="selectAnswer(option)">
+                  {{ option }}
+                  @if (answered() && isCorrect(option)) {
+                    <i class="fas fa-check"></i>
+                  }
+                  @if (answered() && selectedAnswer() === option && !isCorrect(option)) {
+                    <i class="fas fa-times"></i>
+                  }
+                </button>
+              }
+            </div>
+
+            @if (answered()) {
+              <div class="quiz__explanation">
+                <strong>
+                  @if (isCorrect(selectedAnswer()!)) { Correto! } @else { Resposta correta: }
+                </strong>
+                {{ currentQuestion()!.explanation }}
+              </div>
+
+              <button class="quiz__next" (click)="nextQuestion()">
+                @if (currentIndex() + 1 >= questions().length) {
+                  Ver resultado <i class="fas fa-flag-checkered"></i>
+                } @else {
+                  Próxima <i class="fas fa-arrow-right"></i>
+                }
+              </button>
+            }
+          </div>
+        }
+
+        <!-- resultado final -->
+        @if (finished()) {
+          <div class="quiz__result">
+            <div class="quiz__result-icon">
+              <i class="fas fa-trophy"></i>
+            </div>
+            <h1>Quiz concluído!</h1>
+            <p class="quiz__score">
+              Você acertou <strong>{{ score() }}</strong> de {{ questions().length }}
+            </p>
+            <div class="quiz__result-actions">
+              <button class="quiz__restart" (click)="restartQuiz()">
+                <i class="fas fa-redo"></i> Refazer quiz
+              </button>
+              <a routerLink="/upload" class="quiz__back-btn">
+                <i class="fas fa-upload"></i> Novo material
+              </a>
+            </div>
+          </div>
+        }
+
+      </div>
+    }
+
+  </div>
+</div>

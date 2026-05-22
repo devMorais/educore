@@ -1,0 +1,15 @@
+On branch F-003/upload-pdf
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   src/app/app.routes.ts
+	modified:   src/environments/environment.development.ts
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	meu-status.txt
+	src/app/core/services/ai.spec.ts
+	src/app/core/services/ai.ts
+	src/app/features/upload/
+
+no changes added to commit (use "git add" and/or "git commit -a")

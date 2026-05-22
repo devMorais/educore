@@ -1,0 +1,15 @@
+62b5a0a F-002: login e cadastro concluidos
+e610857 F-002: login com autenticacao sanctum e correcao SSR
+045b29e docs: contexto completo para Claudia usar com IA no frontend
+4472f1f docs: guia completo para a Claudia migrar para PostgreSQL
+a39291a docs: SETUP.md atualizado com ai-service e pipeline RAG
+b85a2cb feat: exportacao pptx profissional com PptxGenJS
+5b4d96e chore: ignorar pasta uploads
+8292a94 feat: pipeline RAG completo - quiz e slides funcionando
+ac8dd95 feat: pipeline RAG completo com LlamaParse, Gemini e pgvector
+2aafffd feat: microservico Python FastAPI com pipeline RAG inicial
+6136da3 docs: guia completo de configuracao do ambiente
+e1d8458 F-001: ajustes finais navbar, hero, how-it-works e footer
+4f10270 F-001: home inicial com design adaptado
+e6edcb7 chore: update environment urls to educore.test
+3507c81 feat: initial monorepo setup - backend (Laravel 13) + frontend (Angular 20)

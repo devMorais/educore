@@ -1,0 +1,136 @@
+<div class="upload-page">
+
+  <div class="upload-page__sidebar">
+    <a routerLink="/" class="upload-page__logo">
+      <img src="images/logo.png" alt="EduCore" class="img-fluid">
+    </a>
+    <nav class="upload-page__nav">
+      <a routerLink="/upload" class="active">
+        <i class="fas fa-upload"></i> Upload de PDF
+      </a>
+      <a routerLink="/dashboard">
+        <i class="fas fa-th-large"></i> Meus Documentos
+      </a>
+    </nav>
+  </div>
+
+  <div class="upload-page__content">
+
+    <div class="upload-page__header">
+      <h1>Novo Material</h1>
+      <p>Faça upload do seu PDF e deixe a IA gerar o conteúdo</p>
+    </div>
+
+    @if (!uploadedDocumentId()) {
+      <div
+        class="upload-dropzone"
+        [class.upload-dropzone--dragging]="isDragging()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave()"
+        (drop)="onDrop($event)"
+        (click)="fileInput.click()">
+
+        <input
+          #fileInput
+          type="file"
+          accept=".pdf"
+          style="display:none"
+          (change)="onFileSelected($event)">
+
+        @if (!selectedFile()) {
+          <div class="upload-dropzone__idle">
+            <div class="upload-dropzone__icon">
+              <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <h3>Arraste seu PDF aqui</h3>
+            <p>ou clique para selecionar o arquivo</p>
+            <span class="upload-dropzone__hint">Apenas arquivos PDF • Máximo 50MB</span>
+          </div>
+        } @else {
+          <div class="upload-dropzone__selected">
+            <i class="fas fa-file-pdf"></i>
+            <div>
+              <h4>{{ selectedFile()!.name }}</h4>
+              <p>{{ formatFileSize(selectedFile()!.size) }}</p>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <div class="upload-alert upload-alert--error">
+          <i class="fas fa-exclamation-circle"></i> {{ errorMessage() }}
+        </div>
+      }
+
+      @if (selectedFile()) {
+        <button
+          class="common_btn upload-btn"
+          (click)="uploadFile()"
+          [disabled]="uploading()">
+          @if (uploading()) {
+            <i class="fas fa-spinner fa-spin"></i> Enviando...
+          } @else {
+            <i class="fas fa-upload"></i> Enviar e Processar
+          }
+        </button>
+
+        @if (uploading()) {
+          <div class="upload-progress">
+            <div class="upload-progress__bar" [style.width.%]="uploadProgress()"></div>
+          </div>
+          <p class="upload-progress__label">{{ uploadProgress() }}% enviado</p>
+        }
+      }
+    }
+
+    @if (uploadedDocumentId() && !isCompleted()) {
+      <div class="upload-processing">
+        <div class="upload-processing__icon">
+          <i class="fas fa-cog fa-spin"></i>
+        </div>
+        <h3>Processando com IA...</h3>
+        <p>Isso pode levar alguns segundos</p>
+        <div class="upload-progress">
+          <div class="upload-progress__bar upload-progress__bar--indeterminate"></div>
+        </div>
+      </div>
+    }
+
+    @if (isCompleted()) {
+      <div class="upload-success">
+        <div class="upload-success__icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h3>Pronto! Escolha o que gerar:</h3>
+        <div class="upload-actions">
+          <button class="upload-action-btn upload-action-btn--blue" (click)="generate('quiz')" [disabled]="generating()">
+            <i class="fas fa-question-circle"></i>
+            <span>Quiz</span>
+            <small>Perguntas e respostas</small>
+          </button>
+          <button class="upload-action-btn upload-action-btn--green" (click)="generate('summary')" [disabled]="generating()">
+            <i class="fas fa-file-alt"></i>
+            <span>Resumo</span>
+            <small>Pontos principais</small>
+          </button>
+          <button class="upload-action-btn upload-action-btn--purple" (click)="generate('slides')" [disabled]="generating()">
+            <i class="fas fa-images"></i>
+            <span>Slides</span>
+            <small>Apresentação pronta</small>
+          </button>
+        </div>
+        @if (generating()) {
+          <p class="upload-generating">Gerando conteúdo com IA...</p>
+        }  
+       @if (errorMessage()) {
+          <div class="upload-alert upload-alert--error">
+            <i class="fas fa-exclamation-circle"></i> {{ errorMessage() }}
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+
+</div>
