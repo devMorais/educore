@@ -27,11 +27,33 @@ def init_db():
                 file_path TEXT NOT NULL,
                 file_size INTEGER,
                 status VARCHAR(50) DEFAULT 'pending',
+                progress_percent INTEGER DEFAULT 0,
+                pages_processed INTEGER DEFAULT 0,
+                total_pages INTEGER DEFAULT 0,
+                gemini_file_uri TEXT,
+                file_hash VARCHAR(64),
+                rag_status VARCHAR(50) DEFAULT 'pending',
                 user_id INTEGER,
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             );
         """)
+
+        # Idempotent column additions for existing deployments
+        for col, typ in [
+            ("progress_percent", "INTEGER DEFAULT 0"),
+            ("pages_processed", "INTEGER DEFAULT 0"),
+            ("total_pages", "INTEGER DEFAULT 0"),
+            ("gemini_file_uri", "TEXT"),
+            ("file_hash", "VARCHAR(64)"),
+            ("rag_status", "VARCHAR(50) DEFAULT 'pending'"),
+        ]:
+            cursor.execute(f"""
+                DO $$ BEGIN
+                    ALTER TABLE documents ADD COLUMN IF NOT EXISTS {col} {typ};
+                EXCEPTION WHEN duplicate_column THEN NULL;
+                END $$;
+            """)
 
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS document_chunks (
@@ -54,6 +76,18 @@ def init_db():
                 status VARCHAR(50) DEFAULT 'completed',
                 created_at TIMESTAMP DEFAULT NOW()
             );
+        """)
+
+        # Note: vector index skipped — pgvector requires <= 2000 dims for HNSW/IVFFlat
+        # but Gemini embeddings are 3072. Sequential scan is used instead,
+        # which is fast enough for this scale (< 100k chunks).
+        # To enable indexing: upgrade to pgvector 0.8+ with halfvec support.
+
+        # Index on file_hash for deduplication lookups
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_documents_file_hash
+            ON documents (file_hash)
+            WHERE file_hash IS NOT NULL;
         """)
 
         conn.commit()

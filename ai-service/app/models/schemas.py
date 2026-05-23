@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Dict
 from datetime import datetime
 from enum import Enum
 
@@ -15,7 +15,9 @@ class GenerationType(str, Enum):
     QUIZ = "quiz"
     SUMMARY = "summary"
     SLIDES = "slides"
-    ACCESSIBILITY = "accessibility"
+    MINDMAP = "mindmap"
+    FLASHCARDS = "flashcards"
+    PCD = "pcd"
 
 
 class DocumentResponse(BaseModel):
@@ -27,6 +29,15 @@ class DocumentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class DocumentStatusResponse(BaseModel):
+    id: int
+    status: DocumentStatus
+    progress_percent: int = 0
+    pages_processed: int = 0
+    total_pages: int = 0
+    error: Optional[str] = None
 
 
 class ChunkResponse(BaseModel):
@@ -42,14 +53,19 @@ class ChunkResponse(BaseModel):
 class GenerationRequest(BaseModel):
     document_id: int
     type: GenerationType
-    options: Optional[dict] = {}
+    options: Optional[Dict[str, Any]] = {}
 
+
+# ---- Quiz ----
 
 class QuizQuestion(BaseModel):
     question: str
     options: List[str]
     correct_answer: str
-    explanation: Optional[str] = None
+    explanation: str
+    difficulty: Optional[str] = "medium"    # easy | medium | hard
+    type: Optional[str] = "multiple_choice" # multiple_choice | true_false | fill_blank
+    topic: Optional[str] = None
 
 
 class QuizResponse(BaseModel):
@@ -59,6 +75,8 @@ class QuizResponse(BaseModel):
     total_questions: int
 
 
+# ---- Summary ----
+
 class SummaryResponse(BaseModel):
     document_id: int
     title: str
@@ -67,10 +85,15 @@ class SummaryResponse(BaseModel):
     word_count: int
 
 
+# ---- Slides ----
+
 class SlideContent(BaseModel):
     title: str
     content: List[str]
     notes: Optional[str] = None
+    layout: Optional[str] = "content_bullets"
+    visual_suggestion: Optional[str] = None
+    accent_color: Optional[str] = "blue"
 
 
 class SlidesResponse(BaseModel):
@@ -79,6 +102,73 @@ class SlidesResponse(BaseModel):
     slides: List[SlideContent]
     total_slides: int
 
+
+# ---- Mind Map ----
+
+class MindMapNode(BaseModel):
+    id: str
+    topic: str
+    children: Optional[List["MindMapNode"]] = []
+
+
+MindMapNode.model_rebuild()
+
+
+class MindMapResponse(BaseModel):
+    document_id: int
+    title: str
+    root: MindMapNode
+
+
+# ---- Flashcards ----
+
+class Flashcard(BaseModel):
+    front: str
+    back: str
+    topic: Optional[str] = None
+
+
+class FlashcardsResponse(BaseModel):
+    document_id: int
+    title: str
+    cards: List[Flashcard]
+    total_cards: int
+
+
+# ---- PCD / Accessibility ----
+
+class VocabularyEntry(BaseModel):
+    term: str
+    definition: str
+
+
+class WcagMetadata(BaseModel):
+    reading_level: str
+    estimated_duration: str
+    complexity_score: float
+
+
+class AccessibilityResponse(BaseModel):
+    document_id: int
+    title: str
+    simplified_text: str
+    audio_script: str
+    visual_alternatives: List[str]
+    key_vocabulary: List[VocabularyEntry]
+    wcag_metadata: WcagMetadata
+    libras_suggestions: List[str]
+
+
+# ---- Platform Export ----
+
+class ExportResult(BaseModel):
+    platform: str
+    format: str
+    filename: str
+    content: Any  # JSON-serializable export data
+
+
+# ---- Shared ----
 
 class HealthResponse(BaseModel):
     status: str

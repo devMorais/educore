@@ -5,6 +5,13 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  avatar?: string;
+}
+
 interface LoginRequest {
   email: string;
   password: string;
@@ -18,17 +25,12 @@ interface RegisterRequest {
 }
 
 interface AuthResponse {
-  token: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-  };
+  token?: string;
+  access_token?: string;
+  user: AuthUser;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class Auth {
   private http = inject(HttpClient);
   private router = inject(Router);
@@ -36,13 +38,13 @@ export class Auth {
   private baseUrl = environment.apiUrl;
 
   isLoggedIn = signal<boolean>(false);
-  currentUser = signal<AuthResponse['user'] | null>(null);
+  currentUser = signal<AuthUser | null>(null);
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.isLoggedIn.set(!!localStorage.getItem('token'));
-      const user = localStorage.getItem('user');
-      this.currentUser.set(user ? JSON.parse(user) : null);
+      const raw = localStorage.getItem('user');
+      this.currentUser.set(raw ? JSON.parse(raw) : null);
     }
   }
 
@@ -50,40 +52,49 @@ export class Auth {
     return isPlatformBrowser(this.platformId);
   }
 
-  login(credentials: LoginRequest) {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/auth/login`, credentials).pipe(
-      tap(response => {
+  loginWithGoogle() {
+    this.http.get<{ url: string }>(`${this.baseUrl}/auth/google`).subscribe({
+      next: (res) => {
         if (this.isBrowser()) {
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
+          window.location.href = res.url;
         }
-        this.isLoggedIn.set(true);
-        this.currentUser.set(response.user);
+      },
+    });
+  }
+
+  exchangeGoogleCode(code: string, state: string) {
+    return this.http
+      .get<AuthResponse>(`${this.baseUrl}/auth/google/callback`, {
+        params: { code, state },
       })
-    );
+      .pipe(tap((res) => this.persistSession(res)));
+  }
+
+  login(credentials: LoginRequest) {
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/auth/login`, credentials)
+      .pipe(tap(res => this.persistSession(res)));
   }
 
   register(data: RegisterRequest) {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/auth/register`, data).pipe(
-      tap(response => {
-        if (this.isBrowser()) {
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
-        }
-        this.isLoggedIn.set(true);
-        this.currentUser.set(response.user);
-      })
-    );
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/auth/register`, data)
+      .pipe(tap(res => this.persistSession(res)));
   }
 
   logout() {
-    const token = this.getToken();
-    this.http.post(`${this.baseUrl}/auth/logout`, {}, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe();
+    this.http
+      .post(`${this.baseUrl}/auth/logout`, {})
+      .subscribe({ error: () => {} });
+    this.clearSession();
+  }
+
+  /** Called by authInterceptor on 401 and by logout() */
+  clearSession() {
     if (this.isBrowser()) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('educore_result');
     }
     this.isLoggedIn.set(false);
     this.currentUser.set(null);
@@ -93,5 +104,15 @@ export class Auth {
   getToken(): string | null {
     if (!this.isBrowser()) return null;
     return localStorage.getItem('token');
+  }
+
+  private persistSession(res: AuthResponse) {
+    const token = res.token ?? res.access_token ?? '';
+    if (this.isBrowser()) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(res.user));
+    }
+    this.isLoggedIn.set(true);
+    this.currentUser.set(res.user);
   }
 }

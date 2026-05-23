@@ -16,11 +16,34 @@ class Settings(BaseSettings):
     port: int = 8001
     debug: bool = True
 
-    # RAG
-    chunk_size: int = 512
-    chunk_overlap: int = 50
+    # RAG — chunks
+    chunk_size: int = 1024       # increased from 512 for better context
+    chunk_overlap: int = 150     # increased from 50 for better continuity
+    max_pages: int = 300         # support for large PDFs
+
+    # Embeddings
     embedding_model: str = "models/gemini-embedding-2"
+    embedding_batch_size: int = 20
+    embedding_concurrency: int = 5
+
+    # Generation
     generation_model: str = "models/gemini-2.5-flash"
+
+    # Quiz
+    default_quiz_questions: int = 30
+    quiz_context_chunks: int = 20
+
+    # Slides
+    default_slide_count: int = 25
+    slides_context_chunks: int = 30
+
+    # Mind map
+    mindmap_context_chunks: int = 25
+    mindmap_max_depth: int = 3
+    mindmap_max_children: int = 7
+
+    # Flashcards
+    default_flashcard_count: int = 20
 
     class Config:
         env_file = ".env"

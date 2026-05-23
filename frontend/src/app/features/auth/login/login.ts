@@ -17,6 +17,10 @@ export class Login {
 
   constructor(private authService: Auth, private router: Router) {}
 
+  loginWithGoogle() {
+    this.authService.loginWithGoogle();
+  }
+
   onSubmit() {
     if (!this.email || !this.password) {
       this.errorMessage.set('Preencha email e senha.');
@@ -29,7 +33,7 @@ export class Login {
     this.authService.login({ email: this.email, password: this.password }).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/upload']);
       },
       error: (err) => {
         this.loading.set(false);

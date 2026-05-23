@@ -1,13 +1,10 @@
 import { Component } from '@angular/core';
-import { Hero } from './sections/hero/hero';
-import { HowItWorks } from './sections/how-it-works/how-it-works';
-import { Navbar } from '../../shared/components/navbar/navbar';
-import { Footer } from '../../shared/components/footer/footer';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-home',
-  imports: [Hero, HowItWorks, Navbar, Footer],
+  imports: [RouterLink],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
-export class Home {}
+export class Home { }

@@ -1,105 +1,36 @@
-<section class="wsus__sign_in sign_up">
-  <div class="row align-items-center">
+<div class="card">
+  <h1>Criar conta</h1>
 
-    <div class="col-xxl-5 col-xl-6 col-lg-6">
-      <div class="wsus__sign_img">
-        <img src="images/login_img_2.jpg" alt="login" class="img-fluid">
-        <a routerLink="/">
-          <img src="images/logo.png" alt="EduCore" class="img-fluid">
-        </a>
-      </div>
+  @if (errorMessage()) {
+  <p class="error">{{ errorMessage() }}</p>
+  }
+
+  <form (ngSubmit)="onSubmit()">
+    <div class="field">
+      <label>Nome</label>
+      <input type="text" [(ngModel)]="name" name="name" required>
     </div>
-
-    <div class="col-xxl-4 col-xl-5 col-lg-6 col-md-9 m-auto">
-      <div class="wsus__sign_form_area">
-
-        <form (ngSubmit)="onSubmit()">
-          <h2>Criar conta<span>!</span></h2>
-          <p class="new_user">Já tem conta? <a routerLink="/login">Entrar</a></p>
-
-          @if (errorMessage()) {
-            <div class="alert alert-danger">{{ errorMessage() }}</div>
-          }
-
-          <div class="row">
-            <div class="col-xl-12">
-              <div class="wsus__login_form_input">
-                <label>Nome completo</label>
-                <input
-                  type="text"
-                  placeholder="Seu nome"
-                  [(ngModel)]="name"
-                  name="name"
-                  required>
-              </div>
-            </div>
-
-            <div class="col-xl-12">
-              <div class="wsus__login_form_input">
-                <label>Email</label>
-                <input
-                  type="email"
-                  placeholder="seu@email.com"
-                  [(ngModel)]="email"
-                  name="email"
-                  required>
-              </div>
-            </div>
-
-            <div class="col-xl-12">
-              <div class="wsus__login_form_input">
-                <label>Senha</label>
-                <input
-                  type="password"
-                  placeholder="Mínimo 8 caracteres"
-                  [(ngModel)]="password"
-                  name="password"
-                  required>
-              </div>
-            </div>
-
-            <div class="col-xl-12">
-              <div class="wsus__login_form_input">
-                <label>Confirmar senha</label>
-                <input
-                  type="password"
-                  placeholder="Repita sua senha"
-                  [(ngModel)]="passwordConfirmation"
-                  name="passwordConfirmation"
-                  required>
-              </div>
-            </div>
-
-            <div class="col-xl-12">
-              <div class="wsus__login_form_input">
-                <button type="submit" class="common_btn" [disabled]="loading()">
-                  @if (loading()) {
-                    Criando conta...
-                  } @else {
-                    Criar conta
-                  }
-                </button>
-              </div>
-            </div>
-          </div>
-        </form>
-
-        <p class="or">ou</p>
-
-        <ul class="social_login d-flex flex-wrap">
-          <li>
-            <a href="https://educore.test/api/auth/google">
-              <span><img src="images/google_icon.png" alt="Google" class="img-fluid"></span>
-              Cadastrar com Google
-            </a>
-          </li>
-        </ul>
-
-        <p class="create_account">Já tem conta? <a routerLink="/login">Entrar</a></p>
-
-      </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" [(ngModel)]="email" name="email" required>
     </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" [(ngModel)]="password" name="password" required>
+    </div>
+    <div class="field">
+      <label>Confirmar senha</label>
+      <input type="password" [(ngModel)]="passwordConfirmation" name="passwordConfirmation" required>
+    </div>
+    <button class="btn" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Criando...' : 'Criar conta' }}
+    </button>
+  </form>
 
-  </div>
-  <a class="back_btn" routerLink="/">Voltar para Home</a>
-</section>
+  <button class="btn-outline" (click)="loginWithGoogle()">Cadastrar com Google</button>
+
+  <p class="muted">
+    Já tem conta? <a routerLink="/login">Entrar</a>
+  </p>
+  <p class="muted"><a routerLink="/">← Voltar para Home</a></p>
+</div>

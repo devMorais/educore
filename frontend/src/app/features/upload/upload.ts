@@ -1,29 +1,81 @@
-import { Component, signal, inject, OnDestroy } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { HttpEvent, HttpEventType, HttpErrorResponse } from '@angular/common/http';
-import { AiService } from '../../core/services/ai';
+import { AiService, DocumentStatus, DocumentItem, GenerationCache } from '../../core/services/ai';
+import { Auth } from '../../core/services/auth';
+import type { GenerationType } from '../../core/models/content.models';
+
+const EXPORT_TYPES = new Set<GenerationType>(['kahoot', 'socrative', 'scorm'] as unknown as GenerationType[]);
 
 @Component({
   selector: 'app-upload',
   imports: [RouterLink],
   templateUrl: './upload.html',
-  styleUrl: './upload.scss'
+  styleUrl: './upload.scss',
 })
-export class Upload implements OnDestroy {
+export class Upload implements OnInit, OnDestroy {
   private aiService = inject(AiService);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
+  auth = inject(Auth);
+
+  readonly actionButtons = [
+    { type: 'quiz',      icon: 'fa-question-circle', label: 'Quiz',            desc: '30 perguntas inteligentes',  color: 'blue'   },
+    { type: 'summary',   icon: 'fa-file-alt',        label: 'Resumo',          desc: 'Pontos-chave do conteúdo',   color: 'green'  },
+    { type: 'slides',    icon: 'fa-images',          label: 'Slides GOLD',     desc: 'Apresentação premium PPTX',  color: 'purple' },
+    { type: 'mindmap',   icon: 'fa-project-diagram', label: 'Mapa Mental',     desc: 'Visualização interativa',    color: 'orange' },
+    { type: 'flashcards',icon: 'fa-clone',           label: 'Flashcards',      desc: '20 cartões de estudo',       color: 'teal'   },
+    { type: 'pcd',       icon: 'fa-universal-access',label: 'Acessível PCD',   desc: 'Linguagem simplificada',     color: 'indigo' },
+    { type: 'kahoot',    icon: 'fa-gamepad',         label: 'Kahoot',          desc: 'Download JSON pronto',       color: 'red'    },
+    { type: 'socrative', icon: 'fa-poll',            label: 'Socrative',       desc: 'Download JSON',              color: 'pink'   },
+    { type: 'scorm',     icon: 'fa-graduation-cap',  label: 'SCORM / LMS',     desc: 'Moodle, Canvas, Blackboard', color: 'gray'   },
+  ];
 
   selectedFile = signal<File | null>(null);
   isDragging = signal(false);
   uploading = signal(false);
   uploadProgress = signal(0);
+  processingProgress = signal(0);
   generating = signal(false);
+  generatingType = signal<string>('');
   errorMessage = signal('');
   uploadedDocumentId = signal<number | null>(null);
   isCompleted = signal(false);
+  recentDocuments = signal<DocumentItem[]>([]);
+  cachedGenerations = signal<GenerationCache[]>([]);
 
-  private readonly MAX_SIZE = 50 * 1024 * 1024; // 50MB
-  private pollingInterval: any;
+  private readonly MAX_SIZE = 100 * 1024 * 1024;
+  private pollingInterval: ReturnType<typeof setInterval> | null = null;
+
+  ngOnInit() {
+    this.loadDocuments();
+  }
+
+  loadDocuments() {
+    this.aiService.listDocuments().subscribe({
+      next: docs => this.recentDocuments.set(docs.filter(d => d.status === 'completed')),
+    });
+  }
+
+  selectDocument(doc: DocumentItem) {
+    this.uploadedDocumentId.set(doc.id);
+    this.isCompleted.set(true);
+    this.selectedFile.set(null);
+    this.errorMessage.set('');
+    this.loadGenerations(doc.id);
+  }
+
+  loadGenerations(documentId: number) {
+    this.aiService.listGenerations(documentId).subscribe({
+      next: gens => this.cachedGenerations.set(gens),
+      error: () => this.cachedGenerations.set([]),
+    });
+  }
+
+  isCached(type: string): boolean {
+    return this.cachedGenerations().some(g => g.type === type);
+  }
 
   onDragOver(event: DragEvent) {
     event.preventDefault();
@@ -52,7 +104,7 @@ export class Upload implements OnDestroy {
       return;
     }
     if (file.size > this.MAX_SIZE) {
-      this.errorMessage.set('Arquivo muito grande. O limite é 50MB.');
+      this.errorMessage.set('Arquivo muito grande. O limite é 100 MB.');
       return;
     }
     this.selectedFile.set(file);
@@ -73,74 +125,126 @@ export class Upload implements OnDestroy {
     this.errorMessage.set('');
 
     this.aiService.uploadFile(file).subscribe({
-      next: (event: HttpEvent<any>) => {
+      next: (event: HttpEvent<{ document_id: number; status?: string; deduplicated?: boolean }>) => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.uploadProgress.set(Math.round((event.loaded / event.total) * 100));
-        } else if (event.type === HttpEventType.Response) {
+        } else if (event.type === HttpEventType.Response && event.body) {
           this.uploading.set(false);
-          const body: any = event.body;
-          this.uploadedDocumentId.set(body.document_id);
-          this.startPolling(body.document_id);
+          this.uploadedDocumentId.set(event.body.document_id);
+          if (event.body.status === 'completed' || event.body.deduplicated) {
+            // PDF already processed (dedup hit) — ready immediately
+            this.isCompleted.set(true);
+            this.loadDocuments();
+            this.loadGenerations(event.body.document_id);
+          } else {
+            this.startPolling(event.body.document_id);
+          }
         }
       },
       error: (err: HttpErrorResponse) => {
         this.uploading.set(false);
         this.uploadProgress.set(0);
         this.errorMessage.set(this.mapError(err));
-      }
+      },
     });
   }
 
   private mapError(err: HttpErrorResponse): string {
     if (err.status === 429) return 'Limite de uso da IA atingido. Aguarde alguns segundos e tente novamente.';
-    if (err.status === 413) return 'Arquivo muito grande. O limite é 50MB.';
-    if (err.status === 0)   return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
-    return 'Erro ao enviar o arquivo. Tente novamente.';
+    if (err.status === 413) return 'Arquivo muito grande. O limite é 100 MB.';
+    if (err.status === 0) return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+    return err.error?.detail ?? 'Erro ao enviar o arquivo. Tente novamente.';
   }
 
   private startPolling(documentId: number) {
+    this.stopPolling();
     this.pollingInterval = setInterval(() => {
       this.aiService.checkStatus(documentId).subscribe({
-        next: (response: any) => {
-          if (response.status === 'completed') {
-            clearInterval(this.pollingInterval);
+        next: (status: DocumentStatus) => {
+          this.processingProgress.set(status.progress_percent ?? 0);
+          if (status.status === 'completed') {
+            this.stopPolling();
             this.isCompleted.set(true);
-          } else if (response.status === 'failed') {
-            clearInterval(this.pollingInterval);
+            this.loadDocuments();
+            this.loadGenerations(documentId);
+          } else if (status.status === 'failed') {
+            this.stopPolling();
             this.errorMessage.set('Erro ao processar o PDF. Tente novamente.');
             this.uploadedDocumentId.set(null);
           }
-        }
+        },
       });
-    }, 3000);
+    }, 2000);
   }
 
- generate(type: string) {
-    const documentId = this.uploadedDocumentId();
-    if (!documentId) return;
-
-    this.generating.set(true);
-    this.errorMessage.set('');
-
-    this.aiService.generateContent(documentId, type).subscribe({
-      next: (response: any) => {
-        this.generating.set(false);
-        console.log('[generate] resposta recebida:', type, response); // debug
-        this.router.navigate(['/resultado'], {
-          state: { result: response, type: type }
-        }).then(ok => console.log('[generate] navegou?', ok))
-          .catch(err => console.error('[generate] erro na navegação:', err));
-      },
-      error: (err) => {
-        this.generating.set(false);
-        console.error('[generate] erro na chamada:', err); // debug
-        this.errorMessage.set('Erro ao gerar conteúdo. Tente novamente.');
-      }
-    });
-  }
-  ngOnDestroy() {
+  private stopPolling() {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
     }
+  }
+
+  generate(type: GenerationType | string) {
+    const documentId = this.uploadedDocumentId();
+    if (!documentId || this.generating()) return;
+
+    // Export types: trigger download directly
+    if (type === 'kahoot' || type === 'socrative' || type === 'scorm') {
+      this.triggerExport(documentId, type as 'kahoot' | 'socrative' | 'scorm');
+      return;
+    }
+
+    this.generating.set(true);
+    this.generatingType.set(type);
+    this.errorMessage.set('');
+
+    this.aiService.generateContent(documentId, type as GenerationType).subscribe({
+      next: response => {
+        this.generating.set(false);
+        this.generatingType.set('');
+        this.loadGenerations(documentId);
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem(
+            'educore_result',
+            JSON.stringify({ result: response, type, documentId }),
+          );
+        }
+        this.router.navigate(['/resultado'], { state: { result: response, type, documentId } });
+      },
+      error: (err: HttpErrorResponse) => {
+        this.generating.set(false);
+        this.generatingType.set('');
+        this.errorMessage.set(err.error?.detail ?? 'Erro ao gerar conteúdo. Tente novamente.');
+      },
+    });
+  }
+
+  private triggerExport(documentId: number, type: 'kahoot' | 'socrative' | 'scorm') {
+    this.generating.set(true);
+    this.generatingType.set(type);
+    const ext = type === 'scorm' ? '.zip' : '.json';
+    const obs =
+      type === 'kahoot'
+        ? this.aiService.exportKahoot(documentId)
+        : type === 'socrative'
+          ? this.aiService.exportSocrative(documentId)
+          : this.aiService.exportScorm(documentId);
+
+    obs.subscribe({
+      next: blob => {
+        this.generating.set(false);
+        this.generatingType.set('');
+        this.aiService.triggerDownload(blob, `educore_${type}_${documentId}${ext}`);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.generating.set(false);
+        this.generatingType.set('');
+        this.errorMessage.set(err.error?.detail ?? `Erro ao exportar para ${type}.`);
+      },
+    });
+  }
+
+  ngOnDestroy() {
+    this.stopPolling();
   }
 }

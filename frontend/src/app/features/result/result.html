@@ -1,119 +1,144 @@
-<div class="result-page">
-  <div class="result-page__content">
+<div style="max-width:800px; margin:0 auto; padding:32px">
 
-    <a routerLink="/upload" class="result-back">
-      <i class="fas fa-arrow-left"></i> Voltar
-    </a>
+  <button (click)="goToUpload()">← Novo material</button>
 
-    @if (!data()) {
-      <div class="result-empty">
-        <i class="fas fa-inbox"></i>
-        <p>Nenhum conteúdo para exibir. Gere algo a partir de um PDF.</p>
-      </div>
-    }
-
-    <!-- ============ RESUMO ============ -->
-    @if (data() && type() === 'summary') {
-      <div class="result-summary">
-        <h1>{{ data().title }}</h1>
-        <span class="result-summary__meta">{{ data().word_count }} palavras</span>
-
-        <div class="result-summary__body">
-          @for (p of summaryParagraphs; track p) {
-            <p>{{ p }}</p>
-          }
-        </div>
-
-        <h2>Pontos principais</h2>
-        <ul class="result-summary__points">
-          @for (point of data().key_points; track point) {
-            <li><i class="fas fa-check-circle"></i> {{ point }}</li>
-          }
-        </ul>
-      </div>
-    }
-
-    <!-- ============ QUIZ INTERATIVO ============ -->
-    @if (data() && type() === 'quiz') {
-      <div class="quiz">
-
-        <!-- jogando -->
-        @if (!finished() && currentQuestion()) {
-          <div class="quiz__header">
-            <h1>{{ data().title }}</h1>
-            <span class="quiz__counter">
-              Questão {{ currentIndex() + 1 }} de {{ questions().length }}
-            </span>
-            <div class="quiz__progress">
-              <div class="quiz__progress-bar" [style.width.%]="progressPercent()"></div>
-            </div>
-          </div>
-
-          <div class="quiz__card">
-            <h2 class="quiz__question">{{ currentQuestion()!.question }}</h2>
-
-            <div class="quiz__options">
-              @for (option of currentQuestion()!.options; track option) {
-                <button
-                  class="quiz__option"
-                  [class.quiz__option--selected]="selectedAnswer() === option"
-                  [class.quiz__option--correct]="answered() && isCorrect(option)"
-                  [class.quiz__option--wrong]="answered() && selectedAnswer() === option && !isCorrect(option)"
-                  [disabled]="answered()"
-                  (click)="selectAnswer(option)">
-                  {{ option }}
-                  @if (answered() && isCorrect(option)) {
-                    <i class="fas fa-check"></i>
-                  }
-                  @if (answered() && selectedAnswer() === option && !isCorrect(option)) {
-                    <i class="fas fa-times"></i>
-                  }
-                </button>
-              }
-            </div>
-
-            @if (answered()) {
-              <div class="quiz__explanation">
-                <strong>
-                  @if (isCorrect(selectedAnswer()!)) { Correto! } @else { Resposta correta: }
-                </strong>
-                {{ currentQuestion()!.explanation }}
-              </div>
-
-              <button class="quiz__next" (click)="nextQuestion()">
-                @if (currentIndex() + 1 >= questions().length) {
-                  Ver resultado <i class="fas fa-flag-checkered"></i>
-                } @else {
-                  Próxima <i class="fas fa-arrow-right"></i>
-                }
-              </button>
-            }
-          </div>
-        }
-
-        <!-- resultado final -->
-        @if (finished()) {
-          <div class="quiz__result">
-            <div class="quiz__result-icon">
-              <i class="fas fa-trophy"></i>
-            </div>
-            <h1>Quiz concluído!</h1>
-            <p class="quiz__score">
-              Você acertou <strong>{{ score() }}</strong> de {{ questions().length }}
-            </p>
-            <div class="quiz__result-actions">
-              <button class="quiz__restart" (click)="restartQuiz()">
-                <i class="fas fa-redo"></i> Refazer quiz
-              </button>
-              <a routerLink="/upload" class="quiz__back-btn">
-                <i class="fas fa-upload"></i> Novo material
-              </a>
-            </div>
-          </div>
-        }
-
-      </div>
-    }
-
+  @if (!data()) {
+  <div style="text-align:center; margin-top:40px">
+    <p>Nenhum conteúdo para exibir. Gere algo a partir de um PDF.</p>
+    <button (click)="goToUpload()">Fazer upload</button>
   </div>
+  }
+
+  <!-- RESUMO -->
+  @if (data() && type() === 'summary') {
+  <div style="margin-top:24px">
+    <h1>{{ summaryData()!.title }}</h1>
+    <small>{{ summaryData()!.word_count }} palavras</small>
+    @for (p of summaryParagraphs(); track p) { <p>{{ p }}</p> }
+    <h2>Pontos principais</h2>
+    <ul>
+      @for (point of summaryData()!.key_points; track point) { <li>{{ point }}</li> }
+    </ul>
+  </div>
+  }
+
+  <!-- QUIZ -->
+  @if (data() && type() === 'quiz') {
+  <div style="margin-top:24px">
+    @if (!finished() && currentQuestion()) {
+    <h1>{{ quizData()!.title }}</h1>
+    <p>Questão {{ currentIndex() + 1 }} de {{ questions().length }}</p>
+    <progress [value]="progressPercent()" max="100" style="width:100%"></progress>
+
+    <h2>{{ currentQuestion()!.question }}</h2>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px">
+      @for (option of currentQuestion()!.options; track option) {
+      <button (click)="selectAnswer(option)" [disabled]="answered()" [style.background]="answered() && isCorrect(option) ? '#c8f7c5' :
+                                        answered() && selectedAnswer() === option && !isCorrect(option) ? '#f7c5c5' :
+                                        selectedAnswer() === option ? '#e0e0e0' : ''">
+        {{ option }}
+      </button>
+      }
+    </div>
+
+    @if (answered()) {
+    <p style="margin-top:16px"><strong>{{ isCorrect(selectedAnswer()!) ? 'Correto!' : 'Resposta correta:' }}</strong> {{
+      currentQuestion()!.explanation }}</p>
+    <button (click)="nextQuestion()">
+      {{ currentIndex() + 1 >= questions().length ? 'Ver resultado' : 'Próxima →' }}
+    </button>
+    }
+    }
+
+    @if (finished()) {
+    <div style="text-align:center">
+      <h1>Quiz concluído!</h1>
+      <p>Você acertou <strong>{{ score() }}</strong> de {{ questions().length }}</p>
+      <button (click)="restartQuiz()">Refazer quiz</button>
+      <button (click)="goToUpload()" style="margin-left:8px">Novo material</button>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- SLIDES -->
+  @if (data() && type() === 'slides') {
+  <div style="margin-top:24px">
+    <h1>{{ slidesData()!.title }}</h1>
+    <p>{{ slidesData()!.total_slides }} slides</p>
+    <button (click)="downloadPptx()" [disabled]="downloadingPptx()">
+      {{ downloadingPptx() ? 'Gerando PPTX...' : 'Download PPTX' }}
+    </button>
+    <div style="margin-top:24px; display:flex; flex-direction:column; gap:16px">
+      @for (slide of slidesData()!.slides; track slide.title; let i = $index) {
+      <div style="border:1px solid #ddd; padding:16px; border-radius:4px">
+        <strong>{{ i + 1 }}. {{ slide.title }}</strong>
+        <ul>
+          @for (item of slide.content; track item) { <li>{{ item }}</li> }
+        </ul>
+        @if (slide.notes) {
+        <details>
+          <summary>Notas</summary>
+          <p>{{ slide.notes }}</p>
+        </details>
+        }
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- FLASHCARDS -->
+  @if (data() && type() === 'flashcards') {
+  <div style="margin-top:24px; text-align:center">
+    <h1>{{ flashcardsData()!.title }}</h1>
+    <p>{{ cardIndex() + 1 }} / {{ flashcardsData()!.total_cards }}</p>
+    <div (click)="flipCard()"
+      style="border:2px solid #333; padding:40px; cursor:pointer; min-height:160px; display:flex; align-items:center; justify-content:center">
+      @if (!cardFlipped()) {
+      <p>{{ currentCard()?.front }}</p>
+      } @else {
+      <p>{{ currentCard()?.back }}</p>
+      }
+    </div>
+    <div style="margin-top:16px; display:flex; gap:8px; justify-content:center">
+      <button (click)="prevCard()">← Anterior</button>
+      <button (click)="nextCard()">Próximo →</button>
+    </div>
+  </div>
+  }
+
+  <!-- PCD -->
+  @if (data() && type() === 'pcd') {
+  <div style="margin-top:24px">
+    <h1>{{ pcdData()!.title }}</h1>
+    <p>Nível de leitura: <strong>{{ pcdData()!.wcag_metadata.reading_level }}</strong> | Duração: <strong>{{
+        pcdData()!.wcag_metadata.estimated_duration }}</strong></p>
+    <div style="display:flex; gap:8px; margin-bottom:16px">
+      <button (click)="setPcdTab('simplified')">Texto Simplificado</button>
+      <button (click)="setPcdTab('audio')">Roteiro de Áudio</button>
+      <button (click)="setPcdTab('vocabulary')">Vocabulário</button>
+      <button (click)="setPcdTab('libras')">LIBRAS</button>
+    </div>
+    @if (pcdTab() === 'simplified') { <p>{{ pcdData()!.simplified_text }}</p> }
+    @if (pcdTab() === 'audio') {
+    <button (click)="copyText(pcdData()!.audio_script)">Copiar roteiro</button>
+    <pre>{{ pcdData()!.audio_script }}</pre>
+    }
+    @if (pcdTab() === 'vocabulary') {
+    <dl>
+      @for (entry of pcdData()!.key_vocabulary; track entry.term) {
+      <dt><strong>{{ entry.term }}</strong></dt>
+      <dd>{{ entry.definition }}</dd>
+      }
+    </dl>
+    }
+    @if (pcdTab() === 'libras') {
+    <ul>
+      @for (s of pcdData()!.libras_suggestions; track s) { <li>{{ s }}</li> }
+    </ul>
+    }
+  </div>
+  }
+
 </div>

@@ -52,7 +52,10 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->user()->currentAccessToken();
+        if ($token) {
+            $token->delete();
+        }
 
         return response()->json([
             'message' => 'Logout realizado com sucesso.',
@@ -74,7 +77,7 @@ class AuthController extends Controller
         return response()->json(['url' => $url]);
     }
 
-    public function handleGoogleCallback(): JsonResponse
+    public function handleGoogleCallback(Request $request): JsonResponse
     {
         $googleUser = Socialite::driver('google')->stateless()->user();
 
@@ -91,8 +94,10 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:4200');
-
-        return redirect("{$frontendUrl}/auth/google/callback?token={$token}");
+        return response()->json([
+            'user'         => $user,
+            'access_token' => $token,
+            'token_type'   => 'Bearer',
+        ]);
     }
 }

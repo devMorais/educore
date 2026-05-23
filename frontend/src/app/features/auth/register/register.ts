@@ -19,6 +19,10 @@ export class Register {
 
   constructor(private authService: Auth, private router: Router) {}
 
+  loginWithGoogle() {
+    this.authService.loginWithGoogle();
+  }
+
   onSubmit() {
     if (!this.name || !this.email || !this.password || !this.passwordConfirmation) {
       this.errorMessage.set('Preencha todos os campos.');
@@ -46,7 +50,7 @@ export class Register {
     }).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/upload']);
       },
       error: (err) => {
         this.loading.set(false);

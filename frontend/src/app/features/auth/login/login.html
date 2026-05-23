@@ -1,81 +1,28 @@
-<section class="wsus__sign_in">
-  <div class="row align-items-center">
+<div class="card">
+  <h1>Entrar</h1>
 
-    <div class="col-xxl-5 col-xl-6 col-lg-6">
-      <div class="wsus__sign_img">
-        <img src="images/login_img_1.jpg" alt="login" class="img-fluid">
-        <a routerLink="/">
-          <img src="images/logo.png" alt="EduCore" class="img-fluid">
-        </a>
-      </div>
+  @if (errorMessage()) {
+  <p class="error">{{ errorMessage() }}</p>
+  }
+
+  <form (ngSubmit)="onSubmit()">
+    <div class="field">
+      <label>Email</label>
+      <input type="email" [(ngModel)]="email" name="email" required>
     </div>
-
-    <div class="col-xxl-4 col-xl-5 col-lg-6 col-md-9 m-auto">
-      <div class="wsus__sign_form_area">
-
-        <form (ngSubmit)="onSubmit()">
-          <h2>Entrar<span>!</span></h2>
-          <p class="new_user">Novo usuário? <a routerLink="/cadastro">Criar conta</a></p>
-
-          @if (errorMessage()) {
-            <div class="alert alert-danger">{{ errorMessage() }}</div>
-          }
-
-          <div class="row">
-            <div class="col-xl-12">
-              <div class="wsus__login_form_input">
-                <label>Email*</label>
-                <input
-                  type="email"
-                  placeholder="seu@email.com"
-                  [(ngModel)]="email"
-                  name="email"
-                  required>
-              </div>
-            </div>
-
-            <div class="col-xl-12">
-              <div class="wsus__login_form_input">
-                <label>Senha*</label>
-                <input
-                  type="password"
-                  placeholder="Sua senha"
-                  [(ngModel)]="password"
-                  name="password"
-                  required>
-              </div>
-            </div>
-
-            <div class="col-xl-12">
-              <div class="wsus__login_form_input">
-                <button type="submit" class="common_btn" [disabled]="loading()">
-                  @if (loading()) {
-                    Entrando...
-                  } @else {
-                    Entrar
-                  }
-                </button>
-              </div>
-            </div>
-          </div>
-        </form>
-
-        <p class="or">ou</p>
-
-        <ul class="social_login d-flex flex-wrap">
-          <li>
-            <a href="https://educore.test/api/auth/google">
-              <span><img src="images/google_icon.png" alt="Google" class="img-fluid"></span>
-              Entrar com Google
-            </a>
-          </li>
-        </ul>
-
-        <p class="create_account">Não tem conta? <a routerLink="/cadastro">Criar conta grátis</a></p>
-
-      </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" [(ngModel)]="password" name="password" required>
     </div>
+    <button class="btn" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Entrando...' : 'Entrar' }}
+    </button>
+  </form>
 
-  </div>
-  <a class="back_btn" routerLink="/">Voltar para Home</a>
-</section>
+  <button class="btn-outline" (click)="loginWithGoogle()">Entrar com Google</button>
+
+  <p class="muted">
+    Não tem conta? <a routerLink="/cadastro">Criar conta</a>
+  </p>
+  <p class="muted"><a routerLink="/">← Voltar para Home</a></p>
+</div>
