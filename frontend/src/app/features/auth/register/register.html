@@ -1,36 +1,48 @@
-<div class="card">
-  <h1>Criar conta</h1>
+<div class="login-page">
+  <div class="login-card animate">
 
-  @if (errorMessage()) {
-  <p class="error">{{ errorMessage() }}</p>
-  }
+    <div class="login-header">
+      <a routerLink="/" class="brand">⚡ EduCore</a>
+      <h1>Criar sua conta</h1>
+      <p>Comece grátis, sem cartão de crédito</p>
+    </div>
 
-  <form (ngSubmit)="onSubmit()">
-    <div class="field">
-      <label>Nome</label>
-      <input type="text" [(ngModel)]="name" name="name" required>
-    </div>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" [(ngModel)]="email" name="email" required>
-    </div>
-    <div class="field">
-      <label>Senha</label>
-      <input type="password" [(ngModel)]="password" name="password" required>
-    </div>
-    <div class="field">
-      <label>Confirmar senha</label>
-      <input type="password" [(ngModel)]="passwordConfirmation" name="passwordConfirmation" required>
-    </div>
-    <button class="btn" type="submit" [disabled]="loading()">
-      {{ loading() ? 'Criando...' : 'Criar conta' }}
+    @if (errorMessage()) {
+      <div class="alert-error">⚠️ {{ errorMessage() }}</div>
+    }
+
+    <form (ngSubmit)="onSubmit()">
+      <div class="field">
+        <label>Nome completo</label>
+        <input type="text" [(ngModel)]="name" name="name" required placeholder="Seu nome">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" [(ngModel)]="email" name="email" required placeholder="seu@email.com">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" [(ngModel)]="password" name="password" required placeholder="••••••••">
+      </div>
+      <div class="field">
+        <label>Confirmar senha</label>
+        <input type="password" [(ngModel)]="passwordConfirmation" name="passwordConfirmation" required placeholder="••••••••">
+      </div>
+      <button class="btn-primary" type="submit" [disabled]="loading()">
+        {{ loading() ? 'Criando conta...' : 'Criar conta grátis →' }}
+      </button>
+    </form>
+
+    <div class="divider"><span>ou</span></div>
+
+    <button class="btn-google" (click)="loginWithGoogle()">
+      <img src="https://www.google.com/favicon.ico" alt="Google" width="18">
+      Cadastrar com Google
     </button>
-  </form>
 
-  <button class="btn-outline" (click)="loginWithGoogle()">Cadastrar com Google</button>
+    <p class="footer-links">
+      Já tem conta? <a routerLink="/login">Entrar</a>
+    </p>
 
-  <p class="muted">
-    Já tem conta? <a routerLink="/login">Entrar</a>
-  </p>
-  <p class="muted"><a routerLink="/">← Voltar para Home</a></p>
+  </div>
 </div>
