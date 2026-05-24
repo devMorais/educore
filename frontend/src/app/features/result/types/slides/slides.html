@@ -1,0 +1,45 @@
+<div class="result-page">
+  <div class="result-page__content">
+
+    <button class="result-back" (click)="goToUpload()">← Novo material</button>
+
+    @if (!data()) {
+      <div class="result-empty">
+        <span style="font-size:3rem; display:block; margin-bottom:1rem">📭</span>
+        <p>Nenhuma apresentação para exibir. Gere uma a partir de um PDF.</p>
+        <button class="result-back" (click)="goToUpload()">Fazer upload</button>
+      </div>
+    } @else {
+      <div class="result-slides">
+        <div class="result-slides__header">
+          <h1>{{ data()!.title }}</h1>
+          <span class="result-slides__count">{{ data()!.total_slides }} slides</span>
+          <button class="result-slides__download" (click)="downloadPptx()" [disabled]="downloadingPptx()">
+            {{ downloadingPptx() ? '⏳ Gerando...' : '⬇️ Download PPTX' }}
+          </button>
+        </div>
+
+        <div class="result-slides__list">
+          @for (slide of data()!.slides; track slide.title; let i = $index) {
+            <div class="result-slide-card result-slide-card--{{ slide.layout }}">
+              <div class="result-slide-card__number">{{ i + 1 }}</div>
+              <div class="result-slide-card__body">
+                <h3>{{ slide.title }}</h3>
+                <ul>
+                  @for (item of slide.content; track item) { <li>{{ item }}</li> }
+                </ul>
+                @if (slide.notes) {
+                  <details class="result-slide-card__notes">
+                    <summary>📝 Notas</summary>
+                    <p>{{ slide.notes }}</p>
+                  </details>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

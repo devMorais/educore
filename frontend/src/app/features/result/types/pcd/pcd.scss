@@ -1,0 +1,84 @@
+.result-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding: 3rem;
+
+  &__content { max-width: 800px; margin: 0 auto; }
+}
+
+.result-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #356df1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  &:hover { text-decoration: underline; }
+}
+
+.result-empty {
+  text-align: center;
+  padding: 4rem;
+  color: #787882;
+}
+
+.result-pcd {
+  h1 { font-size: 1.5rem; font-weight: 700; color: #1e1e2f; margin-bottom: 0.5rem; }
+
+  &__wcag {
+    display: flex; gap: 1.5rem; flex-wrap: wrap;
+    font-size: 0.85rem; color: #787882; margin-bottom: 1.5rem;
+    strong { color: #1e1e2f; }
+  }
+
+  &__tabs {
+    display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+  }
+
+  &__panel {
+    background: #fff; border-radius: 12px; padding: 1.75rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  &__text { color: #4a4a5a; line-height: 1.8; font-size: 1rem; margin: 0; }
+
+  &__copy {
+    padding: 0.6rem 1.1rem; font-size: 0.85rem; margin-bottom: 1rem;
+    background: #356df1; color: #fff; border: none; border-radius: 8px; cursor: pointer;
+    &:hover { opacity: 0.9; }
+  }
+
+  &__script {
+    white-space: pre-wrap; font-family: inherit; font-size: 0.9rem;
+    color: #4a4a5a; line-height: 1.7; margin: 0;
+  }
+
+  &__glossary {
+    dt { font-weight: 700; color: #1e1e2f; margin-top: 1rem; }
+    dt:first-child { margin-top: 0; }
+    dd { margin: 0.2rem 0 0 1rem; color: #4a4a5a; font-size: 0.9rem; line-height: 1.6; }
+  }
+
+  &__libras {
+    list-style: none; padding: 0;
+    li { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.6rem 0; border-bottom: 1px solid #f0f0f8; color: #4a4a5a; line-height: 1.5; }
+    li:last-child { border-bottom: none; }
+  }
+}
+
+.pcd-tab {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.55rem 1rem; border-radius: 8px;
+  border: 1px solid #e8e8f0; background: #fff; color: #787882;
+  font-size: 0.85rem; cursor: pointer; transition: all 0.15s;
+
+  &:hover { border-color: #356df1; color: #356df1; }
+  &--active { background: #356df1; border-color: #356df1; color: #fff; }
+}
+
+@media (max-width: 768px) {
+  .result-page { padding: 1.5rem 1rem; }
+}

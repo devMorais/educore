@@ -1,0 +1,67 @@
+<div class="result-page">
+  <div class="result-page__content">
+
+    <button class="result-back" (click)="goToUpload()">← Novo material</button>
+
+    @if (!data()) {
+      <div class="result-empty">
+        <span style="font-size:3rem; display:block; margin-bottom:1rem">📭</span>
+        <p>Nenhum quiz para exibir. Gere um a partir de um PDF.</p>
+        <button class="result-back" (click)="goToUpload()">Fazer upload</button>
+      </div>
+    } @else {
+
+      @if (!finished() && currentQuestion()) {
+        <div class="quiz__header">
+          <h1>{{ data()!.title }}</h1>
+          <span class="quiz__counter">Questão {{ currentIndex() + 1 }} de {{ questions().length }}</span>
+          <div class="quiz__progress">
+            <div class="quiz__progress-bar" [style.width.%]="progressPercent()"></div>
+          </div>
+        </div>
+
+        <div class="quiz__card">
+          <p class="quiz__question">{{ currentQuestion()!.question }}</p>
+          <div class="quiz__options">
+            @for (option of currentQuestion()!.options; track option) {
+              <button class="quiz__option"
+                [class.quiz__option--selected]="selectedAnswer() === option && !answered()"
+                [class.quiz__option--correct]="answered() && isCorrect(option)"
+                [class.quiz__option--wrong]="answered() && selectedAnswer() === option && !isCorrect(option)"
+                (click)="selectAnswer(option)"
+                [disabled]="answered()">
+                {{ option }}
+                @if (answered() && isCorrect(option)) { ✅ }
+                @if (answered() && selectedAnswer() === option && !isCorrect(option)) { ❌ }
+              </button>
+            }
+          </div>
+
+          @if (answered()) {
+            <div class="quiz__explanation">
+              <strong>{{ isCorrect(selectedAnswer()!) ? '🎉 Correto!' : '💡 Resposta correta:' }}</strong>
+              {{ currentQuestion()!.explanation }}
+            </div>
+            <button class="quiz__next" (click)="nextQuestion()">
+              {{ currentIndex() + 1 >= questions().length ? 'Ver resultado 🏁' : 'Próxima →' }}
+            </button>
+          }
+        </div>
+      }
+
+      @if (finished()) {
+        <div class="quiz__result">
+          <div class="quiz__result-icon">🏆</div>
+          <h1>Quiz concluído!</h1>
+          <p class="quiz__score">Você acertou <strong>{{ score() }}</strong> de {{ questions().length }}</p>
+          <div class="quiz__result-actions">
+            <button class="quiz__restart" (click)="restartQuiz()">🔁 Refazer quiz</button>
+            <button class="quiz__back-btn" (click)="goToUpload()">← Novo material</button>
+          </div>
+        </div>
+      }
+
+    }
+
+  </div>
+</div>

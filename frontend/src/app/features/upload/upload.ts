@@ -1,12 +1,10 @@
-import { Component, signal, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { HttpEvent, HttpEventType, HttpErrorResponse } from '@angular/common/http';
 import { AiService, DocumentStatus, DocumentItem, GenerationCache } from '../../core/services/ai';
 import { Auth } from '../../core/services/auth';
 import type { GenerationType } from '../../core/models/content.models';
-
-const EXPORT_TYPES = new Set<GenerationType>(['kahoot', 'socrative', 'scorm'] as unknown as GenerationType[]);
+import { ResultStore } from '../../core/services/result-store';
 
 @Component({
   selector: 'app-upload',
@@ -17,19 +15,19 @@ const EXPORT_TYPES = new Set<GenerationType>(['kahoot', 'socrative', 'scorm'] as
 export class Upload implements OnInit, OnDestroy {
   private aiService = inject(AiService);
   private router = inject(Router);
-  private platformId = inject(PLATFORM_ID);
+  private store = inject(ResultStore);
   auth = inject(Auth);
 
   readonly actionButtons = [
-    { type: 'quiz',      icon: 'fa-question-circle', label: 'Quiz',            desc: '30 perguntas inteligentes',  color: 'blue'   },
-    { type: 'summary',   icon: 'fa-file-alt',        label: 'Resumo',          desc: 'Pontos-chave do conteúdo',   color: 'green'  },
-    { type: 'slides',    icon: 'fa-images',          label: 'Slides GOLD',     desc: 'Apresentação premium PPTX',  color: 'purple' },
-    { type: 'mindmap',   icon: 'fa-project-diagram', label: 'Mapa Mental',     desc: 'Visualização interativa',    color: 'orange' },
-    { type: 'flashcards',icon: 'fa-clone',           label: 'Flashcards',      desc: '20 cartões de estudo',       color: 'teal'   },
-    { type: 'pcd',       icon: 'fa-universal-access',label: 'Acessível PCD',   desc: 'Linguagem simplificada',     color: 'indigo' },
-    { type: 'kahoot',    icon: 'fa-gamepad',         label: 'Kahoot',          desc: 'Download JSON pronto',       color: 'red'    },
-    { type: 'socrative', icon: 'fa-poll',            label: 'Socrative',       desc: 'Download JSON',              color: 'pink'   },
-    { type: 'scorm',     icon: 'fa-graduation-cap',  label: 'SCORM / LMS',     desc: 'Moodle, Canvas, Blackboard', color: 'gray'   },
+    { type: 'quiz', icon: 'fa-question-circle', label: 'Quiz', desc: '30 perguntas inteligentes', color: 'blue' },
+    { type: 'summary', icon: 'fa-file-alt', label: 'Resumo', desc: 'Pontos-chave do conteúdo', color: 'green' },
+    { type: 'slides', icon: 'fa-images', label: 'Slides GOLD', desc: 'Apresentação premium PPTX', color: 'purple' },
+    { type: 'mindmap', icon: 'fa-project-diagram', label: 'Mapa Mental', desc: 'Visualização interativa', color: 'orange' },
+    { type: 'flashcards', icon: 'fa-clone', label: 'Flashcards', desc: '20 cartões de estudo', color: 'teal' },
+    { type: 'pcd', icon: 'fa-universal-access', label: 'Acessível PCD', desc: 'Linguagem simplificada', color: 'indigo' },
+    { type: 'kahoot', icon: 'fa-gamepad', label: 'Kahoot', desc: 'Download JSON pronto', color: 'red' },
+    { type: 'socrative', icon: 'fa-poll', label: 'Socrative', desc: 'Download JSON', color: 'pink' },
+    { type: 'scorm', icon: 'fa-graduation-cap', label: 'SCORM / LMS', desc: 'Moodle, Canvas, Blackboard', color: 'gray' },
   ];
 
   selectedFile = signal<File | null>(null);
@@ -188,7 +186,6 @@ export class Upload implements OnInit, OnDestroy {
     const documentId = this.uploadedDocumentId();
     if (!documentId || this.generating()) return;
 
-    // Export types: trigger download directly
     if (type === 'kahoot' || type === 'socrative' || type === 'scorm') {
       this.triggerExport(documentId, type as 'kahoot' | 'socrative' | 'scorm');
       return;
@@ -203,13 +200,8 @@ export class Upload implements OnInit, OnDestroy {
         this.generating.set(false);
         this.generatingType.set('');
         this.loadGenerations(documentId);
-        if (isPlatformBrowser(this.platformId)) {
-          localStorage.setItem(
-            'educore_result',
-            JSON.stringify({ result: response, type, documentId }),
-          );
-        }
-        this.router.navigate(['/resultado'], { state: { result: response, type, documentId } });
+        this.store.set({ result: response, type: type as GenerationType, documentId });
+        this.router.navigate(['/resultado', type]);
       },
       error: (err: HttpErrorResponse) => {
         this.generating.set(false);

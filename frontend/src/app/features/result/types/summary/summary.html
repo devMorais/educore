@@ -1,0 +1,31 @@
+<div class="result-page">
+    <div class="result-page__content">
+
+        <button class="result-back" (click)="goToUpload()">← Novo material</button>
+
+        @if (!data()) {
+        <div class="result-empty">
+            <span style="font-size:3rem; display:block; margin-bottom:1rem">📭</span>
+            <p>Nenhum resumo para exibir. Gere um a partir de um PDF.</p>
+            <button class="result-back" (click)="goToUpload()">Fazer upload</button>
+        </div>
+        } @else {
+        <div class="result-summary">
+            <h1>{{ data()!.title }}</h1>
+            <span class="result-summary__meta">{{ data()!.word_count }} palavras</span>
+
+            <div class="result-summary__body">
+                @for (p of paragraphs(); track p) { <p>{{ p }}</p> }
+            </div>
+
+            <h2>Pontos principais</h2>
+            <ul class="result-summary__points">
+                @for (point of data()!.key_points; track point) {
+                <li>✅ {{ point }}</li>
+                }
+            </ul>
+        </div>
+        }
+
+    </div>
+</div>
