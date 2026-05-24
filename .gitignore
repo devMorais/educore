@@ -12,15 +12,19 @@ frontend/node_modules/
 frontend/dist/
 frontend/.angular/
 
-# Sistema
-.DS_Store
-Thumbs.db
-
 # AI Service
 ai-service/.env
 ai-service/venv/
 ai-service/__pycache__/
-ai-service/*.pycai-service/uploads/ 
-ai-service/google-credentials.json 
-"node_modules/" 
-"ai-service/package-lock.json" 
+ai-service/**/__pycache__/
+ai-service/*.pyc
+ai-service/uploads/
+ai-service/google-credentials.json
+ai-service/package-lock.json
+
+# Node
+node_modules/
+
+# Sistema
+.DS_Store
+Thumbs.db
