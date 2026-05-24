@@ -1,226 +1,49 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$educore-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$violet-palette,
+    tertiary: mat.$orange-palette,
+  ),
+  typography: (
+    brand-family: 'Inter, sans-serif',
+  ),
+));
+
+:root {
+  @include mat.all-component-themes($educore-theme);
+
+  --color-primary: #7C3AED;
+  --color-primary-dark: #5B21B6;
+  --color-primary-light: #EDE9FE;
+  --color-accent: #F97316;
+  --color-accent-light: #FFF7ED;
+  --color-bg: #FAFAFA;
+  --color-surface: #FFFFFF;
+  --color-text: #1A1A2E;
+  --color-text-muted: #64748B;
+  --color-border: #E2E8F0;
+  --radius: 12px;
+  --shadow: 0 4px 24px rgba(124, 58, 237, 0.08);
+}
+
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  font-family: system-ui, sans-serif;
-  margin: 0;
-  line-height: 1.5;
-  background: #fff;
-  color: #222;
-}
-
-app-root {
-  display: block;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 40px 24px;
+  font-family: 'Inter', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
 }
 
 a {
-  color: #0066cc;
-}
-
-/* ---- cartões de formulário (login / cadastro) ---- */
-.card {
-  max-width: 380px;
-  margin: 40px auto;
-  padding: 32px;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.card h1 {
-  margin: 0 0 24px;
-  font-size: 24px;
-  text-align: center;
-}
-
-.field {
-  margin-bottom: 16px;
-}
-
-.field label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 13px;
-  color: #555;
-}
-
-.field input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-.field input:focus {
-  outline: none;
-  border-color: #0066cc;
-}
-
-.btn {
-  width: 100%;
-  padding: 11px;
-  border: none;
-  border-radius: 8px;
-  background: #0066cc;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.btn:disabled {
-  opacity: .6;
-  cursor: default;
-}
-
-.btn-outline {
-  width: 100%;
-  padding: 11px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
-  color: #333;
-  font-size: 14px;
-  margin-top: 10px;
-  cursor: pointer;
-}
-
-.error {
-  color: #c00;
-  font-size: 14px;
-  margin-bottom: 16px;
-  text-align: center;
-}
-
-.muted {
-  text-align: center;
-  font-size: 14px;
-  margin-top: 16px;
-}
-
-/* ---- layout do Upload (tela cheia) ---- */
-.upload-layout {
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
-  min-height: calc(100vh - 80px);
-  display: flex;
-}
-
-.upload-sidebar {
-  width: 260px;
-  background: #f7f8fa;
-  border-right: 1px solid #e5e5e5;
-  padding: 24px 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-.upload-sidebar .brand {
-  font-weight: 700;
-  font-size: 18px;
+  color: var(--color-primary);
   text-decoration: none;
-  color: #111;
-}
-
-.upload-sidebar .nav-link {
-  display: block;
-  margin-top: 16px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  text-decoration: none;
-  color: #0066cc;
-}
-
-.upload-sidebar .recent-title {
-  margin: 28px 0 8px;
-  font-size: 13px;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-
-.upload-sidebar .recent-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.upload-sidebar .recent-list li {
-  padding: 8px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #444;
-}
-
-.upload-sidebar .recent-list li:hover {
-  background: #eceef1;
-}
-
-.upload-sidebar .recent-list li.active {
-  background: #e3edfb;
-  color: #0066cc;
-  font-weight: 600;
-}
-
-.upload-main {
-  flex: 1;
-  padding: 40px 48px;
-}
-
-.upload-main h1 {
-  margin: 0 0 6px;
-}
-
-.upload-main .subtitle {
-  color: #666;
-  margin: 0 0 28px;
-}
-
-.dropzone {
-  border: 2px dashed #c4c9d0;
-  border-radius: 12px;
-  padding: 56px 24px;
-  text-align: center;
-  cursor: pointer;
-  background: #fafbfc;
-  transition: border-color .15s, background .15s;
-}
-
-.dropzone:hover {
-  border-color: #0066cc;
-  background: #f5f9ff;
-}
-
-.dropzone small {
-  color: #999;
-}
-
-.action-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-}
-
-.action-card {
-  padding: 18px 22px;
-  min-width: 150px;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  background: #fff;
-  cursor: pointer;
-  text-align: left;
-  font-size: 15px;
-}
-
-.action-card:hover {
-  border-color: #0066cc;
-}
-
-.action-card small {
-  color: #888;
 }

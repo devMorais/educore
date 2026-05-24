@@ -1,0 +1,22 @@
+<p>navbar works!</p>
+<nav class="navbar">
+  <div class="navbar-container">
+
+    <a routerLink="/" class="navbar-brand">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-name">EduCore</span>
+    </a>
+
+    <div class="navbar-links">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Início</a>
+      <a href="#features">Funcionalidades</a>
+      <a href="#pricing">Planos</a>
+    </div>
+
+    <div class="navbar-actions">
+      <a routerLink="/login" class="btn-ghost">Entrar</a>
+      <a routerLink="/cadastro" class="btn-primary">Começar grátis</a>
+    </div>
+
+  </div>
+</nav>
