@@ -1,97 +1,156 @@
-<div class="upload-layout">
+<div class="up-layout">
 
-  <aside class="upload-sidebar">
-    <a routerLink="/" class="brand">EduCore</a>
-    <a routerLink="/upload" class="nav-link">Upload de PDF</a>
+  <!-- SIDEBAR -->
+  <aside class="up-sidebar">
+    <a routerLink="/" class="up-sidebar__logo">
+      <span class="brand-name">⚡ EduCore</span>
+    </a>
+
+    <nav class="up-sidebar__nav">
+      <a routerLink="/upload" class="up-sidebar__link active">
+        📄 Upload de PDF
+      </a>
+    </nav>
 
     @if (recentDocuments().length > 0) {
-    <p class="recent-title">Materiais recentes</p>
-    <ul class="recent-list">
-      @for (doc of recentDocuments(); track doc.id) {
-      <li (click)="selectDocument(doc)" [class.active]="uploadedDocumentId() === doc.id">
-        {{ doc.filename }}
-      </li>
-      }
-    </ul>
+      <p class="up-sidebar__section-label">📁 Materiais recentes</p>
+      <div class="up-sidebar__history">
+        <ul>
+          @for (doc of recentDocuments(); track doc.id) {
+            <li class="up-sidebar__doc"
+                [class.is-active]="uploadedDocumentId() === doc.id"
+                (click)="selectDocument(doc)">
+              📕 <span>{{ doc.filename }}</span>
+            </li>
+          }
+        </ul>
+      </div>
     }
 
-    <div style="margin-top:auto; padding-top:16px">
-      <button class="btn-outline" (click)="auth.logout()">Sair</button>
+    <div class="up-sidebar__footer">
+      <button class="up-sidebar__logout" (click)="auth.logout()">
+        🚪 Sair
+      </button>
     </div>
   </aside>
 
-  <main class="upload-main">
+  <!-- MAIN -->
+  <main class="up-main">
 
-    <header>
+    <div class="up-main__header">
       @if (isCompleted()) {
-      <h1>Pronto! Escolha o que gerar</h1>
-      <button class="btn-outline" style="width:auto; padding:8px 16px"
-        (click)="uploadedDocumentId.set(null); isCompleted.set(false); selectedFile.set(null); cachedGenerations.set([])">
-        Enviar novo PDF
-      </button>
+        <h1>✅ Pronto! Escolha o que gerar</h1>
+        <button class="up-link-btn"
+          (click)="uploadedDocumentId.set(null); isCompleted.set(false); selectedFile.set(null); cachedGenerations.set([])">
+          + Enviar novo PDF
+        </button>
       } @else {
-      <h1>Novo Material</h1>
-      <p class="subtitle">Faça upload do seu PDF e deixe a IA gerar o conteúdo educacional</p>
+        <h1>Novo Material</h1>
+        <p>Faça upload do seu PDF e deixe a IA gerar o conteúdo educacional</p>
       }
-    </header>
+    </div>
 
+    <!-- DROPZONE -->
     @if (!uploadedDocumentId()) {
-    <section>
-      <div class="dropzone" (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)"
-        (click)="fileInput.click()">
-        <input #fileInput type="file" accept=".pdf" hidden (change)="onFileSelected($event)">
-        @if (!selectedFile()) {
-        <p>Arraste seu PDF aqui ou clique para selecionar</p>
-        <small>Apenas PDF • Máximo 100 MB</small>
-        } @else {
-        <p><strong>{{ selectedFile()!.name }}</strong></p>
-        <small>{{ formatFileSize(selectedFile()!.size) }}</small>
+      <div class="up-card">
+        <div class="up-dropzone"
+             [class.is-dragging]="isDragging()"
+             (dragover)="onDragOver($event)"
+             (dragleave)="onDragLeave()"
+             (drop)="onDrop($event)"
+             (click)="fileInput.click()">
+          <input #fileInput type="file" accept=".pdf" hidden (change)="onFileSelected($event)">
+
+          @if (!selectedFile()) {
+            <div class="up-dropzone__icon">📂</div>
+            <h3>Arraste seu PDF aqui</h3>
+            <p>ou clique para selecionar</p>
+            <span class="up-dropzone__chip">PDF • Máximo 100 MB</span>
+          } @else {
+            <div class="up-dropzone__selected">
+              <span style="font-size:2.2rem">📄</span>
+              <div>
+                <strong>{{ selectedFile()!.name }}</strong>
+                <small>{{ formatFileSize(selectedFile()!.size) }}</small>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (errorMessage()) {
+          <div class="up-alert">⚠️ {{ errorMessage() }}</div>
+        }
+
+        @if (selectedFile()) {
+          <button class="up-btn-primary" (click)="uploadFile()" [disabled]="uploading()">
+            {{ uploading() ? 'Enviando ' + uploadProgress() + '%...' : '🚀 Enviar e Processar' }}
+          </button>
+          @if (uploading()) {
+            <div class="up-progress">
+              <div class="up-progress__fill" [style.width.%]="uploadProgress()"></div>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- PROCESSANDO -->
+    @if (uploadedDocumentId() && !isCompleted()) {
+      <div class="up-card up-card--center">
+        <div class="up-processing">
+          <span style="font-size:2.5rem; display:block; margin-bottom:1rem">⚙️</span>
+          <h3>Processando com IA...</h3>
+          @if (processingProgress() > 0) {
+            <p>{{ processingProgress() }}% das páginas analisadas</p>
+            <div class="up-progress" style="margin-top:1rem">
+              <div class="up-progress__fill" [style.width.%]="processingProgress()"></div>
+            </div>
+          } @else {
+            <p>Iniciando análise do documento...</p>
+            <div class="up-progress" style="margin-top:1rem">
+              <div class="up-progress__fill up-progress__fill--anim"></div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- AÇÕES -->
+    @if (isCompleted()) {
+      <div class="up-grid">
+        @for (btn of actionButtons; track btn.type) {
+          <button class="up-action up-action--{{ btn.color }}"
+                  [class.is-cached]="isCached(btn.type)"
+                  (click)="generate(btn.type)"
+                  [disabled]="generating()">
+            <span class="up-action__icon">
+              @switch (btn.type) {
+                @case ('quiz')       { 🧠 }
+                @case ('summary')    { 📄 }
+                @case ('slides')     { 🎯 }
+                @case ('mindmap')    { 🗺️ }
+                @case ('flashcards') { 🃏 }
+                @case ('pcd')        { ♿ }
+                @case ('kahoot')     { 🎮 }
+                @case ('socrative')  { 📊 }
+                @case ('scorm')      { 🎓 }
+              }
+            </span>
+            <strong>{{ btn.label }}</strong>
+            <small>{{ btn.desc }}</small>
+            @if (isCached(btn.type)) {
+              <span class="up-action__cache-badge">⚡ Cache</span>
+            }
+            @if (generatingType() === btn.type) {
+              <span class="up-action__spinner">⏳</span>
+            }
+          </button>
         }
       </div>
 
       @if (errorMessage()) {
-      <p class="error" style="text-align:left">{{ errorMessage() }}</p>
+        <div class="up-alert up-alert--mt">⚠️ {{ errorMessage() }}</div>
       }
-
-      @if (selectedFile()) {
-      <button class="btn" style="width:auto; padding:11px 24px; margin-top:16px" (click)="uploadFile()"
-        [disabled]="uploading()">
-        {{ uploading() ? 'Enviando ' + uploadProgress() + '%' : 'Enviar e Processar' }}
-      </button>
-      @if (uploading()) {
-      <progress [value]="uploadProgress()" max="100" style="width:100%; display:block; margin-top:8px"></progress>
-      }
-      }
-    </section>
-    }
-
-    @if (uploadedDocumentId() && !isCompleted()) {
-    <section style="text-align:center; padding:40px">
-      <p>Processando com IA...</p>
-      @if (processingProgress() > 0) {
-      <p>{{ processingProgress() }}% das páginas analisadas</p>
-      <progress [value]="processingProgress()" max="100" style="width:100%"></progress>
-      } @else {
-      <p>Iniciando análise do documento...</p>
-      }
-    </section>
-    }
-
-    @if (isCompleted()) {
-    <section class="action-grid" style="margin-top:8px">
-      @for (btn of actionButtons; track btn.type) {
-      <button class="action-card" (click)="generate(btn.type)" [disabled]="generating()">
-        <strong>{{ btn.label }}</strong><br>
-        <small>{{ btn.desc }}</small>
-        @if (generatingType() === btn.type) { <br><small>Gerando...</small> }
-        @if (isCached(btn.type)) { <br><small>⚡ Cache</small> }
-      </button>
-      }
-    </section>
-
-    @if (errorMessage()) {
-    <p class="error" style="text-align:left; margin-top:16px">{{ errorMessage() }}</p>
-    }
     }
 
   </main>
