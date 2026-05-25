@@ -2,6 +2,27 @@
 
   <!-- HERO -->
   <section class="hero">
+
+    <!-- Elementos flutuantes -->
+    <div class="hero-float hero-float--1">
+      <img src="images/banner_feature_icon_1.png" alt="">
+    </div>
+    <div class="hero-float hero-float--2">
+      <img src="images/banner_feature_icon_2.png" alt="">
+    </div>
+    <div class="hero-float hero-float--3">
+      <img src="images/banner_feature_icon_3.png" alt="">
+    </div>
+    <div class="hero-float hero-float--4">
+      <img src="images/badge_1.png" alt="">
+    </div>
+    <div class="hero-float hero-float--5">
+      <img src="images/badge_2.png" alt="">
+    </div>
+    <div class="hero-float hero-float--6">
+      <img src="images/badge_3.png" alt="">
+    </div>
+
     <div class="hero-container">
       <div class="hero-badge animate">
         <svg lucideIcon="sparkles" class="badge-icon"></svg>
@@ -50,6 +71,81 @@
     </div>
   </section>
 
+  <!-- COMO FUNCIONA -->
+  <section class="how-it-works">
+    <div class="section-container">
+      <div class="how-grid">
+        <div class="how-image animate">
+          <img src="images/banner_img.png" alt="Professor usando EduCore">
+        </div>
+        <div class="how-content animate">
+          <div class="how-badge">Como funciona</div>
+          <h2>Do PDF à aula completa <span class="gradient-text">em 3 passos</span></h2>
+          <div class="how-steps">
+            <div class="how-step">
+              <div class="step-number">1</div>
+              <div>
+                <h4>Faça upload do PDF</h4>
+                <p>Envie qualquer material didático em PDF — apostilas, artigos, livros.</p>
+              </div>
+            </div>
+            <div class="how-step">
+              <div class="step-number">2</div>
+              <div>
+                <h4>A IA processa tudo</h4>
+                <p>Nossa IA analisa o conteúdo e gera slides, quizzes, resumos e muito mais.</p>
+              </div>
+            </div>
+            <div class="how-step">
+              <div class="step-number">3</div>
+              <div>
+                <h4>Baixe e aplique</h4>
+                <p>Exporte para PowerPoint, Kahoot, SCORM e aplique com seus alunos.</p>
+              </div>
+            </div>
+          </div>
+          <a routerLink="/cadastro" class="btn-primary">Experimentar agora →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROFESSORES -->
+  <section class="instructors">
+    <div class="section-container">
+      <div class="section-header animate">
+        <h2>Feito para <span class="gradient-text">professores reais</span></h2>
+        <p>Quem já usa o EduCore economiza horas toda semana.</p>
+      </div>
+      <div class="instructors-grid">
+        <div class="instructor-card animate">
+          <img src="images/instructor_1.jpg" alt="Professor">
+          <div class="instructor-info">
+            <h4>Ana Silva</h4>
+            <p>Professora de Biologia</p>
+            <span>"Reduzi meu tempo de preparação de 4 horas para 20 minutos."</span>
+          </div>
+        </div>
+        <div class="instructor-card animate">
+          <img src="images/instructor_2.jpg" alt="Professor">
+          <div class="instructor-info">
+            <h4>Carlos Mendes</h4>
+            <p>Professor de História</p>
+            <span>"Meus alunos adoraram os quizzes gerados automaticamente."</span>
+          </div>
+        </div>
+        <div class="instructor-card animate">
+          <img src="images/instructor_3.jpg" alt="Professor">
+          <div class="instructor-info">
+            <h4>Maria Costa</h4>
+            <p>Professora de Matemática</p>
+            <span>"A acessibilidade para PcD mudou a vida dos meus alunos."</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- PLANOS -->
   <section class="pricing" id="pricing">
     <div class="section-container">
@@ -70,7 +166,6 @@
           </ul>
           <a routerLink="/cadastro" class="btn-outline">Começar grátis</a>
         </div>
-
         <div class="pricing-card featured animate">
           <div class="plan-badge">Mais popular</div>
           <div class="plan-name">Pro</div>
@@ -84,7 +179,6 @@
           </ul>
           <a routerLink="/cadastro" class="btn-primary">Assinar Pro</a>
         </div>
-
         <div class="pricing-card animate">
           <div class="plan-name">Escola</div>
           <div class="plan-price">R$ 199<span>/mês</span></div>
