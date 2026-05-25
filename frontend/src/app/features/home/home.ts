@@ -1,9 +1,10 @@
 import { Component, AfterViewInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LucideDynamicIcon } from '@lucide/angular';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink],
+  imports: [RouterLink, LucideDynamicIcon],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
