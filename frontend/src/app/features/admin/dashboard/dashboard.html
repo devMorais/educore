@@ -1,0 +1,74 @@
+<div class="dashboard">
+
+  <div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Bem-vinda, {{ userName() }}! Aqui está o resumo da plataforma.</p>
+  </div>
+
+  <!-- CARDS DE MÉTRICAS -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-icon blue">
+        <i class="pi pi-users"></i>
+      </div>
+      <div class="metric-info">
+        <span class="metric-value">248</span>
+        <span class="metric-label">Total de Usuários</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon purple">
+        <i class="pi pi-user"></i>
+      </div>
+      <div class="metric-info">
+        <span class="metric-value">42</span>
+        <span class="metric-label">Professores</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon green">
+        <i class="pi pi-graduation-cap"></i>
+      </div>
+      <div class="metric-info">
+        <span class="metric-value">206</span>
+        <span class="metric-label">Alunos</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon orange">
+        <i class="pi pi-file-pdf"></i>
+      </div>
+      <div class="metric-info">
+        <span class="metric-value">1.340</span>
+        <span class="metric-label">PDFs Processados</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRÁFICO + ATIVIDADES -->
+  <div class="content-grid">
+
+    <div class="card">
+      <h3>Uploads por semana</h3>
+      <p-chart type="bar" [data]="chartData" [options]="chartOptions" height="280px"></p-chart>
+    </div>
+
+    <div class="card">
+      <h3>Atividades recentes</h3>
+      <div class="activity-list">
+        @for (item of activities; track item.id) {
+          <div class="activity-item">
+            <p-avatar [label]="item.initial" shape="circle" [style]="{'background-color': item.color, 'color': '#fff'}"></p-avatar>
+            <div class="activity-info">
+              <span class="activity-name">{{ item.name }}</span>
+              <span class="activity-desc">{{ item.action }}</span>
+            </div>
+            <span class="activity-time">{{ item.time }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+
+</div>

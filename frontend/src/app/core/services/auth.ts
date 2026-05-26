@@ -85,11 +85,10 @@ export class Auth {
   logout() {
     this.http
       .post(`${this.baseUrl}/auth/logout`, {})
-      .subscribe({ error: () => {} });
+      .subscribe({ error: () => { } });
     this.clearSession();
   }
 
-  /** Called by authInterceptor on 401 and by logout() */
   clearSession() {
     if (this.isBrowser()) {
       localStorage.removeItem('token');
@@ -99,6 +98,9 @@ export class Auth {
     this.isLoggedIn.set(false);
     this.currentUser.set(null);
     this.router.navigate(['/login']);
+  }
+  forgotPassword(email: string) {
+    return this.http.post(`${this.baseUrl}/auth/forgot-password`, { email });
   }
 
   getToken(): string | null {

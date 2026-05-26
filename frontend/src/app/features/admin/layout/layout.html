@@ -1,0 +1,30 @@
+<div class="admin-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo">
+      <a routerLink="/">⚡ EduCore</a>
+    </div>
+
+    <nav class="sidebar-nav">
+      <p-panelMenu [model]="menuItems" styleClass="sidebar-menu"></p-panelMenu>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <p-avatar [label]="userInitial()" shape="circle" styleClass="user-avatar"></p-avatar>
+        <div class="user-info">
+          <span class="user-name">{{ userName() }}</span>
+          <span class="user-role">Administrador</span>
+        </div>
+      </div>
+      <p-button icon="pi pi-sign-out" severity="secondary" [text]="true" (onClick)="logout()" pTooltip="Sair"></p-button>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO -->
+  <main class="admin-content">
+    <router-outlet></router-outlet>
+  </main>
+
+</div>

@@ -20,6 +20,9 @@
         <label>Senha</label>
         <input type="password" [(ngModel)]="password" name="password" required placeholder="••••••••">
       </div>
+      <div class="forgot-password">
+        <a routerLink="/esqueci-senha">Esqueceu a senha?</a>
+      </div>
       <button class="btn-primary" type="submit" [disabled]="loading()">
         {{ loading() ? 'Entrando...' : 'Entrar →' }}
       </button>

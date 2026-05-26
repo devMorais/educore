@@ -628,4 +628,94 @@
 
 .pricing-card.animate:nth-child(3) {
   transition-delay: 0.4s;
+}  
+/* ANIMACAO DOS ICONES DOS FEATURE CARDS */
+.feature-card:nth-child(1) .feature-icon svg {
+  animation: iconBounce 3s ease-in-out infinite;
+}
+
+.feature-card:nth-child(2) .feature-icon svg {
+  animation: iconBounce 3s ease-in-out infinite 0.4s;
+}
+
+.feature-card:nth-child(3) .feature-icon svg {
+  animation: iconBounce 3s ease-in-out infinite 0.8s;
+}
+
+.feature-card:nth-child(4) .feature-icon svg {
+  animation: iconBounce 3s ease-in-out infinite 1.2s;
+}
+
+@keyframes iconBounce {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  40% {
+    transform: translateY(-6px) scale(1.1);
+  }
+  60% {
+    transform: translateY(-4px) scale(1.05);
+  }
+}
+.feature-card:hover .feature-icon {
+  background: var(--color-primary);
+  transition: background 0.3s ease;
+
+  svg {
+    color: #fff;
+    animation: iconSpin 0.5s ease forwards;
+  }
+}
+
+@keyframes iconSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(15deg) scale(1.2); }
+  100% { transform: rotate(0deg) scale(1.1); }
+}
+
+.feature-card:hover .feature-icon {
+  background: var(--color-primary);
+  transition: background 0.3s ease;
+
+  svg {
+    color: #fff;
+    animation: iconSpin 0.5s ease forwards;
+  }
+}
+
+@keyframes iconSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(15deg) scale(1.2); }
+  100% { transform: rotate(0deg) scale(1.1); }
+}
+/* ANIMACAO DO FUNDO DO ICONE */
+.feature-card:nth-child(1) .feature-icon {
+  animation: iconBgPulse 3s ease-in-out infinite;
+}
+
+.feature-card:nth-child(2) .feature-icon {
+  animation: iconBgPulse 3s ease-in-out infinite 0.4s;
+}
+
+.feature-card:nth-child(3) .feature-icon {
+  animation: iconBgPulse 3s ease-in-out infinite 0.8s;
+}
+
+.feature-card:nth-child(4) .feature-icon {
+  animation: iconBgPulse 3s ease-in-out infinite 1.2s;
+}
+
+@keyframes iconBgPulse {
+  0%, 100% {
+    background: var(--color-primary-light);
+    transform: scale(1) rotate(0deg);
+  }
+  40% {
+    background: rgba(124, 58, 237, 0.2);
+    transform: scale(1.12) rotate(3deg);
+  }
+  60% {
+    background: rgba(124, 58, 237, 0.15);
+    transform: scale(1.08) rotate(-2deg);
+  }
 }

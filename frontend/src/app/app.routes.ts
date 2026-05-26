@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { Home } from './features/home/home';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
+import { ForgotPassword } from './features/auth/forgot-password/forgot-password';
 import { Upload } from './features/upload/upload';
 import { Result } from './features/result/result';
 import { GoogleCallback } from './features/auth/google-callback/google-callback';
@@ -13,11 +14,19 @@ import { Slides } from './features/result/types/slides/slides';
 import { Mindmap } from './features/result/types/mindmap/mindmap';
 import { Flashcards } from './features/result/types/flashcards/flashcards';
 import { Pcd } from './features/result/types/pcd/pcd';
+import { Layout } from './features/admin/layout/layout';
+import { Dashboard } from './features/admin/dashboard/dashboard';
+import { Users } from './features/admin/users/users';
+import { Professors } from './features/admin/professors/professors';
+import { Students } from './features/admin/students/students';
+import { Chat } from './features/admin/chat/chat';
+import { Forum } from './features/admin/forum/forum';
 
 export const routes: Routes = [
   { path: '', component: Home },
   { path: 'login', component: Login, canActivate: [guestGuard] },
   { path: 'cadastro', component: Register, canActivate: [guestGuard] },
+  { path: 'esqueci-senha', component: ForgotPassword, canActivate: [guestGuard] },
   { path: 'auth/google/callback', component: GoogleCallback },
   { path: 'upload', component: Upload, canActivate: [authGuard] },
   {
@@ -31,6 +40,19 @@ export const routes: Routes = [
       { path: 'flashcards', component: Flashcards },
       { path: 'pcd', component: Pcd },
       { path: '', component: Result },
+    ],
+  },
+  {
+    path: 'admin',
+    component: Layout,
+    canActivate: [authGuard],
+    children: [
+      { path: '', component: Dashboard },
+      { path: 'usuarios', component: Users },
+      { path: 'professores', component: Professors },
+      { path: 'alunos', component: Students },
+      { path: 'chat', component: Chat },
+      { path: 'forum', component: Forum },
     ],
   },
   { path: '**', redirectTo: '' },
