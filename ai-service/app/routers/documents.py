@@ -7,6 +7,7 @@ import logging
 from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse, Response
 from app.core.database import get_connection
+from app.core.auth import get_current_user
 from app.services.rag_service import rag_service
 from app.models.schemas import GenerationRequest, GenerationType
 
@@ -24,6 +25,7 @@ MAX_UPLOAD_BYTES = 100 * 1024 * 1024  # 100 MB
 async def upload_document(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    current_user: dict = get_current_user,
 ):
     if not (file.filename or "").lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Apenas arquivos PDF são aceitos")
@@ -101,7 +103,10 @@ async def upload_document(
 
 # ──────────────────────────────────────────────────────── status
 @router.get("/{document_id}/status")
-async def get_document_status(document_id: int):
+async def get_document_status(
+    document_id: int,
+    current_user: dict = get_current_user,
+):
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -132,7 +137,10 @@ async def get_document_status(document_id: int):
 
 # ──────────────────────────────────────────────────────── list cached generations
 @router.get("/{document_id}/generations")
-async def list_generations(document_id: int):
+async def list_generations(
+    document_id: int,
+    current_user: dict = get_current_user,
+):
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -148,7 +156,11 @@ async def list_generations(document_id: int):
 
 # ──────────────────────────────────────────────────────── get cached generation
 @router.get("/{document_id}/generations/{gen_type}")
-async def get_cached_generation(document_id: int, gen_type: str):
+async def get_cached_generation(
+    document_id: int,
+    gen_type: str,
+    current_user: dict = get_current_user,
+):
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -167,7 +179,11 @@ async def get_cached_generation(document_id: int, gen_type: str):
 
 # ──────────────────────────────────────────────────────── generate
 @router.post("/{document_id}/generate")
-async def generate_content(document_id: int, request: GenerationRequest):
+async def generate_content(
+    document_id: int,
+    request: GenerationRequest,
+    current_user: dict = get_current_user,
+):
     _require_completed(document_id)
 
     # Return cached result if available
@@ -213,7 +229,10 @@ async def generate_content(document_id: int, request: GenerationRequest):
 
 # ──────────────────────────────────────────────────────── export PPTX
 @router.post("/{document_id}/export-pptx")
-async def export_pptx(document_id: int):
+async def export_pptx(
+    document_id: int,
+    current_user: dict = get_current_user,
+):
     from app.services.pptx_service import pptx_service
 
     _require_completed(document_id)
@@ -235,7 +254,10 @@ async def export_pptx(document_id: int):
 
 # ──────────────────────────────────────────────────────── export Kahoot
 @router.get("/{document_id}/export-kahoot")
-async def export_kahoot(document_id: int):
+async def export_kahoot(
+    document_id: int,
+    current_user: dict = get_current_user,
+):
     from app.exporters import EXPORTERS
 
     _require_completed(document_id)
@@ -251,7 +273,10 @@ async def export_kahoot(document_id: int):
 
 # ──────────────────────────────────────────────────────── export Socrative
 @router.get("/{document_id}/export-socrative")
-async def export_socrative(document_id: int):
+async def export_socrative(
+    document_id: int,
+    current_user: dict = get_current_user,
+):
     from app.exporters import EXPORTERS
 
     _require_completed(document_id)
@@ -267,7 +292,10 @@ async def export_socrative(document_id: int):
 
 # ──────────────────────────────────────────────────────── export SCORM
 @router.get("/{document_id}/export-scorm")
-async def export_scorm(document_id: int):
+async def export_scorm(
+    document_id: int,
+    current_user: dict = get_current_user,
+):
     from app.exporters import EXPORTERS
 
     _require_completed(document_id)
@@ -283,7 +311,7 @@ async def export_scorm(document_id: int):
 
 # ──────────────────────────────────────────────────────── exporters info
 @router.get("/exporters/platforms")
-async def list_exporters():
+async def list_exporters(current_user: dict = get_current_user):
     from app.exporters import EXPORTERS
 
     return [exp.get_format_info() for exp in EXPORTERS.values()]
@@ -291,7 +319,7 @@ async def list_exporters():
 
 # ──────────────────────────────────────────────────────── list
 @router.get("/")
-async def list_documents():
+async def list_documents(current_user: dict = get_current_user):
     conn = get_connection()
     cursor = conn.cursor()
     try:
