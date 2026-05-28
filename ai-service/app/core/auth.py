@@ -50,7 +50,8 @@ async def verify_token(
         return dados_cache
 
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        # verify=False necessário para certificado local do Herd em desenvolvimento
+        async with httpx.AsyncClient(timeout=5.0, verify=False) as client:
             resposta = await client.get(
                 f"{settings.laravel_api_url}/api/auth/verify",
                 headers={"Authorization": f"Bearer {token}"},
