@@ -47,3 +47,12 @@ a {
   color: var(--color-primary);
   text-decoration: none;
 }
+// Posicionamento do toast global abaixo do header (US-002/US-003)
+.p-toast {
+  margin-top: 70px !important;
+  z-index: 9999 !important;
+}
+// Espaço para o header fixo não cobrir o conteúdo
+main {
+  padding-top: 80px;
+}

@@ -3,11 +3,12 @@ import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { Navbar } from './shared/components/navbar/navbar';
 import { Footer } from './shared/components/footer/footer';
 import { CommonModule } from '@angular/common';
+import { Toast } from 'primeng/toast';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Navbar, Footer, CommonModule],
+  imports: [RouterOutlet, Navbar, Footer, CommonModule, Toast],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

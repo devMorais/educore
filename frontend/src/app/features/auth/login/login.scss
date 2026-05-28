@@ -46,6 +46,7 @@
   }
 }
 
+// Alerta de erro em destaque vermelho (401)
 .alert-error {
   background: #FEF2F2;
   border: 1px solid #FECACA;
@@ -53,7 +54,16 @@
   padding: 12px 16px;
   border-radius: 10px;
   font-size: 14px;
+  font-weight: 500;
   margin-bottom: 20px;
+  animation: shake 0.3s ease;
+}
+
+// Animação de shake no erro
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
 }
 
 form {
@@ -82,6 +92,7 @@ form {
     font-family: 'Inter', sans-serif;
     transition: border-color 0.2s, box-shadow 0.2s;
     outline: none;
+    width: 100%;
 
     &:focus {
       border-color: var(--color-primary);
@@ -90,6 +101,56 @@ form {
 
     &::placeholder {
       color: #CBD5E1;
+    }
+
+    &:disabled {
+      background: #F8FAFC;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+  }
+}
+
+// Wrapper do campo senha com botão mostrar/ocultar
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  input {
+    padding-right: 48px; // Espaço para o botão
+  }
+
+  .toggle-senha {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    line-height: 1;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+.forgot-password {
+  text-align: right;
+  margin-top: -8px;
+
+  a {
+    font-size: 13px;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
     }
   }
 }
@@ -106,6 +167,10 @@ form {
   font-family: 'Inter', sans-serif;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 
   &:hover:not(:disabled) {
     background: var(--color-primary-dark);
@@ -116,6 +181,21 @@ form {
     opacity: 0.6;
     cursor: default;
   }
+}
+
+// Spinner de loading
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .divider {
@@ -150,9 +230,14 @@ form {
   gap: 10px;
   transition: background 0.2s, border-color 0.2s;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: #F8FAFC;
     border-color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 }
 

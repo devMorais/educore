@@ -1,36 +1,83 @@
 <div class="login-page">
   <div class="login-card animate">
 
+    <!-- Cabeçalho -->
     <div class="login-header">
       <a routerLink="/" class="brand">⚡ EduCore</a>
       <h1>Bem-vindo de volta</h1>
       <p>Entre na sua conta para continuar</p>
     </div>
 
+    <!-- Mensagem de erro 401 em destaque vermelho -->
     @if (errorMessage()) {
-      <div class="alert-error">⚠️ {{ errorMessage() }}</div>
+      <div class="alert-error">
+        ⚠️ {{ errorMessage() }}
+      </div>
     }
 
+    <!-- Formulário desabilitado durante loading -->
     <form (ngSubmit)="onSubmit()">
+
+      <!-- Campo Email -->
       <div class="field">
-        <label>Email</label>
-        <input type="email" [(ngModel)]="email" name="email" required placeholder="seu@email.com">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          [(ngModel)]="email"
+          name="email"
+          required
+          placeholder="seu@email.com"
+          [disabled]="loading()"
+        >
       </div>
+
+      <!-- Campo Senha com mostrar/ocultar -->
       <div class="field">
-        <label>Senha</label>
-        <input type="password" [(ngModel)]="password" name="password" required placeholder="••••••••">
+        <label for="password">Senha</label>
+        <div class="password-wrapper">
+          <input
+            id="password"
+            [type]="mostrarSenha() ? 'text' : 'password'"
+            [(ngModel)]="password"
+            name="password"
+            required
+            placeholder="••••••••"
+            [disabled]="loading()"
+          >
+          <!-- Botão mostrar/ocultar senha -->
+          <button
+            type="button"
+            class="toggle-senha"
+            (click)="toggleSenha()"
+            [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'"
+          >
+            {{ mostrarSenha() ? '🙈' : '👁️' }}
+          </button>
+        </div>
       </div>
+
+      <!-- Link esqueci minha senha -->
       <div class="forgot-password">
         <a routerLink="/esqueci-senha">Esqueceu a senha?</a>
       </div>
+
+      <!-- Botão com spinner durante loading -->
       <button class="btn-primary" type="submit" [disabled]="loading()">
-        {{ loading() ? 'Entrando...' : 'Entrar →' }}
+        @if (loading()) {
+          <span class="spinner"></span>
+          Entrando...
+        } @else {
+          Entrar →
+        }
       </button>
+
     </form>
 
     <div class="divider"><span>ou</span></div>
 
-    <button class="btn-google" (click)="loginWithGoogle()">
+    <!-- Login com Google -->
+    <button class="btn-google" (click)="loginWithGoogle()" [disabled]="loading()">
       <img src="https://www.google.com/favicon.ico" alt="Google" width="18">
       Entrar com Google
     </button>
