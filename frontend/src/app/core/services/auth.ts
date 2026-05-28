@@ -10,6 +10,7 @@ export interface AuthUser {
   name: string;
   email: string;
   avatar?: string;
+  role?: string; // Papel do usuário no sistema (ex: 'admin', 'user')
 }
 
 interface LoginRequest {
