@@ -47,6 +47,7 @@ def init_db():
             ("gemini_file_uri", "TEXT"),
             ("file_hash", "VARCHAR(64)"),
             ("rag_status", "VARCHAR(50) DEFAULT 'pending'"),
+            ("user_id", "INTEGER"),
         ]:
             cursor.execute(f"""
                 DO $$ BEGIN
@@ -83,11 +84,18 @@ def init_db():
         # which is fast enough for this scale (< 100k chunks).
         # To enable indexing: upgrade to pgvector 0.8+ with halfvec support.
 
-        # Index on file_hash for deduplication lookups
+        # Índice em file_hash para buscas de deduplicação
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_documents_file_hash
             ON documents (file_hash)
             WHERE file_hash IS NOT NULL;
+        """)
+
+        # Índice em user_id para isolamento de dados por usuário (BS-002)
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_documents_user_id
+            ON documents (user_id)
+            WHERE user_id IS NOT NULL;
         """)
 
         conn.commit()
