@@ -67,6 +67,21 @@ class AuthController extends Controller
         return response()->json($request->user());
     }
 
+    /**
+     * Verifica o token Sanctum e retorna dados básicos do usuário.
+     * Consumido pelo AI Service (BS-001) para autenticar requisições.
+     */
+    public function verify(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'user_id' => $user->id,
+            'email'   => $user->email,
+            'role'    => $user->role ?? 'user',
+        ]);
+    }
+
     public function redirectToGoogle()
     {
         $url = Socialite::driver('google')

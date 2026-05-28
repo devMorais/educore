@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     # Database
     database_url: str
 
+    # Laravel — URL base para verificação de tokens Sanctum
+    laravel_api_url: str = "http://educore.test"
+
     # Server
     port: int = 8001
     debug: bool = True

@@ -10,7 +10,7 @@ export interface AuthUser {
   name: string;
   email: string;
   avatar?: string;
-  role?: string;
+  role?: string; 
 }
 
 interface LoginRequest {

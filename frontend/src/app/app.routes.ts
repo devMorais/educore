@@ -7,6 +7,7 @@ import { Upload } from './features/upload/upload';
 import { Result } from './features/result/result';
 import { GoogleCallback } from './features/auth/google-callback/google-callback';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { Summary } from './features/result/types/summary/summary';
 import { Quiz } from './features/result/types/quiz/quiz';
@@ -45,7 +46,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: Layout,
-    canActivate: [authGuard],
+    canActivate: [authGuard, adminGuard],
     children: [
       { path: '', component: Dashboard },
       { path: 'usuarios', component: Users },
