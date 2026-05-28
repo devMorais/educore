@@ -3,10 +3,11 @@ import os
 import json
 import hashlib
 import logging
-from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks, Request
 from fastapi.responses import FileResponse, Response
 from app.core.database import get_connection
 from app.core.auth import get_current_user
+from app.core.limiter import limiter, get_user_identifier
 from app.services.rag_service import rag_service
 from app.models.schemas import GenerationRequest, GenerationType
 
@@ -48,7 +49,9 @@ def ownership_check(document_id: int, user_id: int, status_code: int = 404) -> N
 
 # ──────────────────────────────────────────────────────── upload
 @router.post("/upload")
+@limiter.limit("10/hour", key_func=get_user_identifier)
 async def upload_document(
+    request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     current_user: dict = get_current_user,
@@ -212,9 +215,11 @@ async def get_cached_generation(
 
 # ──────────────────────────────────────────────────────── generate
 @router.post("/{document_id}/generate")
+@limiter.limit("30/minute", key_func=get_user_identifier)
 async def generate_content(
+    request: Request,
     document_id: int,
-    request: GenerationRequest,
+    body: GenerationRequest,
     current_user: dict = get_current_user,
 ):
     # 403 explícito conforme critério BS-002
@@ -226,33 +231,33 @@ async def generate_content(
     try:
         cursor.execute(
             "SELECT content FROM generations WHERE document_id=%s AND type=%s ORDER BY created_at DESC LIMIT 1",
-            (document_id, request.type.value),
+            (document_id, body.type.value),
         )
         cached = cursor.fetchone()
         if cached:
-            logger.info(f"Cache hit: doc={document_id} type={request.type.value}")
+            logger.info(f"Cache hit: doc={document_id} type={body.type.value}")
             return cached[0]
     finally:
         cursor.close()
         conn.close()
 
     try:
-        if request.type == GenerationType.QUIZ:
+        if body.type == GenerationType.QUIZ:
             result = rag_service.generate_quiz(document_id)
-        elif request.type == GenerationType.SUMMARY:
+        elif body.type == GenerationType.SUMMARY:
             result = rag_service.generate_summary(document_id)
-        elif request.type == GenerationType.SLIDES:
+        elif body.type == GenerationType.SLIDES:
             result = rag_service.generate_slides(document_id)
-        elif request.type == GenerationType.MINDMAP:
+        elif body.type == GenerationType.MINDMAP:
             result = rag_service.generate_mindmap(document_id)
-        elif request.type == GenerationType.FLASHCARDS:
+        elif body.type == GenerationType.FLASHCARDS:
             result = rag_service.generate_flashcards(document_id)
-        elif request.type == GenerationType.PCD:
+        elif body.type == GenerationType.PCD:
             result = rag_service.generate_pcd_content(document_id)
         else:
             raise HTTPException(status_code=400, detail="Tipo de geração não suportado")
 
-        _save_generation(document_id, request.type.value, result)
+        _save_generation(document_id, body.type.value, result)
         return result
     except HTTPException:
         raise
