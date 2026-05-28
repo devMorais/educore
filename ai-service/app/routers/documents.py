@@ -2,7 +2,6 @@ import uuid
 import os
 import json
 import hashlib
-import shutil
 import logging
 from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse, Response
@@ -20,6 +19,33 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024  # 100 MB
 
 
+# ──────────────────────────────────────────────────────── helper: ownership
+def ownership_check(document_id: int, user_id: int, status_code: int = 404) -> None:
+    """
+    Verifica se o documento existe e pertence ao usuário.
+    Levanta HTTPException com o status_code informado se não for dono.
+    Usa 404 por padrão para não revelar existência de documentos alheios.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "SELECT user_id FROM documents WHERE id = %s",
+            (document_id,),
+        )
+        doc = cursor.fetchone()
+        if not doc:
+            raise HTTPException(status_code=404, detail="Documento não encontrado")
+        if doc[0] != user_id:
+            raise HTTPException(
+                status_code=status_code,
+                detail="Acesso negado" if status_code == 403 else "Documento não encontrado",
+            )
+    finally:
+        cursor.close()
+        conn.close()
+
+
 # ──────────────────────────────────────────────────────── upload
 @router.post("/upload")
 async def upload_document(
@@ -34,23 +60,25 @@ async def upload_document(
     if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="Arquivo muito grande. Máximo 100 MB")
 
-    # ── Deduplication: check if this exact PDF was already processed ──
+    user_id = current_user["user_id"]
     file_hash = hashlib.sha256(content).hexdigest()
+
+    # Deduplicação: mesmo hash E mesmo usuário
     conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
             """
-            SELECT id, original_name, gemini_file_uri
+            SELECT id, original_name
             FROM documents
-            WHERE file_hash = %s AND status = 'completed'
+            WHERE file_hash = %s AND user_id = %s AND status = 'completed'
             ORDER BY created_at DESC LIMIT 1
             """,
-            (file_hash,),
+            (file_hash, user_id),
         )
         existing = cursor.fetchone()
         if existing:
-            logger.info(f"Dedup: PDF já processado (id={existing[0]})")
+            logger.info(f"Dedup: PDF já processado pelo usuário {user_id} (id={existing[0]})")
             return {
                 "status": "completed",
                 "document_id": existing[0],
@@ -74,11 +102,11 @@ async def upload_document(
             """
             INSERT INTO documents
                 (filename, original_name, file_path, file_size, file_hash, status,
-                 progress_percent, pages_processed, total_pages)
-            VALUES (%s, %s, %s, %s, %s, 'pending', 0, 0, 0)
+                 progress_percent, pages_processed, total_pages, user_id)
+            VALUES (%s, %s, %s, %s, %s, 'pending', 0, 0, 0, %s)
             RETURNING id
             """,
-            (safe_name, file.filename, file_path, len(content), file_hash),
+            (safe_name, file.filename, file_path, len(content), file_hash, user_id),
         )
         document_id = cursor.fetchone()[0]
         conn.commit()
@@ -107,6 +135,9 @@ async def get_document_status(
     document_id: int,
     current_user: dict = get_current_user,
 ):
+    # 404 se não existe ou não é dono — não revela documentos alheios
+    ownership_check(document_id, current_user["user_id"], status_code=404)
+
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -121,8 +152,6 @@ async def get_document_status(
             (document_id,),
         )
         doc = cursor.fetchone()
-        if not doc:
-            raise HTTPException(status_code=404, detail="Documento não encontrado")
         return {
             "id": doc[0],
             "status": doc[1],
@@ -141,6 +170,8 @@ async def list_generations(
     document_id: int,
     current_user: dict = get_current_user,
 ):
+    ownership_check(document_id, current_user["user_id"])
+
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -161,6 +192,8 @@ async def get_cached_generation(
     gen_type: str,
     current_user: dict = get_current_user,
 ):
+    ownership_check(document_id, current_user["user_id"])
+
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -184,9 +217,10 @@ async def generate_content(
     request: GenerationRequest,
     current_user: dict = get_current_user,
 ):
+    # 403 explícito conforme critério BS-002
+    ownership_check(document_id, current_user["user_id"], status_code=403)
     _require_completed(document_id)
 
-    # Return cached result if available
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -235,6 +269,7 @@ async def export_pptx(
 ):
     from app.services.pptx_service import pptx_service
 
+    ownership_check(document_id, current_user["user_id"])
     _require_completed(document_id)
 
     slides_data = rag_service.generate_slides(document_id)
@@ -260,6 +295,7 @@ async def export_kahoot(
 ):
     from app.exporters import EXPORTERS
 
+    ownership_check(document_id, current_user["user_id"])
     _require_completed(document_id)
     quiz = rag_service.generate_quiz(document_id)
     kahoot_data = EXPORTERS["kahoot"].export_quiz(quiz)
@@ -279,6 +315,7 @@ async def export_socrative(
 ):
     from app.exporters import EXPORTERS
 
+    ownership_check(document_id, current_user["user_id"])
     _require_completed(document_id)
     quiz = rag_service.generate_quiz(document_id)
     socrative_data = EXPORTERS["socrative"].export_quiz(quiz)
@@ -298,6 +335,7 @@ async def export_scorm(
 ):
     from app.exporters import EXPORTERS
 
+    ownership_check(document_id, current_user["user_id"])
     _require_completed(document_id)
     quiz = rag_service.generate_quiz(document_id)
     zip_bytes: bytes = EXPORTERS["scorm"].export_quiz(quiz)
@@ -323,13 +361,16 @@ async def list_documents(current_user: dict = get_current_user):
     conn = get_connection()
     cursor = conn.cursor()
     try:
+        # Retorna apenas documentos do usuário autenticado
         cursor.execute(
             """
             SELECT id, original_name, status, progress_percent, created_at
             FROM documents
+            WHERE user_id = %s
             ORDER BY created_at DESC
             LIMIT 50
-            """
+            """,
+            (current_user["user_id"],),
         )
         return [
             {
@@ -341,6 +382,45 @@ async def list_documents(current_user: dict = get_current_user):
             }
             for r in cursor.fetchall()
         ]
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# ──────────────────────────────────────────────────────── delete
+@router.delete("/{document_id}")
+async def delete_document(
+    document_id: int,
+    current_user: dict = get_current_user,
+):
+    ownership_check(document_id, current_user["user_id"])
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # Recupera o file_path antes de deletar para remover do disco
+        cursor.execute(
+            "SELECT file_path FROM documents WHERE id = %s",
+            (document_id,),
+        )
+        row = cursor.fetchone()
+        file_path = row[0] if row else None
+
+        # ON DELETE CASCADE remove chunks e generations automaticamente
+        cursor.execute("DELETE FROM documents WHERE id = %s", (document_id,))
+        conn.commit()
+
+        # Remove arquivo físico do disco se existir
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+            logger.info(f"Arquivo removido do disco: {file_path}")
+
+        return {"message": "Documento excluído com sucesso"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         cursor.close()
         conn.close()
