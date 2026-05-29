@@ -14,3 +14,6 @@ langchain-google-genai==4.2.2
 slowapi==0.1.9
 python-pptx
 PyMuPDF==1.24.14
+langchain-text-splitters==0.3.8
+google-api-python-client==2.169.0
+google-auth==2.40.2
