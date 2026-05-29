@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
+import { Router } from '@angular/router';
 import { Auth } from '../services/auth';
 import { ToastService } from '../services/toast';
 import { environment } from '../../../environments/environment';
@@ -13,9 +14,10 @@ import { environment } from '../../../environments/environment';
  * Não exibe toast em rotas de polling (/status).
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const auth = inject(Auth);
-  const toast = inject(ToastService);
-  const token = auth.getToken();
+  const auth   = inject(Auth);
+  const toast  = inject(ToastService);
+  const router = inject(Router);
+  const token  = auth.getToken();
 
   // Verifica se é uma requisição para nossas APIs
   const isApiRequest =
@@ -41,6 +43,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           case 401:
             // Sessão expirada: limpa sessão e redireciona para login
             auth.clearSession();
+            router.navigate(['/login']);
             break;
 
           case 422:
