@@ -18,7 +18,6 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { providePrimeNG } from 'primeng/config';
 import { MessageService } from 'primeng/api';
 import Aura from '@primeng/themes/aura';
-
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
@@ -42,7 +41,7 @@ export const appConfig: ApplicationConfig = {
         }
       }
     }),
-     MessageService,
+    MessageService,
     provideLucideIcons(
       LucidePresentation,
       LucideFileText,

@@ -1,0 +1,5 @@
+// Posicionamento do toast global abaixo do header (US-002/US-003)
+:host ::ng-deep .p-toast {
+  margin-top: 70px;
+  z-index: 9999;
+}
