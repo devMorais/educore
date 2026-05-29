@@ -15,6 +15,17 @@ class Settings(BaseSettings):
     # Laravel — URL base para verificação de tokens Sanctum
     laravel_api_url: str = "http://educore.test"
 
+    # CORS — origens permitidas (BS-003)
+    allowed_origins: list[str] = [
+        "http://localhost:4200",
+        "https://educore.test",
+        "http://educore.test",
+        "http://127.0.0.1:4200",
+    ]
+
+    # Rate Limiting — habilitar/desabilitar (BS-003)
+    rate_limit_enabled: bool = True
+
     # Server
     port: int = 8001
     debug: bool = True
