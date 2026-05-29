@@ -68,17 +68,22 @@ class AuthController extends Controller
     }
 
     /**
-     * Verifica o token Sanctum e retorna dados básicos do usuário.
-     * Consumido pelo AI Service (BS-001) para autenticar requisições.
+     * Verifica o token Sanctum e retorna dados do usuário para o AI Service.
+     * Expõe apenas campos seguros — password e remember_token são omitidos (BS-004).
+     * Consumido pelo AI Service para autenticar e identificar o usuário em cada requisição.
      */
     public function verify(Request $request): JsonResponse
     {
         $user = $request->user();
 
         return response()->json([
-            'user_id' => $user->id,
-            'email'   => $user->email,
-            'role'    => $user->role ?? 'user',
+            'user_id'           => $user->id,
+            'id'                => $user->id,
+            'name'              => $user->name,
+            'email'             => $user->email,
+            'role'              => $user->role ?? 'user',
+            'avatar'            => $user->avatar,
+            'email_verified_at' => $user->email_verified_at,
         ]);
     }
 

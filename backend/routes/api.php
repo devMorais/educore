@@ -23,7 +23,10 @@ Route::prefix('auth')->group(function () {
     Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me',      [AuthController::class, 'me']);
-        // Consumido pelo AI Service para validar tokens Sanctum (BS-001)
-        Route::get('/verify',  [AuthController::class, 'verify']);
+    });
+
+    // Throttle maior para suportar verificações frequentes do AI Service (BS-004)
+    Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
+        Route::get('/verify', [AuthController::class, 'verify']);
     });
 });
