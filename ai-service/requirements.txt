@@ -10,7 +10,6 @@ google-generativeai==0.8.6
 google-genai==1.75.0
 llama-parse==0.6.94
 llama-index-core==0.14.22
-langchain-google-genai==4.2.2
 slowapi==0.1.9
 python-pptx
 PyMuPDF==1.24.14
