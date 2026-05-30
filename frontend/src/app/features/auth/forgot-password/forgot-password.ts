@@ -1,6 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { Auth } from '../../../core/services/auth';
 
 @Component({
@@ -10,28 +10,40 @@ import { Auth } from '../../../core/services/auth';
   templateUrl: './forgot-password.html',
   styleUrl: './forgot-password.scss'
 })
-export class ForgotPassword {
+export class ForgotPassword implements OnDestroy {
   email = '';
   loading = signal(false);
-  errorMessage = signal('');
-  successMessage = signal('');
+  enviado = signal(false);
 
-  constructor(private auth: Auth) {}
+  private auth = inject(Auth);
+  private router = inject(Router);
+  private timeoutId: any = null;
+
+  ngOnDestroy() {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+    }
+  }
 
   onSubmit() {
     if (!this.email) return;
+
     this.loading.set(true);
-    this.errorMessage.set('');
-    this.successMessage.set('');
 
     this.auth.forgotPassword(this.email).subscribe({
       next: () => {
         this.loading.set(false);
-        this.successMessage.set('E-mail enviado! Verifique sua caixa de entrada.');
+        this.enviado.set(true);
+        this.timeoutId = setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 5000);
       },
       error: () => {
         this.loading.set(false);
-        this.errorMessage.set('Não foi possível enviar o e-mail. Tente novamente.');
+        this.enviado.set(true);
+        this.timeoutId = setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 5000);
       }
     });
   }
