@@ -10,12 +10,13 @@ Siga os passos na ordem — não pule nenhum.
 
 | Ferramenta | Para que serve | Versão |
 |---|---|---|
-| Laravel Herd | Servidor local + PHP | Mais recente |
+| Laravel Herd | Servidor local + PHP + MySQL | Mais recente |
 | PHP | Linguagem do backend | 8.4 |
 | Composer | Gerenciador de pacotes PHP | Mais recente |
 | Node.js | Ambiente do frontend + PptxGenJS | 20 LTS |
 | Python | Microserviço de IA | 3.11.9 |
-| PostgreSQL | Banco de dados | 14 |
+| MySQL | Banco do Laravel (igual produção) | Herd inclui |
+| PostgreSQL | Banco do AI Service (pgvector) | 14 |
 | pgvector | Extensão vetorial para IA | 0.8.2 |
 | DBeaver | Interface visual do banco | Community |
 | Git | Controle de versão | Mais recente |
@@ -269,13 +270,16 @@ herd php artisan key:generate
 Abra o arquivo `backend/.env` no VS Code e localize as linhas `DB_`. Substitua por:
 
 ```env
-DB_CONNECTION=pgsql
+DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
-DB_PORT=5432
+DB_PORT=3306
 DB_DATABASE=edu_platform
-DB_USERNAME=postgres
-DB_PASSWORD=123456
+DB_USERNAME=root
+DB_PASSWORD=root
 ```
+
+> **Por que MySQL?** O ambiente local usa MySQL igual à produção (Hostinger).
+> O PostgreSQL é usado apenas pelo AI Service (para embeddings com pgvector).
 
 Localize também as linhas do Sanctum:
 
@@ -297,10 +301,24 @@ GOOGLE_REDIRECT_URL=http://localhost/api/auth/google/callback
 
 > Se não tiver as credenciais, deixe em branco — o sistema funciona com email/senha.
 
+### 11.4.1 Criar o banco MySQL
+
+O Herd já inclui MySQL. Crie o banco com:
+
+```bash
+cd backend
+php artisan db:create 2>/dev/null; php artisan migrate
+```
+
+Se der erro, crie o banco manualmente via DBeaver:
+- Conecta no MySQL: Host `127.0.0.1`, porta `3306`, user `root`, senha `root`
+- Cria um banco chamado `edu_platform`
+- Depois rode: `php artisan migrate`
+
 ### 11.5 Rodar as migrations
 
 ```bash
-herd php artisan migrate
+php artisan migrate
 ```
 
 Deve aparecer todas as migrations com status `DONE`.
@@ -543,6 +561,49 @@ Aguarde 1 minuto e tente novamente. Para PDFs grandes, o processamento pode paus
 
 **Frontend não conecta com o backend:**
 Verifique se `SANCTUM_STATEFUL_DOMAINS=localhost:4200` está no `backend/.env`.
+
+---
+
+## Fluxo de trabalho com branches
+
+A branch `main` está **protegida** — ninguém faz push direto nela.
+
+### Fluxo do colaborador
+
+```bash
+# 1. Pegar a main atualizada
+git checkout main
+git pull origin main
+
+# 2. Criar sua branch
+git checkout -b C-001/nome-da-feature
+
+# 3. Trabalhar e commitar
+git add .
+git commit -m "C-001: descrição do que foi feito"
+
+# 4. Enviar a branch
+git push origin C-001/nome-da-feature
+
+# 5. Abrir Pull Request no GitHub para revisão do Fernando
+```
+
+### Padrão de nomes de branch
+
+```
+INICIAL-NUMERO/descricao
+```
+
+Exemplos:
+- `F-001/tela-resultado-quiz` → Fernando, tarefa 1
+- `C-001/correcao-login` → Colaborador, tarefa 1
+
+### O que acontece depois
+
+1. Fernando revisa o PR no GitHub
+2. Aprova e faz merge na `main`
+3. Fernando testa local e faz deploy para homologação
+4. Testa em https://educore.devmorais.com.br
 
 ---
 

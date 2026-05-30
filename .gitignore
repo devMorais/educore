@@ -28,3 +28,7 @@ node_modules/
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Documentação privada (somente local)
+*.private.md
+DEPLOY.private.md
