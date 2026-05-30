@@ -32,3 +32,13 @@ Thumbs.db
 # Documentação privada (somente local)
 *.private.md
 DEPLOY.private.md
+
+# Scripts de deploy (contêm dados sensíveis de infraestrutura)
+deploy-homolog.bat
+deploy-prod.bat
+
+# Environments de produção (gerados por CI/CD, não commitados)
+frontend/src/environments/environment.production.ts
+
+# Claude Code (configurações locais da máquina)
+.claude/settings.local.json
