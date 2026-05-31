@@ -19,9 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Converte Unauthenticated em 401 JSON para todas as rotas de API
+        // API pura — AuthenticationException sempre retorna 401 JSON (nunca redireciona para 'login')
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $_, $request) {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return response()->json(['message' => 'Unauthenticated.'], 401);
-            }
+            return response()->json(['message' => 'Unauthenticated.'], 401);
         });
     })->create();
