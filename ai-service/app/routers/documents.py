@@ -392,43 +392,66 @@ async def list_documents(current_user: dict = get_current_user):
         conn.close()
 
 
-# ──────────────────────────────────────────────────────── delete
-@router.delete("/{document_id}")
+# ──────────────────────────────────────────────────────── delete (BS-005)
+@router.delete("/{document_id}", status_code=204)
 async def delete_document(
     document_id: int,
     current_user: dict = get_current_user,
 ):
-    ownership_check(document_id, current_user["user_id"])
+    """
+    DELETE /documents/{document_id}
 
+    Exclui o documento, seus chunks, gerações em cache e o arquivo do Gemini Files API.
+    Retorna 204 No Content em sucesso.
+    Retorna 404 se o documento não existir ou não pertencer ao usuário autenticado
+    (resposta idêntica para não revelar existência de documentos alheios).
+    """
+    user_id = current_user["user_id"]
+
+    # 404 se não encontrado ou não é dono — evita revelar existência de docs alheios
+    ownership_check(document_id, user_id)
+
+    # Recupera metadados e remove arquivo do Gemini Files API (best-effort)
+    # A camada de serviço é responsável por recursos externos
+    doc_meta = await rag_service.delete_document(document_id)
+
+    # Deleta do banco — ON DELETE CASCADE remove document_chunks e generations
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # Recupera o file_path antes de deletar para remover do disco
-        cursor.execute(
-            "SELECT file_path FROM documents WHERE id = %s",
-            (document_id,),
-        )
-        row = cursor.fetchone()
-        file_path = row[0] if row else None
-
-        # ON DELETE CASCADE remove chunks e generations automaticamente
         cursor.execute("DELETE FROM documents WHERE id = %s", (document_id,))
         conn.commit()
-
-        # Remove arquivo físico do disco se existir
-        if file_path and os.path.exists(file_path):
-            os.remove(file_path)
-            logger.info(f"Arquivo removido do disco: {file_path}")
-
-        return {"message": "Documento excluído com sucesso"}
-    except HTTPException:
-        raise
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("Erro ao deletar documento %d do banco: %s", document_id, e)
+        raise HTTPException(status_code=500, detail="Erro interno ao excluir o documento")
     finally:
         cursor.close()
         conn.close()
+
+    # Remove o arquivo PDF do disco (best-effort: loga aviso se falhar)
+    file_path = doc_meta.get("file_path")
+    if file_path and os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+            logger.info("[DELETE] Arquivo físico removido do disco: %s", file_path)
+        except OSError as exc:
+            logger.warning(
+                "[DELETE] Não foi possível remover arquivo do disco (%s): %s", file_path, exc
+            )
+
+    # Log de auditoria estruturado para rastreabilidade
+    logger.info(
+        "[AUDIT] doc_id=%d user_id=%d acao=DELETE arquivo='%s' tamanho=%d bytes gemini_uri=%s",
+        document_id,
+        user_id,
+        doc_meta.get("original_name", "desconhecido"),
+        doc_meta.get("file_size", 0),
+        doc_meta.get("gemini_file_uri") or "N/A",
+    )
+
+    # 204 No Content — sem corpo de resposta (RFC 9110)
+    return Response(status_code=204)
 
 
 # ──────────────────────────────────────────────────────── helpers
