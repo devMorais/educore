@@ -1,56 +1,37 @@
 import { Injectable } from '@angular/core';
-import { MessageService } from 'primeng/api';
+import { Message, MessageService } from 'primeng/api';
 
-/**
- * Serviço de Toast Global (US-006)
- *
- * Centraliza a exibição de mensagens de feedback ao usuário
- * utilizando o MessageService do PrimeNG.
- * Duração padrão: 4 segundos
- * Posição: top-right
- * Máximo: 3 toasts simultâneos
- */
 @Injectable({ providedIn: 'root' })
 export class ToastService {
+  private ativas = 0;
+  private readonly MAX = 3;
+
   constructor(private messageService: MessageService) {}
 
-  // Exibe mensagem de sucesso — ícone check verde
+  private mostrar(msg: Message): void {
+    if (this.ativas >= this.MAX) {
+      this.messageService.clear();
+      this.ativas = 0;
+    }
+    this.messageService.add(msg);
+    this.ativas++;
+    // Decrementa quando o toast expirar (300ms de margem para animação de saída)
+    setTimeout(() => { this.ativas = Math.max(0, this.ativas - 1); }, (msg.life ?? 4000) + 300);
+  }
+
   sucesso(mensagem: string, titulo: string = 'Sucesso') {
-    this.messageService.add({
-      severity: 'success',
-      summary: titulo,
-      detail: mensagem,
-      life: 4000,
-    });
+    this.mostrar({ severity: 'success', summary: titulo, detail: mensagem, life: 4000 });
   }
 
-  // Exibe mensagem de erro — ícone X vermelho
   erro(mensagem: string, titulo: string = 'Erro') {
-    this.messageService.add({
-      severity: 'error',
-      summary: titulo,
-      detail: mensagem,
-      life: 4000,
-    });
+    this.mostrar({ severity: 'error', summary: titulo, detail: mensagem, life: 4000 });
   }
 
-  // Exibe mensagem de aviso
   aviso(mensagem: string, titulo: string = 'Atenção') {
-    this.messageService.add({
-      severity: 'warn',
-      summary: titulo,
-      detail: mensagem,
-      life: 4000,
-    });
+    this.mostrar({ severity: 'warn', summary: titulo, detail: mensagem, life: 4000 });
   }
 
-  // Exibe mensagem informativa
   info(mensagem: string, titulo: string = 'Informação') {
-    this.messageService.add({
-      severity: 'info',
-      summary: titulo,
-      detail: mensagem,
-      life: 4000,
-    });
+    this.mostrar({ severity: 'info', summary: titulo, detail: mensagem, life: 4000 });
   }
 }

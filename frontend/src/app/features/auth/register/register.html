@@ -1,7 +1,6 @@
 <div class="login-page">
   <div class="login-card animate">
 
-    <!-- Cabeçalho -->
     <div class="login-header">
       <a routerLink="/" class="brand">
         <i class="pi pi-bolt"></i> EduCore
@@ -12,7 +11,7 @@
 
     <form (ngSubmit)="onSubmit()">
 
-      <!-- Campo Nome -->
+      <!-- Nome -->
       <div class="field" [class.field-error]="erroNome()">
         <label for="name">Nome completo</label>
         <div class="input-wrapper">
@@ -23,12 +22,13 @@
             name="name"
             placeholder="Seu nome completo"
             [disabled]="loading()"
-            (blur)="validarNome()"
-            (input)="validarNome()"
+            (blur)="onNomeBlur()"
+            (input)="onNomeInput()"
+            autocomplete="name"
           >
           @if (erroNome()) {
             <i class="pi pi-times-circle input-icon error"></i>
-          } @else if (name.length >= 3) {
+          } @else if (nomeOk()) {
             <i class="pi pi-check-circle input-icon success"></i>
           }
         </div>
@@ -39,7 +39,7 @@
         }
       </div>
 
-      <!-- Campo Email -->
+      <!-- Email -->
       <div class="field" [class.field-error]="erroEmail()">
         <label for="email">Email</label>
         <div class="input-wrapper">
@@ -50,12 +50,13 @@
             name="email"
             placeholder="seu@email.com"
             [disabled]="loading()"
-            (blur)="validarEmail()"
-            (input)="validarEmail()"
+            (blur)="onEmailBlur()"
+            (input)="onEmailInput()"
+            autocomplete="email"
           >
           @if (erroEmail()) {
             <i class="pi pi-times-circle input-icon error"></i>
-          } @else if (email.length > 0) {
+          } @else if (emailOk()) {
             <i class="pi pi-check-circle input-icon success"></i>
           }
         </div>
@@ -66,7 +67,7 @@
         }
       </div>
 
-      <!-- Campo Senha com indicador de força -->
+      <!-- Senha com indicador de força -->
       <div class="field" [class.field-error]="erroSenha()">
         <label for="password">Senha</label>
         <div class="input-wrapper">
@@ -77,9 +78,11 @@
             name="password"
             placeholder="Mínimo 8 caracteres"
             [disabled]="loading()"
-            (input)="validarSenha()"
+            (blur)="onSenhaBlur()"
+            (input)="onSenhaInput()"
+            autocomplete="new-password"
           >
-          <button type="button" class="toggle-senha" (click)="toggleSenha()">
+          <button type="button" class="toggle-senha" (click)="toggleSenha()" [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'">
             <i [class]="mostrarSenha() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
           </button>
         </div>
@@ -88,7 +91,6 @@
             <i class="pi pi-exclamation-circle"></i> {{ erroSenha() }}
           </span>
         }
-        <!-- Indicador de força da senha -->
         @if (password.length > 0) {
           <div class="forca-senha">
             <div class="forca-barras">
@@ -103,7 +105,7 @@
         }
       </div>
 
-      <!-- Campo Confirmar Senha -->
+      <!-- Confirmar senha -->
       <div class="field" [class.field-error]="erroConfirmacao()">
         <label for="passwordConfirmation">Confirmar senha</label>
         <div class="input-wrapper">
@@ -114,9 +116,11 @@
             name="passwordConfirmation"
             placeholder="Repita a senha"
             [disabled]="loading()"
-            (input)="validarConfirmacao()"
+            (blur)="onConfirmacaoBlur()"
+            (input)="onConfirmacaoInput()"
+            autocomplete="new-password"
           >
-          <button type="button" class="toggle-senha" (click)="toggleConfirmacao()">
+          <button type="button" class="toggle-senha" (click)="toggleConfirmacao()" [attr.aria-label]="mostrarConfirmacao() ? 'Ocultar senha' : 'Mostrar senha'">
             <i [class]="mostrarConfirmacao() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
           </button>
         </div>
@@ -124,19 +128,15 @@
           <span class="erro-inline">
             <i class="pi pi-exclamation-circle"></i> {{ erroConfirmacao() }}
           </span>
-        } @else if (passwordConfirmation.length > 0 && password === passwordConfirmation) {
+        } @else if (confirmacaoOk()) {
           <span class="sucesso-inline">
             <i class="pi pi-check-circle"></i> Senhas coincidem
           </span>
         }
       </div>
 
-      <!-- Botão com loading -->
-      <button
-        class="btn-primary"
-        type="submit"
-        [disabled]="loading() || !formularioValido()"
-      >
+      <!-- Botão -->
+      <button class="btn-primary" type="submit" [disabled]="loading()">
         @if (loading()) {
           <span class="spinner"></span>
           Criando conta...
