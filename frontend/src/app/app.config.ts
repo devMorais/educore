@@ -30,6 +30,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     provideAnimationsAsync(),
     providePrimeNG({
+     ripple: true, 
       theme: {
         preset: Aura,
         options: {
