@@ -1,41 +1,156 @@
 <div class="login-page">
   <div class="login-card animate">
 
+    <!-- Cabeçalho -->
     <div class="login-header">
-      <a routerLink="/" class="brand">⚡ EduCore</a>
+      <a routerLink="/" class="brand">
+        <i class="pi pi-bolt"></i> EduCore
+      </a>
       <h1>Criar sua conta</h1>
       <p>Comece grátis, sem cartão de crédito</p>
     </div>
 
-    @if (errorMessage()) {
-      <div class="alert-error">⚠️ {{ errorMessage() }}</div>
-    }
-
     <form (ngSubmit)="onSubmit()">
-      <div class="field">
-        <label>Nome completo</label>
-        <input type="text" [(ngModel)]="name" name="name" required placeholder="Seu nome">
+
+      <!-- Campo Nome -->
+      <div class="field" [class.field-error]="erroNome()">
+        <label for="name">Nome completo</label>
+        <div class="input-wrapper">
+          <input
+            id="name"
+            type="text"
+            [(ngModel)]="name"
+            name="name"
+            placeholder="Seu nome completo"
+            [disabled]="loading()"
+            (blur)="validarNome()"
+            (input)="validarNome()"
+          >
+          @if (erroNome()) {
+            <i class="pi pi-times-circle input-icon error"></i>
+          } @else if (name.length >= 3) {
+            <i class="pi pi-check-circle input-icon success"></i>
+          }
+        </div>
+        @if (erroNome()) {
+          <span class="erro-inline">
+            <i class="pi pi-exclamation-circle"></i> {{ erroNome() }}
+          </span>
+        }
       </div>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" [(ngModel)]="email" name="email" required placeholder="seu@email.com">
+
+      <!-- Campo Email -->
+      <div class="field" [class.field-error]="erroEmail()">
+        <label for="email">Email</label>
+        <div class="input-wrapper">
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            placeholder="seu@email.com"
+            [disabled]="loading()"
+            (blur)="validarEmail()"
+            (input)="validarEmail()"
+          >
+          @if (erroEmail()) {
+            <i class="pi pi-times-circle input-icon error"></i>
+          } @else if (email.length > 0) {
+            <i class="pi pi-check-circle input-icon success"></i>
+          }
+        </div>
+        @if (erroEmail()) {
+          <span class="erro-inline">
+            <i class="pi pi-exclamation-circle"></i> {{ erroEmail() }}
+          </span>
+        }
       </div>
-      <div class="field">
-        <label>Senha</label>
-        <input type="password" [(ngModel)]="password" name="password" required placeholder="••••••••">
+
+      <!-- Campo Senha com indicador de força -->
+      <div class="field" [class.field-error]="erroSenha()">
+        <label for="password">Senha</label>
+        <div class="input-wrapper">
+          <input
+            id="password"
+            [type]="mostrarSenha() ? 'text' : 'password'"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="Mínimo 8 caracteres"
+            [disabled]="loading()"
+            (input)="validarSenha()"
+          >
+          <button type="button" class="toggle-senha" (click)="toggleSenha()">
+            <i [class]="mostrarSenha() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+          </button>
+        </div>
+        @if (erroSenha()) {
+          <span class="erro-inline">
+            <i class="pi pi-exclamation-circle"></i> {{ erroSenha() }}
+          </span>
+        }
+        <!-- Indicador de força da senha -->
+        @if (password.length > 0) {
+          <div class="forca-senha">
+            <div class="forca-barras">
+              <div class="barra" [class.ativa]="forcaSenha() >= 1" [class.fraca]="forcaSenha() === 1" [class.media]="forcaSenha() === 2" [class.forte]="forcaSenha() === 3"></div>
+              <div class="barra" [class.ativa]="forcaSenha() >= 2" [class.media]="forcaSenha() === 2" [class.forte]="forcaSenha() === 3"></div>
+              <div class="barra" [class.ativa]="forcaSenha() >= 3" [class.forte]="forcaSenha() === 3"></div>
+            </div>
+            <span class="forca-texto" [class.fraca]="forcaSenha() === 1" [class.media]="forcaSenha() === 2" [class.forte]="forcaSenha() === 3">
+              {{ textoForca() }}
+            </span>
+          </div>
+        }
       </div>
-      <div class="field">
-        <label>Confirmar senha</label>
-        <input type="password" [(ngModel)]="passwordConfirmation" name="passwordConfirmation" required placeholder="••••••••">
+
+      <!-- Campo Confirmar Senha -->
+      <div class="field" [class.field-error]="erroConfirmacao()">
+        <label for="passwordConfirmation">Confirmar senha</label>
+        <div class="input-wrapper">
+          <input
+            id="passwordConfirmation"
+            [type]="mostrarConfirmacao() ? 'text' : 'password'"
+            [(ngModel)]="passwordConfirmation"
+            name="passwordConfirmation"
+            placeholder="Repita a senha"
+            [disabled]="loading()"
+            (input)="validarConfirmacao()"
+          >
+          <button type="button" class="toggle-senha" (click)="toggleConfirmacao()">
+            <i [class]="mostrarConfirmacao() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+          </button>
+        </div>
+        @if (erroConfirmacao()) {
+          <span class="erro-inline">
+            <i class="pi pi-exclamation-circle"></i> {{ erroConfirmacao() }}
+          </span>
+        } @else if (passwordConfirmation.length > 0 && password === passwordConfirmation) {
+          <span class="sucesso-inline">
+            <i class="pi pi-check-circle"></i> Senhas coincidem
+          </span>
+        }
       </div>
-      <button class="btn-primary" type="submit" [disabled]="loading()">
-        {{ loading() ? 'Criando conta...' : 'Criar conta grátis →' }}
+
+      <!-- Botão com loading -->
+      <button
+        class="btn-primary"
+        type="submit"
+        [disabled]="loading() || !formularioValido()"
+      >
+        @if (loading()) {
+          <span class="spinner"></span>
+          Criando conta...
+        } @else {
+          <i class="pi pi-user-plus"></i>
+          Criar conta grátis
+        }
       </button>
+
     </form>
 
     <div class="divider"><span>ou</span></div>
 
-    <button class="btn-google" (click)="loginWithGoogle()">
+    <button class="btn-google" (click)="loginWithGoogle()" [disabled]="loading()">
       <img src="https://www.google.com/favicon.ico" alt="Google" width="18">
       Cadastrar com Google
     </button>

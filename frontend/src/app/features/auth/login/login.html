@@ -3,7 +3,9 @@
 
     <!-- Cabeçalho -->
     <div class="login-header">
-      <a routerLink="/" class="brand">⚡ EduCore</a>
+      <a routerLink="/" class="brand">
+        <i class="pi pi-bolt"></i> EduCore
+      </a>
       <h1>Bem-vindo de volta</h1>
       <p>Entre na sua conta para continuar</p>
     </div>
@@ -11,7 +13,7 @@
     <!-- Mensagem de erro 401 em destaque vermelho -->
     @if (errorMessage()) {
       <div class="alert-error">
-        ⚠️ {{ errorMessage() }}
+        <i class="pi pi-exclamation-circle"></i> {{ errorMessage() }}
       </div>
     }
 
@@ -52,7 +54,7 @@
             (click)="toggleSenha()"
             [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'"
           >
-            {{ mostrarSenha() ? '🙈' : '👁️' }}
+            <i [class]="mostrarSenha() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
           </button>
         </div>
       </div>
@@ -68,7 +70,8 @@
           <span class="spinner"></span>
           Entrando...
         } @else {
-          Entrar →
+          <i class="pi pi-sign-in"></i>
+          Entrar
         }
       </button>
 
