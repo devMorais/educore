@@ -12,14 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->statefulApi();
+        // statefulApi() removido — EduCore usa Bearer tokens, não session/cookies
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Converte Unauthenticated em 401 JSON para todas as rotas de API
-        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $_, $request) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
