@@ -143,8 +143,12 @@ export class Register {
     this.tocado.nome = true; this.tocado.email = true;
     this.tocado.senha = true; this.tocado.confirmacao = true;
 
-    const valido = this.validarNome() & this.validarEmail() & this.validarSenha() & this.validarConfirmacao();
-    if (!valido) return;
+    // Executa todas as validações (sem short-circuit) para exibir todos os erros de uma vez
+    this.validarNome();
+    this.validarEmail();
+    this.validarSenha();
+    this.validarConfirmacao();
+    if (!this.formularioValido()) return;
 
     this.loading.set(true);
 

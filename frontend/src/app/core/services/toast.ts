@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Message, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
+
+type ToastMsg = { severity: string; summary?: string; detail?: string; life?: number };
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
@@ -8,7 +10,7 @@ export class ToastService {
 
   constructor(private messageService: MessageService) {}
 
-  private mostrar(msg: Message): void {
+  private mostrar(msg: ToastMsg): void {
     if (this.ativas >= this.MAX) {
       this.messageService.clear();
       this.ativas = 0;
