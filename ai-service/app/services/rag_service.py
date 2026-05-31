@@ -394,6 +394,53 @@ Retorne APENAS JSON válido:
         result["total_cards"] = len(result.get("cards", []))
         return result
 
+    # ──────────────────────────────────────────────────────── delete (BS-005)
+    async def delete_document(self, document_id: int) -> dict:
+        """
+        Recupera metadados do documento e remove o arquivo do Gemini Files API.
+
+        Esta camada é responsável apenas por recursos externos (Gemini).
+        A deleção do banco (com CASCADE em chunks e generations) e do disco
+        fica no router para manter o controle transacional.
+
+        Retorna os metadados para uso no log de auditoria.
+        """
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                SELECT original_name, file_path, gemini_file_uri, file_size, user_id
+                FROM documents WHERE id = %s
+                """,
+                (document_id,),
+            )
+            row = cursor.fetchone()
+            if not row:
+                return {}
+
+            original_name, file_path, gemini_file_uri, file_size, user_id = row
+
+            # Remove do Gemini Files API se URI ainda registrada
+            # best-effort: arquivos expiram em 48h de qualquer forma
+            if gemini_file_uri:
+                logger.info(
+                    "[DELETE] Removendo arquivo do Gemini Files API: %s (doc=%d)",
+                    gemini_file_uri, document_id,
+                )
+                await gemini_file_service.delete(gemini_file_uri)
+
+            return {
+                "original_name": original_name,
+                "file_path": file_path,
+                "gemini_file_uri": gemini_file_uri,
+                "file_size": file_size or 0,
+                "user_id": user_id,
+            }
+        finally:
+            cursor.close()
+            conn.close()
+
     # ──────────────────────────────────────────────────────── pcd
     def generate_pcd_content(self, document_id: int) -> dict:
         prompt = """Crie material educacional ACESSÍVEL em 4 formatos para pessoas com deficiência (PCD) em português brasileiro.
