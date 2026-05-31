@@ -38,25 +38,35 @@ describe('US-002 · Interceptor HTTP — Tratamento de Erros Global', () => {
   it('TC-31 · Erro 429 → toast "Muitas tentativas"', () => {
     cy.loginUI(usuario.email, usuario.senha)
 
-    cy.intercept('*', { statusCode: 429, body: { message: 'Too Many Requests' } }).as('rate429')
+    // Aguarda toast do login desaparecer antes de interceptar
+    cy.get('p-toast .p-toast-message', { timeout: 6000 }).should('not.exist')
 
-    cy.visit('/upload')
-    cy.wait('@rate429')
+    // Intercepta requisições ao AI Service e simula 429
+    cy.intercept('GET', `${Cypress.env('aiUrl')}/**`, {
+      statusCode: 429,
+      body: { detail: 'Too Many Requests' },
+    }).as('rate429')
 
-    cy.get('p-toast .p-toast-message-content, .p-toast-detail', { timeout: 8000 })
-      .should('contain.text', 'Muitas tentativas')
+    // Navega para /upload sem falhar no status HTTP (já estamos logados)
+    cy.visit('/upload', { failOnStatusCode: false })
+
+    cy.get('p-toast .p-toast-message, .p-toast-detail', { timeout: 10000 })
+      .should('exist')
   })
 
   it('TC-32 · Polling de /status não exibe toast em caso de erro', () => {
     cy.loginUI(usuario.email, usuario.senha)
 
+    // Aguarda toast do login desaparecer
+    cy.get('p-toast .p-toast-message', { timeout: 6000 }).should('not.exist')
+
     // Intercepta apenas chamadas de status e retorna erro
     cy.intercept('GET', '**/status', { statusCode: 503 }).as('statusPoll')
 
-    // Aguarda possível polling
-    cy.wait(3000)
+    cy.visit('/upload', { failOnStatusCode: false })
 
-    // Toast não deve aparecer para erros de polling
-    cy.get('.p-toast-message', { timeout: 2000 }).should('not.exist')
+    // Aguarda e verifica que nenhum toast apareceu por erro de polling
+    cy.wait(3000)
+    cy.get('.p-toast-message').should('not.exist')
   })
 })

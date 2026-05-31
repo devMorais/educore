@@ -76,6 +76,11 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
+        // Defesa extra: middleware deveria rejeitar antes, mas garante 401 se user for null
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
         return response()->json([
             'user_id'           => $user->id,
             'id'                => $user->id,

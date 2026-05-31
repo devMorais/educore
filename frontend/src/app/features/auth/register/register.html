@@ -135,8 +135,8 @@
         }
       </div>
 
-      <!-- Botão -->
-      <button class="btn-primary" type="submit" [disabled]="loading()">
+      <!-- Botão desabilitado durante loading OU com formulário inválido -->
+      <button class="btn-primary" type="submit" [disabled]="loading() || !formularioValido()">
         @if (loading()) {
           <span class="spinner"></span>
           Criando conta...

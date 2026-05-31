@@ -50,7 +50,8 @@ Cypress.Commands.add('criarContaAPI', (usuario: Usuario) => {
     if (res.status === 422) {
       return cy.loginAPI(usuario.email, usuario.senha)
     }
-    expect(res.status).to.eq(200)
+    // Laravel pode retornar 200 ou 201 no register
+    expect(res.status).to.be.oneOf([200, 201])
     const token = res.body.token ?? res.body.access_token
     expect(token).to.be.a('string')
     return cy.wrap(token as string)

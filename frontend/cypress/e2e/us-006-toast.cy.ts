@@ -80,8 +80,8 @@ describe('US-006 · Toast Global (PrimeNG p-toast)', () => {
     cy.get('button[type="submit"]').click()
 
     cy.get('p-toast .p-toast-message', { timeout: 10000 })
-      .should('have.class', 'p-toast-message-success')
-      .or(cy.get('p-toast .p-toast-message[class*="success"]').should('exist'))
+      .invoke('attr', 'class')
+      .should('match', /success/)
   })
 
   it('TC-64 · Toast de erro é vermelho (classe error)', () => {
