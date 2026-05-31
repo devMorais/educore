@@ -12,6 +12,13 @@ frontend/node_modules/
 frontend/dist/
 frontend/.angular/
 
+# Cypress — artefatos gerados em execução (não commitar)
+frontend/cypress/screenshots/
+frontend/cypress/videos/
+frontend/cypress/downloads/
+# Credenciais de teste (colocar credenciais reais aqui se necessário)
+frontend/cypress.env.json
+
 # AI Service
 ai-service/.env
 ai-service/venv/

@@ -7,7 +7,11 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:web-plataforma": "node dist/web-plataforma/server/server.mjs"
+    "serve:ssr:web-plataforma": "node dist/web-plataforma/server/server.mjs",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:homolog": "cypress run --config baseUrl=https://educore.devmorais.com.br",
+    "cy:run:local": "cypress run --config baseUrl=http://localhost:4200"
   },
   "prettier": {
     "printWidth": 100,
@@ -50,6 +54,7 @@
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
+    "cypress": "^15.16.0",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
