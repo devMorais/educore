@@ -18,16 +18,17 @@ export class Upload implements OnInit, OnDestroy {
   private store = inject(ResultStore);
   auth = inject(Auth);
 
+  // Botões de ação com ícones PrimeIcons
   readonly actionButtons = [
-    { type: 'quiz', icon: 'fa-question-circle', label: 'Quiz', desc: '30 perguntas inteligentes', color: 'blue' },
-    { type: 'summary', icon: 'fa-file-alt', label: 'Resumo', desc: 'Pontos-chave do conteúdo', color: 'green' },
-    { type: 'slides', icon: 'fa-images', label: 'Slides GOLD', desc: 'Apresentação premium PPTX', color: 'purple' },
-    { type: 'mindmap', icon: 'fa-project-diagram', label: 'Mapa Mental', desc: 'Visualização interativa', color: 'orange' },
-    { type: 'flashcards', icon: 'fa-clone', label: 'Flashcards', desc: '20 cartões de estudo', color: 'teal' },
-    { type: 'pcd', icon: 'fa-universal-access', label: 'Acessível PCD', desc: 'Linguagem simplificada', color: 'indigo' },
-    { type: 'kahoot', icon: 'fa-gamepad', label: 'Kahoot', desc: 'Download JSON pronto', color: 'red' },
-    { type: 'socrative', icon: 'fa-poll', label: 'Socrative', desc: 'Download JSON', color: 'pink' },
-    { type: 'scorm', icon: 'fa-graduation-cap', label: 'SCORM / LMS', desc: 'Moodle, Canvas, Blackboard', color: 'gray' },
+    { type: 'quiz', icon: 'pi-question-circle', label: 'Quiz', desc: '30 perguntas inteligentes', color: 'blue' },
+    { type: 'summary', icon: 'pi-file-edit', label: 'Resumo', desc: 'Pontos-chave do conteúdo', color: 'green' },
+    { type: 'slides', icon: 'pi-desktop', label: 'Slides GOLD', desc: 'Apresentação premium PPTX', color: 'purple' },
+    { type: 'mindmap', icon: 'pi-sitemap', label: 'Mapa Mental', desc: 'Visualização interativa', color: 'orange' },
+    { type: 'flashcards', icon: 'pi-clone', label: 'Flashcards', desc: '20 cartões de estudo', color: 'teal' },
+    { type: 'pcd', icon: 'pi-eye', label: 'Acessível PCD', desc: 'Linguagem simplificada', color: 'indigo' },
+    { type: 'kahoot', icon: 'pi-play-circle', label: 'Kahoot', desc: 'Download JSON pronto', color: 'red' },
+    { type: 'socrative', icon: 'pi-chart-bar', label: 'Socrative', desc: 'Download JSON', color: 'pink' },
+    { type: 'scorm', icon: 'pi-graduation-cap', label: 'SCORM / LMS', desc: 'Moodle, Canvas, Blackboard', color: 'gray' },
   ];
 
   selectedFile = signal<File | null>(null);
@@ -43,6 +44,25 @@ export class Upload implements OnInit, OnDestroy {
   recentDocuments = signal<DocumentItem[]>([]);
   cachedGenerations = signal<GenerationCache[]>([]);
 
+  // US-009: controla o loading skeleton enquanto a lista de documentos carrega
+  loadingDocs = signal(true);
+
+  // US-009: ícone PrimeIcons de cada tipo de conteúdo, para mostrar o que já foi gerado em cada documento
+  private readonly typeIcon: Record<string, string> = {
+    quiz: 'pi-question-circle',
+    summary: 'pi-file-edit',
+    slides: 'pi-desktop',
+    mindmap: 'pi-sitemap',
+    flashcards: 'pi-clone',
+    pcd: 'pi-eye',
+    kahoot: 'pi-play-circle',
+    socrative: 'pi-chart-bar',
+    scorm: 'pi-graduation-cap',
+  };
+
+  // US-009: cache dos tipos já gerados por documento (documentId -> lista de tipos)
+  generationsByDoc = signal<Record<number, string[]>>({});
+
   private readonly MAX_SIZE = 100 * 1024 * 1024;
   private pollingInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -50,18 +70,97 @@ export class Upload implements OnInit, OnDestroy {
     this.loadDocuments();
   }
 
+  // US-009: carrega os últimos 10 documentos (todos os status) para a lista "Documentos Recentes"
   loadDocuments() {
+    this.loadingDocs.set(true);
     this.aiService.listDocuments().subscribe({
-      next: docs => this.recentDocuments.set(docs.filter(d => d.status === 'completed')),
+      next: docs => {
+        // Ordena do mais recente para o mais antigo e pega os 10 primeiros
+        const ultimos10 = [...docs]
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 10);
+        this.recentDocuments.set(ultimos10);
+        this.loadingDocs.set(false);
+
+        // Para cada documento concluído, carrega os tipos já gerados (para exibir os ícones)
+        ultimos10
+          .filter(d => d.status === 'completed')
+          .forEach(d => this.carregarTiposGerados(d.id));
+      },
+      error: () => {
+        this.recentDocuments.set([]);
+        this.loadingDocs.set(false);
+      },
     });
   }
 
+  // US-009: busca os tipos já gerados de um documento e guarda no mapa
+  private carregarTiposGerados(documentId: number) {
+    this.aiService.listGenerations(documentId).subscribe({
+      next: gens => {
+        this.generationsByDoc.update(mapa => ({
+          ...mapa,
+          [documentId]: gens.map(g => g.type),
+        }));
+      },
+    });
+  }
+
+  // US-009: retorna os tipos já gerados de um documento (para o template)
+  tiposGerados(documentId: number): string[] {
+    return this.generationsByDoc()[documentId] ?? [];
+  }
+
+  // US-009: retorna a classe do ícone PrimeIcons de um tipo de conteúdo
+  iconeDoTipo(type: string): string {
+    return this.typeIcon[type] ?? 'pi-file';
+  }
+
+  // US-009: formata a data de criação para o padrão brasileiro
+  formatDate(dataIso: string): string {
+    const data = new Date(dataIso);
+    return data.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  // US-009: texto do badge conforme o status do documento
+  statusLabel(status: string): string {
+    if (status === 'completed') return 'Concluído';
+    if (status === 'failed') return 'Falhou';
+    if (status === 'processing' || status === 'pending') return 'Processando';
+    return status;
+  }
+
+  // US-009: classe CSS do badge conforme o status
+  statusClass(status: string): string {
+    if (status === 'completed') return 'is-done';
+    if (status === 'failed') return 'is-failed';
+    return 'is-processing';
+  }
+
   selectDocument(doc: DocumentItem) {
+    // US-009: só permite abrir a geração se o documento estiver concluído
+    if (doc.status !== 'completed') return;
+
     this.uploadedDocumentId.set(doc.id);
     this.isCompleted.set(true);
     this.selectedFile.set(null);
     this.errorMessage.set('');
     this.loadGenerations(doc.id);
+  }
+
+  // US-009: reenvia um documento que falhou (volta para a tela de upload)
+  reenviar(doc: DocumentItem, event: Event) {
+    event.stopPropagation(); // evita disparar o clique do item da lista
+    this.uploadedDocumentId.set(null);
+    this.isCompleted.set(false);
+    this.selectedFile.set(null);
+    this.errorMessage.set('');
   }
 
   loadGenerations(documentId: number) {
@@ -130,7 +229,6 @@ export class Upload implements OnInit, OnDestroy {
           this.uploading.set(false);
           this.uploadedDocumentId.set(event.body.document_id);
           if (event.body.status === 'completed' || event.body.deduplicated) {
-            // PDF already processed (dedup hit) — ready immediately
             this.isCompleted.set(true);
             this.loadDocuments();
             this.loadGenerations(event.body.document_id);
