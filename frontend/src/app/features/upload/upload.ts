@@ -3,6 +3,7 @@ import { RouterLink, Router } from '@angular/router';
 import { HttpEvent, HttpEventType, HttpErrorResponse } from '@angular/common/http';
 import { AiService, DocumentStatus, DocumentItem, GenerationCache } from '../../core/services/ai';
 import { Auth } from '../../core/services/auth';
+import { ToastService } from '../../core/services/toast';
 import type { GenerationType } from '../../core/models/content.models';
 import { ResultStore } from '../../core/services/result-store';
 
@@ -16,18 +17,20 @@ export class Upload implements OnInit, OnDestroy {
   private aiService = inject(AiService);
   private router = inject(Router);
   private store = inject(ResultStore);
+  private toast = inject(ToastService);
   auth = inject(Auth);
 
+  // Botões de ação com ícones PrimeIcons
   readonly actionButtons = [
-    { type: 'quiz', icon: 'fa-question-circle', label: 'Quiz', desc: '30 perguntas inteligentes', color: 'blue' },
-    { type: 'summary', icon: 'fa-file-alt', label: 'Resumo', desc: 'Pontos-chave do conteúdo', color: 'green' },
-    { type: 'slides', icon: 'fa-images', label: 'Slides GOLD', desc: 'Apresentação premium PPTX', color: 'purple' },
-    { type: 'mindmap', icon: 'fa-project-diagram', label: 'Mapa Mental', desc: 'Visualização interativa', color: 'orange' },
-    { type: 'flashcards', icon: 'fa-clone', label: 'Flashcards', desc: '20 cartões de estudo', color: 'teal' },
-    { type: 'pcd', icon: 'fa-universal-access', label: 'Acessível PCD', desc: 'Linguagem simplificada', color: 'indigo' },
-    { type: 'kahoot', icon: 'fa-gamepad', label: 'Kahoot', desc: 'Download JSON pronto', color: 'red' },
-    { type: 'socrative', icon: 'fa-poll', label: 'Socrative', desc: 'Download JSON', color: 'pink' },
-    { type: 'scorm', icon: 'fa-graduation-cap', label: 'SCORM / LMS', desc: 'Moodle, Canvas, Blackboard', color: 'gray' },
+    { type: 'quiz',       icon: 'pi-question-circle', label: 'Quiz',          desc: '30 perguntas inteligentes',   color: 'blue'   },
+    { type: 'summary',    icon: 'pi-file-edit',        label: 'Resumo',        desc: 'Pontos-chave do conteúdo',    color: 'green'  },
+    { type: 'slides',     icon: 'pi-desktop',          label: 'Slides GOLD',   desc: 'Apresentação premium PPTX',   color: 'purple' },
+    { type: 'mindmap',    icon: 'pi-sitemap',          label: 'Mapa Mental',   desc: 'Visualização interativa',     color: 'orange' },
+    { type: 'flashcards', icon: 'pi-clone',            label: 'Flashcards',    desc: '20 cartões de estudo',        color: 'teal'   },
+    { type: 'pcd',        icon: 'pi-eye',              label: 'Acessível PCD', desc: 'Linguagem simplificada',      color: 'indigo' },
+    { type: 'kahoot',     icon: 'pi-play-circle',      label: 'Kahoot',        desc: 'Download JSON pronto',        color: 'red'    },
+    { type: 'socrative',  icon: 'pi-chart-bar',        label: 'Socrative',     desc: 'Download JSON',               color: 'pink'   },
+    { type: 'scorm',      icon: 'pi-graduation-cap',   label: 'SCORM / LMS',   desc: 'Moodle, Canvas, Blackboard',  color: 'gray'   },
   ];
 
   selectedFile = signal<File | null>(null);
@@ -42,6 +45,12 @@ export class Upload implements OnInit, OnDestroy {
   isCompleted = signal(false);
   recentDocuments = signal<DocumentItem[]>([]);
   cachedGenerations = signal<GenerationCache[]>([]);
+
+  // Fase atual do processamento para mensagens em tempo real
+  faseProcessamento = signal<'enviando' | 'analisando' | 'finalizando' | ''>('');
+
+  // Indica se os botões estão parcialmente habilitados (progresso >= 30%)
+  botoesDisponiveis = signal(false);
 
   private readonly MAX_SIZE = 100 * 1024 * 1024;
   private pollingInterval: ReturnType<typeof setInterval> | null = null;
@@ -61,6 +70,7 @@ export class Upload implements OnInit, OnDestroy {
     this.isCompleted.set(true);
     this.selectedFile.set(null);
     this.errorMessage.set('');
+    this.botoesDisponiveis.set(true);
     this.loadGenerations(doc.id);
   }
 
@@ -97,7 +107,12 @@ export class Upload implements OnInit, OnDestroy {
 
   private validateAndSet(file: File | undefined) {
     if (!file) return;
-    if (file.type !== 'application/pdf') {
+
+    // Valida pelo mime type E pela extensão do arquivo
+    const extensaoValida = file.name.toLowerCase().endsWith('.pdf');
+    const mimeValido = file.type === 'application/pdf';
+
+    if (!extensaoValida || !mimeValido) {
       this.errorMessage.set('Apenas arquivos PDF são aceitos.');
       return;
     }
@@ -114,6 +129,25 @@ export class Upload implements OnInit, OnDestroy {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
+  // Retorna a mensagem da fase atual do processamento
+  mensagemFase(): string {
+    const fase = this.faseProcessamento();
+    if (fase === 'enviando')    return 'Enviando arquivo para o servidor...';
+    if (fase === 'analisando')  return 'Analisando conteúdo com IA...';
+    if (fase === 'finalizando') return 'Finalizando processamento...';
+    return 'Iniciando análise do documento...';
+  }
+
+  // Reinicia o upload após uma falha
+  tentarNovamente() {
+    this.uploadedDocumentId.set(null);
+    this.processingProgress.set(0);
+    this.faseProcessamento.set('');
+    this.botoesDisponiveis.set(false);
+    this.errorMessage.set('');
+    this.selectedFile.set(null);
+  }
+
   uploadFile() {
     const file = this.selectedFile();
     if (!file) return;
@@ -121,6 +155,7 @@ export class Upload implements OnInit, OnDestroy {
     this.uploading.set(true);
     this.uploadProgress.set(0);
     this.errorMessage.set('');
+    this.faseProcessamento.set('enviando');
 
     this.aiService.uploadFile(file).subscribe({
       next: (event: HttpEvent<{ document_id: number; status?: string; deduplicated?: boolean }>) => {
@@ -129,12 +164,21 @@ export class Upload implements OnInit, OnDestroy {
         } else if (event.type === HttpEventType.Response && event.body) {
           this.uploading.set(false);
           this.uploadedDocumentId.set(event.body.document_id);
+
           if (event.body.status === 'completed' || event.body.deduplicated) {
-            // PDF already processed (dedup hit) — ready immediately
+            // PDF já processado — avisa o usuário via toast
+            this.toast.aviso(
+              'Este PDF já foi enviado anteriormente. Usando versão em cache.',
+              'PDF já processado'
+            );
+            this.faseProcessamento.set('');
             this.isCompleted.set(true);
+            this.botoesDisponiveis.set(true);
             this.loadDocuments();
             this.loadGenerations(event.body.document_id);
           } else {
+            // Inicia polling de status a cada 2 segundos
+            this.faseProcessamento.set('analisando');
             this.startPolling(event.body.document_id);
           }
         }
@@ -142,6 +186,7 @@ export class Upload implements OnInit, OnDestroy {
       error: (err: HttpErrorResponse) => {
         this.uploading.set(false);
         this.uploadProgress.set(0);
+        this.faseProcessamento.set('');
         this.errorMessage.set(this.mapError(err));
       },
     });
@@ -150,25 +195,46 @@ export class Upload implements OnInit, OnDestroy {
   private mapError(err: HttpErrorResponse): string {
     if (err.status === 429) return 'Limite de uso da IA atingido. Aguarde alguns segundos e tente novamente.';
     if (err.status === 413) return 'Arquivo muito grande. O limite é 100 MB.';
-    if (err.status === 0) return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+    if (err.status === 0)   return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
     return err.error?.detail ?? 'Erro ao enviar o arquivo. Tente novamente.';
   }
 
+  // Polling a cada 2s em /documents/{id}/status
   private startPolling(documentId: number) {
     this.stopPolling();
     this.pollingInterval = setInterval(() => {
       this.aiService.checkStatus(documentId).subscribe({
         next: (status: DocumentStatus) => {
-          this.processingProgress.set(status.progress_percent ?? 0);
+          const progresso = status.progress_percent ?? 0;
+          this.processingProgress.set(progresso);
+
+          // Atualiza fase conforme o progresso
+          if (progresso >= 80) {
+            this.faseProcessamento.set('finalizando');
+          } else if (progresso >= 10) {
+            this.faseProcessamento.set('analisando');
+          }
+
+          // Habilita botões parcialmente quando progresso >= 30%
+          if (progresso >= 30 && !this.botoesDisponiveis()) {
+            this.botoesDisponiveis.set(true);
+          }
+
           if (status.status === 'completed') {
+            // Processamento concluído — para o polling
             this.stopPolling();
+            this.faseProcessamento.set('');
             this.isCompleted.set(true);
+            this.botoesDisponiveis.set(true);
             this.loadDocuments();
             this.loadGenerations(documentId);
           } else if (status.status === 'failed') {
+            // Falha no processamento — para o polling e exibe erro
             this.stopPolling();
-            this.errorMessage.set('Erro ao processar o PDF. Tente novamente.');
+            this.faseProcessamento.set('');
+            this.errorMessage.set('Erro ao processar o PDF. Clique em "Tentar novamente".');
             this.uploadedDocumentId.set(null);
+            this.botoesDisponiveis.set(false);
           }
         },
       });
@@ -236,6 +302,7 @@ export class Upload implements OnInit, OnDestroy {
     });
   }
 
+  // Para o polling ao destruir o componente (evita memory leak)
   ngOnDestroy() {
     this.stopPolling();
   }
