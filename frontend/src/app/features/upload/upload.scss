@@ -6,6 +6,15 @@
   font-family: 'Roboto', sans-serif;
 }
 
+// ── Overlay escuro (mobile) ───────────────────────────────────────────────────
+.up-overlay {
+  display: none; // só aparece no mobile via media query
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+}
+
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 .up-sidebar {
   width: 240px;
@@ -23,7 +32,18 @@
     display: block;
     margin-bottom: 2rem;
     padding: 0 0.5rem;
-    img { height: 38px; }
+    text-decoration: none;
+
+    .brand-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #6382ff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      i { font-size: 1rem; }
+    }
   }
 
   &__nav { margin-bottom: 1.5rem; }
@@ -56,8 +76,9 @@
     color: #4a5568;
     padding: 0 0.5rem;
     margin-bottom: 0.5rem;
-
-    i { margin-right: 0.35rem; }
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
   }
 
   &__history {
@@ -127,12 +148,17 @@
 
   &__header {
     margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
 
     h1 {
       font-size: 1.6rem;
       font-weight: 700;
       color: #1a202c;
-      margin: 0 0 0.4rem;
+      margin: 0 0 0.25rem;
     }
 
     p {
@@ -140,6 +166,77 @@
       font-size: 0.9rem;
       margin: 0;
     }
+  }
+
+  &__heading {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  &__check {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #38a169, #48bb78);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.35);
+
+    i {
+      color: #ffffff;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+  }
+}
+
+// ── Botão de menu (mobile, discreto, dentro do fluxo) ─────────────────────────
+.up-menu-btn {
+  display: none; // escondido no desktop
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+  background: #ffffff;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  i { font-size: 0.9rem; color: #6382ff; }
+
+  &:hover { background: #f7fafc; border-color: #cbd5e0; }
+}
+
+// US-010: botão "Enviar novo PDF" com contorno discreto
+.up-btn-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #ffffff;
+  color: #4a6cf7;
+  border: 1.5px solid #c3d0ff;
+  border-radius: 10px;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+
+  i { font-size: 0.85rem; }
+
+  &:hover {
+    background: #4a6cf7;
+    border-color: #4a6cf7;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(74, 108, 247, 0.3);
   }
 }
 
@@ -168,12 +265,21 @@
   &:hover, &.is-dragging {
     border-color: #6382ff;
     background: rgba(99, 130, 255, 0.04);
+
+    .up-dropzone__icon i {
+      color: #4a6cf7;
+      transform: translateY(-4px);
+    }
   }
 
   &__icon {
-    font-size: 2.8rem;
-    color: #6382ff;
     margin-bottom: 0.75rem;
+
+    i {
+      font-size: 3rem;
+      color: #6382ff;
+      transition: transform 0.2s, color 0.2s;
+    }
   }
 
   h3 {
@@ -186,12 +292,16 @@
   p { color: #a0aec0; margin: 0 0 0.75rem; font-size: 0.9rem; }
 
   &__chip {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     background: #edf2f7;
     color: #718096;
     font-size: 0.78rem;
     padding: 0.3rem 0.9rem;
     border-radius: 50px;
+
+    i { color: #e53e3e; font-size: 0.8rem; }
   }
 
   &__selected {
@@ -200,10 +310,14 @@
     justify-content: center;
     gap: 1rem;
 
-    i { font-size: 2.2rem; color: #e53e3e; }
-
     strong { display: block; color: #2d3748; font-size: 0.95rem; }
     small  { color: #a0aec0; font-size: 0.82rem; }
+  }
+
+  &__pdf-icon {
+    font-size: 2.5rem;
+    color: #e53e3e;
+    flex-shrink: 0;
   }
 }
 
@@ -219,8 +333,10 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
-
-  i { margin-right: 0.5rem; }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 
   &:hover:not(:disabled) { background: #4a6cf7; }
   &:disabled { opacity: 0.65; cursor: not-allowed; }
@@ -234,6 +350,10 @@
   font-size: inherit;
   padding: 0;
   text-decoration: underline;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+
   &:hover { color: #4a6cf7; }
 }
 
@@ -268,10 +388,30 @@
 .up-processing {
   padding: 2rem 0;
 
-  i.fa-cog { font-size: 2.5rem; color: #6382ff; margin-bottom: 1rem; display: block; }
+  &__icon {
+    font-size: 2.5rem;
+    color: #6382ff;
+    margin-bottom: 1rem;
+    display: block;
+  }
 
   h3 { font-size: 1.2rem; font-weight: 600; color: #2d3748; margin-bottom: 0.5rem; }
   p  { color: #718096; font-size: 0.9rem; }
+
+  &__hint {
+    margin-top: 1.25rem;
+    background: #ebf8ff;
+    border: 1px solid #bee3f8;
+    color: #2b6cb0;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.82rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    i { flex-shrink: 0; }
+  }
 }
 
 // ── Alert ─────────────────────────────────────────────────────────────────────
@@ -283,8 +423,10 @@
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
   margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 
-  i { margin-right: 0.4rem; }
   &--mt { margin-top: 1.5rem; max-width: 680px; }
 }
 
@@ -294,6 +436,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   max-width: 860px;
+  margin-top: 1.5rem;
 }
 
 .up-action {
@@ -311,21 +454,36 @@
   overflow: hidden;
   text-align: center;
 
-  &__icon { font-size: 1.7rem; margin-bottom: 0.2rem; }
+  &__icon {
+    font-size: 1.7rem;
+    margin-bottom: 0.2rem;
+
+    i { font-size: 1.7rem; }
+  }
 
   strong { font-size: 0.95rem; font-weight: 700; }
   small  { font-size: 0.75rem; opacity: 0.85; line-height: 1.3; }
 
   &__cache-badge {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    background: rgba(0,0,0,0.25);
-    font-size: 0.65rem;
+    top: 0.6rem;
+    right: 0.6rem;
+    background: #ffffff;
+    color: #2f855a;
+    font-size: 0.68rem;
     font-weight: 700;
-    padding: 0.2rem 0.45rem;
+    padding: 0.25rem 0.6rem 0.25rem 0.5rem;
     border-radius: 50px;
-    i { margin-right: 0.2rem; }
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    letter-spacing: 0.01em;
+
+    i {
+      font-size: 0.8rem;
+      color: #38a169;
+    }
   }
 
   &__spinner {
@@ -336,7 +494,8 @@
     justify-content: center;
     background: rgba(0,0,0,0.3);
     border-radius: 14px;
-    font-size: 1.4rem;
+
+    i { font-size: 1.6rem; color: #fff; }
   }
 
   &:hover:not(:disabled) {
@@ -354,7 +513,7 @@
     background: rgba(255,255,255,0.5);
   }
 
-  // Colors
+  // Cores
   &--blue   { background: linear-gradient(135deg, #356df1, #5a8cf8); }
   &--green  { background: linear-gradient(135deg, #38a169, #4ecb74); }
   &--purple { background: linear-gradient(135deg, #6b46c1, #9f7aea); }
@@ -372,21 +531,29 @@
 }
 
 @media (max-width: 768px) {
+  // Mostra o botão de menu e o overlay no mobile
+  .up-menu-btn { display: inline-flex; }
+  .up-overlay { display: block; }
+
+  // Sidebar vira painel deslizante fixo à esquerda
   .up-sidebar {
-    display: none; // replaced by mobile menu (future)
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1050;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+
+    &.is-open { transform: translateX(0); }
   }
 
-  .up-main {
-    padding: 1.5rem 1rem;
-  }
-
-  .up-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .up-main { padding: 1.5rem 1rem; }
+  .up-grid { grid-template-columns: repeat(2, 1fr); }
+  .up-main__header { flex-direction: column; align-items: flex-start; }
 }
 
 @media (max-width: 480px) {
   .up-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-
   .up-action { padding: 1.1rem 0.75rem 1rem; }
 }

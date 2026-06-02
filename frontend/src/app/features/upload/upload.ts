@@ -3,6 +3,7 @@ import { RouterLink, Router } from '@angular/router';
 import { HttpEvent, HttpEventType, HttpErrorResponse } from '@angular/common/http';
 import { AiService, DocumentStatus, DocumentItem, GenerationCache } from '../../core/services/ai';
 import { Auth } from '../../core/services/auth';
+import { ToastService } from '../../core/services/toast';
 import type { GenerationType } from '../../core/models/content.models';
 import { ResultStore } from '../../core/services/result-store';
 
@@ -16,18 +17,20 @@ export class Upload implements OnInit, OnDestroy {
   private aiService = inject(AiService);
   private router = inject(Router);
   private store = inject(ResultStore);
+  private toast = inject(ToastService);
   auth = inject(Auth);
 
+  // Botões de ação com ícones PrimeIcons (os 6 primeiros são os conteúdos principais da US-010)
   readonly actionButtons = [
-    { type: 'quiz', icon: 'fa-question-circle', label: 'Quiz', desc: '30 perguntas inteligentes', color: 'blue' },
-    { type: 'summary', icon: 'fa-file-alt', label: 'Resumo', desc: 'Pontos-chave do conteúdo', color: 'green' },
-    { type: 'slides', icon: 'fa-images', label: 'Slides GOLD', desc: 'Apresentação premium PPTX', color: 'purple' },
-    { type: 'mindmap', icon: 'fa-project-diagram', label: 'Mapa Mental', desc: 'Visualização interativa', color: 'orange' },
-    { type: 'flashcards', icon: 'fa-clone', label: 'Flashcards', desc: '20 cartões de estudo', color: 'teal' },
-    { type: 'pcd', icon: 'fa-universal-access', label: 'Acessível PCD', desc: 'Linguagem simplificada', color: 'indigo' },
-    { type: 'kahoot', icon: 'fa-gamepad', label: 'Kahoot', desc: 'Download JSON pronto', color: 'red' },
-    { type: 'socrative', icon: 'fa-poll', label: 'Socrative', desc: 'Download JSON', color: 'pink' },
-    { type: 'scorm', icon: 'fa-graduation-cap', label: 'SCORM / LMS', desc: 'Moodle, Canvas, Blackboard', color: 'gray' },
+    { type: 'quiz', icon: 'pi-question-circle', label: 'Quiz', desc: '30 perguntas inteligentes', color: 'blue' },
+    { type: 'summary', icon: 'pi-file-edit', label: 'Resumo', desc: 'Pontos-chave do conteúdo', color: 'green' },
+    { type: 'slides', icon: 'pi-desktop', label: 'Slides GOLD', desc: 'Apresentação premium PPTX', color: 'purple' },
+    { type: 'mindmap', icon: 'pi-sitemap', label: 'Mapa Mental', desc: 'Visualização interativa', color: 'orange' },
+    { type: 'flashcards', icon: 'pi-clone', label: 'Flashcards', desc: '20 cartões de estudo', color: 'teal' },
+    { type: 'pcd', icon: 'pi-eye', label: 'Acessível PCD', desc: 'Linguagem simplificada', color: 'indigo' },
+    { type: 'kahoot', icon: 'pi-play-circle', label: 'Kahoot', desc: 'Download JSON pronto', color: 'red' },
+    { type: 'socrative', icon: 'pi-chart-bar', label: 'Socrative', desc: 'Download JSON', color: 'pink' },
+    { type: 'scorm', icon: 'pi-graduation-cap', label: 'SCORM / LMS', desc: 'Moodle, Canvas, Blackboard', color: 'gray' },
   ];
 
   selectedFile = signal<File | null>(null);
@@ -43,11 +46,19 @@ export class Upload implements OnInit, OnDestroy {
   recentDocuments = signal<DocumentItem[]>([]);
   cachedGenerations = signal<GenerationCache[]>([]);
 
+  // Controla a abertura da sidebar no mobile (menu hambúrguer)
+  menuAberto = signal(false);
+
   private readonly MAX_SIZE = 100 * 1024 * 1024;
   private pollingInterval: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit() {
     this.loadDocuments();
+  }
+
+  // Abre/fecha a sidebar no mobile
+  alternarMenu() {
+    this.menuAberto.update(v => !v);
   }
 
   loadDocuments() {
@@ -59,8 +70,10 @@ export class Upload implements OnInit, OnDestroy {
   selectDocument(doc: DocumentItem) {
     this.uploadedDocumentId.set(doc.id);
     this.isCompleted.set(true);
+    this.processingProgress.set(100);
     this.selectedFile.set(null);
     this.errorMessage.set('');
+    this.menuAberto.set(false); // fecha o menu ao escolher um documento no mobile
     this.loadGenerations(doc.id);
   }
 
@@ -73,6 +86,11 @@ export class Upload implements OnInit, OnDestroy {
 
   isCached(type: string): boolean {
     return this.cachedGenerations().some(g => g.type === type);
+  }
+
+  // US-010: botão só é liberado quando o progresso atinge 30%
+  botaoLiberado(): boolean {
+    return this.isCompleted() || this.processingProgress() >= 30;
   }
 
   onDragOver(event: DragEvent) {
@@ -120,6 +138,7 @@ export class Upload implements OnInit, OnDestroy {
 
     this.uploading.set(true);
     this.uploadProgress.set(0);
+    this.processingProgress.set(0);
     this.errorMessage.set('');
 
     this.aiService.uploadFile(file).subscribe({
@@ -130,7 +149,7 @@ export class Upload implements OnInit, OnDestroy {
           this.uploading.set(false);
           this.uploadedDocumentId.set(event.body.document_id);
           if (event.body.status === 'completed' || event.body.deduplicated) {
-            // PDF already processed (dedup hit) — ready immediately
+            this.processingProgress.set(100);
             this.isCompleted.set(true);
             this.loadDocuments();
             this.loadGenerations(event.body.document_id);
@@ -162,6 +181,7 @@ export class Upload implements OnInit, OnDestroy {
           this.processingProgress.set(status.progress_percent ?? 0);
           if (status.status === 'completed') {
             this.stopPolling();
+            this.processingProgress.set(100);
             this.isCompleted.set(true);
             this.loadDocuments();
             this.loadGenerations(documentId);
@@ -182,10 +202,12 @@ export class Upload implements OnInit, OnDestroy {
     }
   }
 
+  // US-010: clica no tipo, salva no ResultStore e navega para /resultado/{tipo}
   generate(type: GenerationType | string) {
     const documentId = this.uploadedDocumentId();
     if (!documentId || this.generating()) return;
 
+    // Exportações continuam baixando arquivo (não navegam para tela de resultado)
     if (type === 'kahoot' || type === 'socrative' || type === 'scorm') {
       this.triggerExport(documentId, type as 'kahoot' | 'socrative' | 'scorm');
       return;
@@ -194,6 +216,11 @@ export class Upload implements OnInit, OnDestroy {
     this.generating.set(true);
     this.generatingType.set(type);
     this.errorMessage.set('');
+
+    // US-010: se já existe em cache, avisa que está usando o resultado salvo
+    if (this.isCached(type)) {
+      this.toast.info('Usando resultado salvo.', 'Conteúdo em cache');
+    }
 
     this.aiService.generateContent(documentId, type as GenerationType).subscribe({
       next: response => {
@@ -204,9 +231,10 @@ export class Upload implements OnInit, OnDestroy {
         this.router.navigate(['/resultado', type]);
       },
       error: (err: HttpErrorResponse) => {
+        // US-010: em erro, dispara toast e libera o botão
         this.generating.set(false);
         this.generatingType.set('');
-        this.errorMessage.set(err.error?.detail ?? 'Erro ao gerar conteúdo. Tente novamente.');
+        this.toast.erro(err.error?.detail ?? 'Erro ao gerar conteúdo. Tente novamente.');
       },
     });
   }
@@ -231,7 +259,7 @@ export class Upload implements OnInit, OnDestroy {
       error: (err: HttpErrorResponse) => {
         this.generating.set(false);
         this.generatingType.set('');
-        this.errorMessage.set(err.error?.detail ?? `Erro ao exportar para ${type}.`);
+        this.toast.erro(err.error?.detail ?? `Erro ao exportar para ${type}.`);
       },
     });
   }

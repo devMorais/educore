@@ -1,26 +1,36 @@
 <div class="up-layout">
 
+  <!-- Overlay escuro que fecha o menu ao tocar fora (apenas mobile) -->
+  @if (menuAberto()) {
+    <div class="up-overlay" (click)="alternarMenu()"></div>
+  }
+
   <!-- SIDEBAR -->
-  <aside class="up-sidebar">
+  <aside class="up-sidebar" [class.is-open]="menuAberto()">
     <a routerLink="/" class="up-sidebar__logo">
-      <span class="brand-name">⚡ EduCore</span>
+      <span class="brand-name">
+        <i class="pi pi-bolt"></i> EduCore
+      </span>
     </a>
 
     <nav class="up-sidebar__nav">
       <a routerLink="/upload" class="up-sidebar__link active">
-        📄 Upload de PDF
+        <i class="pi pi-file-pdf"></i> Upload de PDF
       </a>
     </nav>
 
     @if (recentDocuments().length > 0) {
-      <p class="up-sidebar__section-label">📁 Materiais recentes</p>
+      <p class="up-sidebar__section-label">
+        <i class="pi pi-history"></i> Materiais recentes
+      </p>
       <div class="up-sidebar__history">
         <ul>
           @for (doc of recentDocuments(); track doc.id) {
             <li class="up-sidebar__doc"
                 [class.is-active]="uploadedDocumentId() === doc.id"
                 (click)="selectDocument(doc)">
-              📕 <span>{{ doc.filename }}</span>
+              <i class="pi pi-file-pdf"></i>
+              <span>{{ doc.filename }}</span>
             </li>
           }
         </ul>
@@ -29,7 +39,7 @@
 
     <div class="up-sidebar__footer">
       <button class="up-sidebar__logout" (click)="auth.logout()">
-        🚪 Sair
+        <i class="pi pi-sign-out"></i> Sair
       </button>
     </div>
   </aside>
@@ -37,12 +47,25 @@
   <!-- MAIN -->
   <main class="up-main">
 
+    <!-- Botão de menu (visível apenas no mobile, dentro do fluxo da página) -->
+    <button class="up-menu-btn" (click)="alternarMenu()" aria-label="Abrir menu">
+      <i class="pi pi-bars"></i> Menu
+    </button>
+
     <div class="up-main__header">
       @if (isCompleted()) {
-        <h1>✅ Pronto! Escolha o que gerar</h1>
-        <button class="up-link-btn"
-          (click)="uploadedDocumentId.set(null); isCompleted.set(false); selectedFile.set(null); cachedGenerations.set([])">
-          + Enviar novo PDF
+        <div class="up-main__heading">
+          <span class="up-main__check">
+            <i class="pi pi-check"></i>
+          </span>
+          <div>
+            <h1>Pronto! Escolha o que gerar</h1>
+            <p>Seu material foi processado e está pronto para uso</p>
+          </div>
+        </div>
+        <button class="up-btn-new"
+          (click)="uploadedDocumentId.set(null); isCompleted.set(false); selectedFile.set(null); cachedGenerations.set([]); processingProgress.set(0)">
+          <i class="pi pi-plus"></i> Enviar novo PDF
         </button>
       } @else {
         <h1>Novo Material</h1>
@@ -62,13 +85,17 @@
           <input #fileInput type="file" accept=".pdf" hidden (change)="onFileSelected($event)">
 
           @if (!selectedFile()) {
-            <div class="up-dropzone__icon">📂</div>
+            <div class="up-dropzone__icon">
+              <i class="pi pi-cloud-upload"></i>
+            </div>
             <h3>Arraste seu PDF aqui</h3>
             <p>ou clique para selecionar</p>
-            <span class="up-dropzone__chip">PDF • Máximo 100 MB</span>
+            <span class="up-dropzone__chip">
+              <i class="pi pi-file-pdf"></i> PDF • Máximo 100 MB
+            </span>
           } @else {
             <div class="up-dropzone__selected">
-              <span style="font-size:2.2rem">📄</span>
+              <i class="pi pi-file-pdf up-dropzone__pdf-icon"></i>
               <div>
                 <strong>{{ selectedFile()!.name }}</strong>
                 <small>{{ formatFileSize(selectedFile()!.size) }}</small>
@@ -78,12 +105,18 @@
         </div>
 
         @if (errorMessage()) {
-          <div class="up-alert">⚠️ {{ errorMessage() }}</div>
+          <div class="up-alert">
+            <i class="pi pi-exclamation-circle"></i> {{ errorMessage() }}
+          </div>
         }
 
         @if (selectedFile()) {
           <button class="up-btn-primary" (click)="uploadFile()" [disabled]="uploading()">
-            {{ uploading() ? 'Enviando ' + uploadProgress() + '%...' : '🚀 Enviar e Processar' }}
+            @if (uploading()) {
+              Enviando {{ uploadProgress() }}%...
+            } @else {
+              <i class="pi pi-send"></i> Enviar e Processar
+            }
           </button>
           @if (uploading()) {
             <div class="up-progress">
@@ -98,7 +131,7 @@
     @if (uploadedDocumentId() && !isCompleted()) {
       <div class="up-card up-card--center">
         <div class="up-processing">
-          <span style="font-size:2.5rem; display:block; margin-bottom:1rem">⚙️</span>
+          <i class="pi pi-spin pi-spinner up-processing__icon"></i>
           <h3>Processando com IA...</h3>
           @if (processingProgress() > 0) {
             <p>{{ processingProgress() }}% das páginas analisadas</p>
@@ -111,46 +144,44 @@
               <div class="up-progress__fill up-progress__fill--anim"></div>
             </div>
           }
+
+          <!-- US-010: aviso quando os botões já estão liberados (>= 30%) -->
+          @if (botaoLiberado()) {
+            <p class="up-processing__hint">
+              <i class="pi pi-info-circle"></i>
+              Você já pode gerar conteúdo enquanto o processamento continua!
+            </p>
+          }
         </div>
       </div>
     }
 
-    <!-- AÇÕES -->
-    @if (isCompleted()) {
+    <!-- AÇÕES: aparecem quando concluído OU quando o progresso libera (>= 30%) -->
+    @if (isCompleted() || (uploadedDocumentId() && botaoLiberado())) {
       <div class="up-grid">
         @for (btn of actionButtons; track btn.type) {
           <button class="up-action up-action--{{ btn.color }}"
                   [class.is-cached]="isCached(btn.type)"
                   (click)="generate(btn.type)"
-                  [disabled]="generating()">
+                  [disabled]="generating() || !botaoLiberado()">
             <span class="up-action__icon">
-              @switch (btn.type) {
-                @case ('quiz')       { 🧠 }
-                @case ('summary')    { 📄 }
-                @case ('slides')     { 🎯 }
-                @case ('mindmap')    { 🗺️ }
-                @case ('flashcards') { 🃏 }
-                @case ('pcd')        { ♿ }
-                @case ('kahoot')     { 🎮 }
-                @case ('socrative')  { 📊 }
-                @case ('scorm')      { 🎓 }
-              }
+              <i class="pi {{ btn.icon }}"></i>
             </span>
             <strong>{{ btn.label }}</strong>
             <small>{{ btn.desc }}</small>
             @if (isCached(btn.type)) {
-              <span class="up-action__cache-badge">⚡ Cache</span>
+              <span class="up-action__cache-badge">
+                <i class="pi pi-check-circle"></i> Gerado
+              </span>
             }
             @if (generatingType() === btn.type) {
-              <span class="up-action__spinner">⏳</span>
+              <span class="up-action__spinner">
+                <i class="pi pi-spin pi-spinner"></i>
+              </span>
             }
           </button>
         }
       </div>
-
-      @if (errorMessage()) {
-        <div class="up-alert up-alert--mt">⚠️ {{ errorMessage() }}</div>
-      }
     }
 
   </main>
