@@ -3,6 +3,7 @@ import { RouterLink, Router } from '@angular/router';
 import { HttpEvent, HttpEventType, HttpErrorResponse } from '@angular/common/http';
 import { AiService, DocumentStatus, DocumentItem, GenerationCache } from '../../core/services/ai';
 import { Auth } from '../../core/services/auth';
+import { ToastService } from '../../core/services/toast';
 import type { GenerationType } from '../../core/models/content.models';
 import { ResultStore } from '../../core/services/result-store';
 
@@ -16,18 +17,20 @@ export class Upload implements OnInit, OnDestroy {
   private aiService = inject(AiService);
   private router = inject(Router);
   private store = inject(ResultStore);
+  private toast = inject(ToastService);
   auth = inject(Auth);
 
+  // Botões de ação com ícones PrimeIcons
   readonly actionButtons = [
-    { type: 'quiz', icon: 'fa-question-circle', label: 'Quiz', desc: '30 perguntas inteligentes', color: 'blue' },
-    { type: 'summary', icon: 'fa-file-alt', label: 'Resumo', desc: 'Pontos-chave do conteúdo', color: 'green' },
-    { type: 'slides', icon: 'fa-images', label: 'Slides GOLD', desc: 'Apresentação premium PPTX', color: 'purple' },
-    { type: 'mindmap', icon: 'fa-project-diagram', label: 'Mapa Mental', desc: 'Visualização interativa', color: 'orange' },
-    { type: 'flashcards', icon: 'fa-clone', label: 'Flashcards', desc: '20 cartões de estudo', color: 'teal' },
-    { type: 'pcd', icon: 'fa-universal-access', label: 'Acessível PCD', desc: 'Linguagem simplificada', color: 'indigo' },
-    { type: 'kahoot', icon: 'fa-gamepad', label: 'Kahoot', desc: 'Download JSON pronto', color: 'red' },
-    { type: 'socrative', icon: 'fa-poll', label: 'Socrative', desc: 'Download JSON', color: 'pink' },
-    { type: 'scorm', icon: 'fa-graduation-cap', label: 'SCORM / LMS', desc: 'Moodle, Canvas, Blackboard', color: 'gray' },
+    { type: 'quiz',       icon: 'pi-question-circle', label: 'Quiz',         desc: '30 perguntas inteligentes',    color: 'blue'   },
+    { type: 'summary',    icon: 'pi-file-edit',        label: 'Resumo',       desc: 'Pontos-chave do conteúdo',     color: 'green'  },
+    { type: 'slides',     icon: 'pi-desktop',          label: 'Slides GOLD',  desc: 'Apresentação premium PPTX',    color: 'purple' },
+    { type: 'mindmap',    icon: 'pi-sitemap',          label: 'Mapa Mental',  desc: 'Visualização interativa',      color: 'orange' },
+    { type: 'flashcards', icon: 'pi-clone',            label: 'Flashcards',   desc: '20 cartões de estudo',         color: 'teal'   },
+    { type: 'pcd',        icon: 'pi-eye',              label: 'Acessível PCD',desc: 'Linguagem simplificada',       color: 'indigo' },
+    { type: 'kahoot',     icon: 'pi-play-circle',      label: 'Kahoot',       desc: 'Download JSON pronto',         color: 'red'    },
+    { type: 'socrative',  icon: 'pi-chart-bar',        label: 'Socrative',    desc: 'Download JSON',                color: 'pink'   },
+    { type: 'scorm',      icon: 'pi-graduation-cap',   label: 'SCORM / LMS',  desc: 'Moodle, Canvas, Blackboard',  color: 'gray'   },
   ];
 
   selectedFile = signal<File | null>(null);
@@ -97,7 +100,12 @@ export class Upload implements OnInit, OnDestroy {
 
   private validateAndSet(file: File | undefined) {
     if (!file) return;
-    if (file.type !== 'application/pdf') {
+
+    // Valida pelo mime type E pela extensão do arquivo
+    const extensaoValida = file.name.toLowerCase().endsWith('.pdf');
+    const mimeValido = file.type === 'application/pdf';
+
+    if (!extensaoValida || !mimeValido) {
       this.errorMessage.set('Apenas arquivos PDF são aceitos.');
       return;
     }
@@ -129,8 +137,13 @@ export class Upload implements OnInit, OnDestroy {
         } else if (event.type === HttpEventType.Response && event.body) {
           this.uploading.set(false);
           this.uploadedDocumentId.set(event.body.document_id);
+
           if (event.body.status === 'completed' || event.body.deduplicated) {
-            // PDF already processed (dedup hit) — ready immediately
+            // PDF já processado anteriormente — avisa o usuário
+            this.toast.aviso(
+              'Este PDF já foi enviado anteriormente. Usando versão em cache.',
+              'PDF já processado'
+            );
             this.isCompleted.set(true);
             this.loadDocuments();
             this.loadGenerations(event.body.document_id);
