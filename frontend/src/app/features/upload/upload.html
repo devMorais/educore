@@ -99,8 +99,7 @@
               <span class="up-spinner"></span>
               Enviando {{ uploadProgress() }}%...
             } @else {
-              <i class="pi pi-send"></i>
-              Enviar para IA
+              <i class="pi pi-send"></i> Enviar para IA
             }
           </button>
           @if (uploading()) {
@@ -108,6 +107,84 @@
               <div class="up-progress__fill" [style.width.%]="uploadProgress()"></div>
             </div>
           }
+        }
+      </div>
+
+      <!-- US-009: SEÇÃO DOCUMENTOS RECENTES -->
+      <div class="up-recent">
+        <h2 class="up-recent__title">
+          <i class="pi pi-history"></i> Documentos Recentes
+        </h2>
+
+        <!-- Loading skeleton enquanto a lista carrega -->
+        @if (loadingDocs()) {
+          <div class="up-recent__list">
+            @for (s of [1,2,3]; track s) {
+              <div class="up-doc-card up-doc-card--skeleton">
+                <div class="sk sk--icon"></div>
+                <div class="sk-lines">
+                  <div class="sk sk--line"></div>
+                  <div class="sk sk--line sk--short"></div>
+                </div>
+                <div class="sk sk--badge"></div>
+              </div>
+            }
+          </div>
+        } @else if (recentDocuments().length === 0) {
+          <!-- Estado vazio -->
+          <div class="up-recent__empty">
+            <i class="pi pi-inbox"></i>
+            <p>Você ainda não enviou nenhum PDF.</p>
+          </div>
+        } @else {
+          <!-- Lista de documentos -->
+          <div class="up-recent__list">
+            @for (doc of recentDocuments(); track doc.id) {
+              <div class="up-doc-card"
+                   [class.is-clickable]="doc.status === 'completed'"
+                   (click)="selectDocument(doc)">
+
+                <i class="pi pi-file-pdf up-doc-card__icon"></i>
+
+                <div class="up-doc-card__info">
+                  <strong class="up-doc-card__name">{{ doc.filename }}</strong>
+                  <small class="up-doc-card__date">
+                    <i class="pi pi-calendar"></i> {{ formatDate(doc.created_at) }}
+                  </small>
+
+                  <!-- Tipos já gerados (apenas para concluídos) -->
+                  @if (doc.status === 'completed' && tiposGerados(doc.id).length > 0) {
+                    <div class="up-doc-card__gens">
+                      @for (tipo of tiposGerados(doc.id); track tipo) {
+                        <span class="up-doc-card__gen" [title]="tipo">
+                          <i class="pi {{ iconeDoTipo(tipo) }}"></i>
+                        </span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Badge de status -->
+                <span class="up-badge {{ statusClass(doc.status) }}">
+                  @if (statusClass(doc.status) === 'is-processing') {
+                    <i class="pi pi-spin pi-spinner"></i>
+                  } @else if (statusClass(doc.status) === 'is-done') {
+                    <i class="pi pi-check"></i>
+                  } @else {
+                    <i class="pi pi-times"></i>
+                  }
+                  {{ statusLabel(doc.status) }}
+                </span>
+
+                <!-- Botão Reenviar (apenas para falhados) -->
+                @if (doc.status === 'failed') {
+                  <button class="up-doc-card__retry" (click)="reenviar(doc, $event)">
+                    <i class="pi pi-refresh"></i> Reenviar
+                  </button>
+                }
+              </div>
+            }
+          </div>
         }
       </div>
     }
