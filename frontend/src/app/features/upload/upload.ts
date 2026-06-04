@@ -55,6 +55,9 @@ export class Upload implements OnInit, OnDestroy {
   // Controla o loading skeleton enquanto a lista de documentos carrega
   loadingDocs = signal(true);
 
+  // Controla a abertura da sidebar no mobile (menu hambúrguer)
+  menuAberto = signal(false);
+
   // Ícone PrimeIcons de cada tipo de conteúdo, para mostrar o que já foi gerado em cada documento
   private readonly typeIcon: Record<string, string> = {
     quiz: 'pi-question-circle',
@@ -78,7 +81,12 @@ export class Upload implements OnInit, OnDestroy {
     this.loadDocuments();
   }
 
-  // US-009: carrega os últimos 10 documentos (todos os status) para a lista "Documentos Recentes"
+  // Abre/fecha a sidebar no mobile
+  alternarMenu() {
+    this.menuAberto.update(v => !v);
+  }
+
+  // Carrega os últimos 10 documentos (todos os status) para a lista "Documentos Recentes"
   loadDocuments() {
     this.loadingDocs.set(true);
     this.aiService.listDocuments().subscribe({
@@ -157,9 +165,11 @@ export class Upload implements OnInit, OnDestroy {
 
     this.uploadedDocumentId.set(doc.id);
     this.isCompleted.set(true);
+    this.processingProgress.set(100);
     this.selectedFile.set(null);
     this.errorMessage.set('');
     this.botoesDisponiveis.set(true);
+    this.menuAberto.set(false);
     this.loadGenerations(doc.id);
   }
 
@@ -181,6 +191,11 @@ export class Upload implements OnInit, OnDestroy {
 
   isCached(type: string): boolean {
     return this.cachedGenerations().some(g => g.type === type);
+  }
+
+  // US-010: botão só é liberado quando o progresso atinge 30%
+  botaoLiberado(): boolean {
+    return this.isCompleted() || this.processingProgress() >= 30;
   }
 
   onDragOver(event: DragEvent) {
@@ -252,6 +267,7 @@ export class Upload implements OnInit, OnDestroy {
 
     this.uploading.set(true);
     this.uploadProgress.set(0);
+    this.processingProgress.set(0);
     this.errorMessage.set('');
     this.faseProcessamento.set('enviando');
 
@@ -270,6 +286,7 @@ export class Upload implements OnInit, OnDestroy {
               'PDF já processado'
             );
             this.faseProcessamento.set('');
+            this.processingProgress.set(100);
             this.isCompleted.set(true);
             this.botoesDisponiveis.set(true);
             this.loadDocuments();
@@ -322,6 +339,7 @@ export class Upload implements OnInit, OnDestroy {
             // Processamento concluído — para o polling
             this.stopPolling();
             this.faseProcessamento.set('');
+            this.processingProgress.set(100);
             this.isCompleted.set(true);
             this.botoesDisponiveis.set(true);
             this.loadDocuments();
@@ -346,10 +364,12 @@ export class Upload implements OnInit, OnDestroy {
     }
   }
 
+  // US-010: clica no tipo, salva no ResultStore e navega para /resultado/{tipo}
   generate(type: GenerationType | string) {
     const documentId = this.uploadedDocumentId();
     if (!documentId || this.generating()) return;
 
+    // Exportações continuam baixando arquivo (não navegam para tela de resultado)
     if (type === 'kahoot' || type === 'socrative' || type === 'scorm') {
       this.triggerExport(documentId, type as 'kahoot' | 'socrative' | 'scorm');
       return;
@@ -358,6 +378,11 @@ export class Upload implements OnInit, OnDestroy {
     this.generating.set(true);
     this.generatingType.set(type);
     this.errorMessage.set('');
+
+    // US-010: se já existe em cache, avisa que está usando o resultado salvo
+    if (this.isCached(type)) {
+      this.toast.info('Usando resultado salvo.', 'Conteúdo em cache');
+    }
 
     this.aiService.generateContent(documentId, type as GenerationType).subscribe({
       next: response => {
@@ -368,9 +393,10 @@ export class Upload implements OnInit, OnDestroy {
         this.router.navigate(['/resultado', type]);
       },
       error: (err: HttpErrorResponse) => {
+        // US-010: em erro, dispara toast e libera o botão
         this.generating.set(false);
         this.generatingType.set('');
-        this.errorMessage.set(err.error?.detail ?? 'Erro ao gerar conteúdo. Tente novamente.');
+        this.toast.erro(err.error?.detail ?? 'Erro ao gerar conteúdo. Tente novamente.');
       },
     });
   }
@@ -395,7 +421,7 @@ export class Upload implements OnInit, OnDestroy {
       error: (err: HttpErrorResponse) => {
         this.generating.set(false);
         this.generatingType.set('');
-        this.errorMessage.set(err.error?.detail ?? `Erro ao exportar para ${type}.`);
+        this.toast.erro(err.error?.detail ?? `Erro ao exportar para ${type}.`);
       },
     });
   }

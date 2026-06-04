@@ -1,7 +1,12 @@
 <div class="up-layout">
 
+  <!-- Overlay escuro que fecha o menu ao tocar fora (apenas mobile) -->
+  @if (menuAberto()) {
+    <div class="up-overlay" (click)="alternarMenu()"></div>
+  }
+
   <!-- SIDEBAR -->
-  <aside class="up-sidebar">
+  <aside class="up-sidebar" [class.is-open]="menuAberto()">
     <a routerLink="/" class="up-sidebar__logo">
       <span class="brand-name">
         <i class="pi pi-bolt"></i> EduCore
@@ -42,11 +47,24 @@
   <!-- MAIN -->
   <main class="up-main">
 
+    <!-- Botão de menu (visível apenas no mobile, dentro do fluxo da página) -->
+    <button class="up-menu-btn" (click)="alternarMenu()" aria-label="Abrir menu">
+      <i class="pi pi-bars"></i> Menu
+    </button>
+
     <div class="up-main__header">
       @if (isCompleted()) {
-        <h1><i class="pi pi-check-circle"></i> Pronto! Escolha o que gerar</h1>
-        <button class="up-link-btn"
-          (click)="uploadedDocumentId.set(null); isCompleted.set(false); selectedFile.set(null); cachedGenerations.set([]); botoesDisponiveis.set(false)">
+        <div class="up-main__heading">
+          <span class="up-main__check">
+            <i class="pi pi-check"></i>
+          </span>
+          <div>
+            <h1>Pronto! Escolha o que gerar</h1>
+            <p>Seu material foi processado e está pronto para uso</p>
+          </div>
+        </div>
+        <button class="up-btn-new"
+          (click)="uploadedDocumentId.set(null); isCompleted.set(false); selectedFile.set(null); cachedGenerations.set([]); botoesDisponiveis.set(false); processingProgress.set(0)">
           <i class="pi pi-plus"></i> Enviar novo PDF
         </button>
       } @else {
@@ -236,14 +254,14 @@
       </div>
     }
 
-    <!-- AÇÕES -->
-    @if (isCompleted()) {
+    <!-- AÇÕES: aparecem quando concluído OU quando o progresso libera (>= 30%) -->
+    @if (isCompleted() || (uploadedDocumentId() && botoesDisponiveis())) {
       <div class="up-grid">
         @for (btn of actionButtons; track btn.type) {
           <button class="up-action up-action--{{ btn.color }}"
                   [class.is-cached]="isCached(btn.type)"
                   (click)="generate(btn.type)"
-                  [disabled]="generating()">
+                  [disabled]="generating() || !botoesDisponiveis()">
             <span class="up-action__icon">
               <i class="pi {{ btn.icon }}"></i>
             </span>
@@ -251,7 +269,7 @@
             <small>{{ btn.desc }}</small>
             @if (isCached(btn.type)) {
               <span class="up-action__cache-badge">
-                <i class="pi pi-bolt"></i> Cache
+                <i class="pi pi-check-circle"></i> Gerado
               </span>
             }
             @if (generatingType() === btn.type) {
