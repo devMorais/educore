@@ -8,7 +8,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.core.config import settings
 from app.core.database import init_db
 from app.core.limiter import limiter
-from app.routers import documents
+from app.routers import documents, admin
 
 logging.basicConfig(
     level=logging.INFO,
@@ -50,6 +50,7 @@ if settings.rate_limit_enabled:
     logger.info("Rate limiting habilitado: 100 req/min global por IP")
 
 app.include_router(documents.router)
+app.include_router(admin.router)
 
 
 @app.get("/health")

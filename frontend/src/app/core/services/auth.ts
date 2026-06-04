@@ -2,7 +2,8 @@ import { Injectable, inject, signal, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface AuthUser {
@@ -28,6 +29,7 @@ interface RegisterRequest {
 interface AuthResponse {
   token?: string;
   access_token?: string;
+  expires_at?: string;
   user: AuthUser;
 }
 
@@ -102,6 +104,23 @@ export class Auth {
   }
   forgotPassword(email: string) {
     return this.http.post(`${this.baseUrl}/auth/forgot-password`, { email });
+  }
+
+  /**
+   * Renova o token de acesso sem fazer logout (BS-007).
+   * Retorna o novo access_token como string.
+   */
+  refresh(): Observable<string> {
+    return this.http
+      .post<{ access_token: string; expires_at: string }>(`${this.baseUrl}/auth/refresh`, {})
+      .pipe(
+        tap(res => {
+          if (this.isBrowser()) {
+            localStorage.setItem('token', res.access_token);
+          }
+        }),
+        map(res => res.access_token),
+      );
   }
 
   getToken(): string | null {

@@ -1,18 +1,23 @@
 import { inject } from '@angular/core';
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
-import { catchError, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { Auth } from '../services/auth';
 import { ToastService } from '../services/toast';
 import { environment } from '../../../environments/environment';
 
 /**
- * Interceptor HTTP Global (US-002)
+ * Interceptor HTTP Global
  *
- * Intercepta todas as requisições HTTP e trata os erros de forma
- * centralizada, exibindo mensagens amigáveis ao usuário via ToastService.
- * Não exibe toast em rotas de polling (/status).
+ * - Injeta o Bearer token em todas as requisições para nossas APIs.
+ * - Em caso de 401, tenta renovar o token via /auth/refresh (BS-007).
+ *   Se o refresh falhar, limpa a sessão e redireciona para login.
+ * - Trata demais erros de forma centralizada com ToastService.
+ * - Não exibe toast em rotas de polling (/status).
  */
+
+let isRefreshing = false;
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth   = inject(Auth);
   const toast  = inject(ToastService);
@@ -24,57 +29,57 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     req.url.startsWith(environment.apiUrl) ||
     req.url.startsWith(environment.aiServiceUrl);
 
-  // Não exibe toast em rotas de polling
+  // Não exibe toast em rotas de polling e nem na própria rota de refresh
   const isPolling = req.url.includes('/status');
+  const isRefreshReq = req.url.includes('/auth/refresh');
 
-  // Adiciona o token de autenticação no header se existir
-  const cloned =
-    token && isApiRequest
-      ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-      : req;
+  // Injeta o token se existir
+  const cloned = token && isApiRequest
+    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+    : req;
 
   return next(cloned).pipe(
     catchError((err: HttpErrorResponse) => {
-
-      // Trata erros apenas de requisições para nossas APIs
       if (isApiRequest && !isPolling) {
-        switch (err.status) {
-
-          case 401:
-            // Sessão expirada: limpa sessão e redireciona para login
-            auth.clearSession();
-            router.navigate(['/login']);
-            break;
-
-          case 422:
-            // Erros de validação: extrai e exibe cada mensagem
-            const erros = err.error?.errors;
-            if (erros) {
-              Object.values(erros).forEach((mensagens: any) => {
-                const lista = Array.isArray(mensagens) ? mensagens : [mensagens];
-                lista.forEach((msg: string) => toast.erro(msg, 'Dados inválidos'));
+        if (err.status === 401 && !isRefreshReq && !isRefreshing) {
+          // Tenta renovar o token antes de deslogar (BS-007)
+          isRefreshing = true;
+          return auth.refresh().pipe(
+            switchMap((newToken: string) => {
+              isRefreshing = false;
+              const retried = req.clone({
+                setHeaders: { Authorization: `Bearer ${newToken}` },
               });
-            } else {
-              toast.erro(err.error?.message || 'Dados inválidos.', 'Atenção');
-            }
-            break;
+              return next(retried);
+            }),
+            catchError(() => {
+              isRefreshing = false;
+              auth.clearSession();
+              router.navigate(['/login']);
+              return throwError(() => err);
+            }),
+          );
+        }
 
-          case 429:
-            // Muitas tentativas
-            toast.aviso('Muitas tentativas. Aguarde um momento.', 'Limite atingido');
-            break;
-
-          case 500:
-            // Erro interno do servidor
-            toast.erro('Erro interno. Tente novamente.', 'Erro no servidor');
-            break;
-
-          default:
-            // Outros erros 4xx com mensagem do backend
-            if (err.status >= 400 && err.error?.message) {
-              toast.erro(err.error.message, 'Erro');
-            }
-            break;
+        if (err.status === 401) {
+          auth.clearSession();
+          router.navigate(['/login']);
+        } else if (err.status === 422) {
+          const erros = err.error?.errors;
+          if (erros) {
+            Object.values(erros).forEach((mensagens: any) => {
+              const lista = Array.isArray(mensagens) ? mensagens : [mensagens];
+              lista.forEach((msg: string) => toast.erro(msg, 'Dados inválidos'));
+            });
+          } else {
+            toast.erro(err.error?.message || 'Dados inválidos.', 'Atenção');
+          }
+        } else if (err.status === 429) {
+          toast.aviso('Muitas tentativas. Aguarde um momento.', 'Limite atingido');
+        } else if (err.status === 500) {
+          toast.erro('Erro interno. Tente novamente.', 'Erro no servidor');
+        } else if (err.status >= 400 && err.error?.message) {
+          toast.erro(err.error.message, 'Erro');
         }
       }
 

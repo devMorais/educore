@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,4 +30,17 @@ Route::prefix('auth')->group(function () {
     Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::get('/verify', [AuthController::class, 'verify']);
     });
+
+    // Refresh de token (BS-007)
+    Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+        Route::post('/refresh', [AuthController::class, 'refresh']);
+    });
+});
+
+// Rotas administrativas — apenas usuários com role=admin (BS-006 + BS-009)
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::get('/stats',                       [AdminController::class, 'stats']);
+    Route::get('/users',                       [AdminController::class, 'users']);
+    Route::patch('/users/{id}/role',           [AdminController::class, 'updateRole']);
+    Route::patch('/users/{id}/status',         [AdminController::class, 'updateStatus']);
 });
