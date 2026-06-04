@@ -47,5 +47,10 @@ deploy-prod.bat
 # Environments de produção (gerados por CI/CD, não commitados)
 frontend/src/environments/environment.production.ts
 
-# Claude Code (configurações locais da máquina)
-.claude/settings.local.json
+# Claude Code (configurações e memória local da máquina)
+.claude/
+
+# Arquivos locais temporários / documentação interna
+*.docx
+gerar_guia_testes.py
+frontend/origin)
