@@ -46,7 +46,7 @@
       @if (isCompleted()) {
         <h1><i class="pi pi-check-circle"></i> Pronto! Escolha o que gerar</h1>
         <button class="up-link-btn"
-          (click)="uploadedDocumentId.set(null); isCompleted.set(false); selectedFile.set(null); cachedGenerations.set([])">
+          (click)="uploadedDocumentId.set(null); isCompleted.set(false); selectedFile.set(null); cachedGenerations.set([]); botoesDisponiveis.set(false)">
           <i class="pi pi-plus"></i> Enviar novo PDF
         </button>
       } @else {
@@ -67,7 +67,6 @@
           <input #fileInput type="file" accept=".pdf" hidden (change)="onFileSelected($event)">
 
           @if (!selectedFile()) {
-            <!-- Ícone da área de upload -->
             <div class="up-dropzone__icon">
               <i class="pi pi-cloud-upload"></i>
             </div>
@@ -119,17 +118,43 @@
         <div class="up-processing">
           <i class="pi pi-spin pi-spinner up-processing__icon"></i>
           <h3>Processando com IA...</h3>
+
+          <!-- Mensagem da fase atual -->
+          <p class="up-processing__fase">{{ mensagemFase() }}</p>
+
           @if (processingProgress() > 0) {
-            <p>{{ processingProgress() }}% das páginas analisadas</p>
-            <div class="up-progress" style="margin-top:1rem">
+            <p class="up-processing__pct">{{ processingProgress() }}% concluído</p>
+            <div class="up-progress" style="margin-top:0.75rem">
               <div class="up-progress__fill" [style.width.%]="processingProgress()"></div>
             </div>
           } @else {
-            <p>Iniciando análise do documento...</p>
-            <div class="up-progress" style="margin-top:1rem">
+            <div class="up-progress" style="margin-top:0.75rem">
               <div class="up-progress__fill up-progress__fill--anim"></div>
             </div>
           }
+
+          <!-- Aviso quando botões já estão disponíveis (>= 30%) -->
+          @if (botoesDisponiveis() && !isCompleted()) {
+            <p class="up-processing__hint">
+              <i class="pi pi-info-circle"></i>
+              Você já pode gerar conteúdo enquanto o processamento continua!
+            </p>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ERRO COM BOTÃO TENTAR NOVAMENTE -->
+    @if (errorMessage() && !uploadedDocumentId() && !selectedFile()) {
+      <div class="up-card up-card--center">
+        <div class="up-error">
+          <i class="pi pi-times-circle up-error__icon"></i>
+          <h3>Falha no processamento</h3>
+          <p>{{ errorMessage() }}</p>
+          <button class="up-btn-retry" (click)="tentarNovamente()">
+            <i class="pi pi-refresh"></i>
+            Tentar novamente
+          </button>
         </div>
       </div>
     }

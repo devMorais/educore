@@ -175,7 +175,7 @@
 .up-dropzone {
   border: 2px dashed #cbd5e0;
   border-radius: 12px;
-  padding: 3rem 2rem;
+  padding: 3.5rem 2rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s;
@@ -193,10 +193,10 @@
   }
 
   &__icon {
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
 
     i {
-      font-size: 3rem;
+      font-size: 4rem;
       color: #6382ff;
       transition: transform 0.2s, color 0.2s;
     }
@@ -234,7 +234,6 @@
     small  { color: #a0aec0; font-size: 0.82rem; }
   }
 
-  // Ícone PDF vermelho quando arquivo selecionado
   &__pdf-icon {
     font-size: 2.5rem;
     color: #e53e3e;
@@ -296,7 +295,7 @@
 
 // ── Progress ──────────────────────────────────────────────────────────────────
 .up-progress {
-  height: 5px;
+  height: 6px;
   background: #edf2f7;
   border-radius: 3px;
   margin-top: 1rem;
@@ -333,7 +332,67 @@
   }
 
   h3 { font-size: 1.2rem; font-weight: 600; color: #2d3748; margin-bottom: 0.5rem; }
-  p  { color: #718096; font-size: 0.9rem; }
+
+  &__fase {
+    color: #718096;
+    font-size: 0.875rem;
+    margin: 0.25rem 0 0.5rem;
+  }
+
+  &__pct {
+    color: #6382ff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0;
+  }
+
+  &__hint {
+    margin-top: 1.25rem;
+    background: #ebf8ff;
+    border: 1px solid #bee3f8;
+    color: #2b6cb0;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-align: left;
+
+    i { flex-shrink: 0; }
+  }
+}
+
+// ── Erro com botão Tentar Novamente ───────────────────────────────────────────
+.up-error {
+  padding: 2rem 0;
+
+  &__icon {
+    font-size: 2.5rem;
+    color: #e53e3e;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  h3 { font-size: 1.2rem; font-weight: 600; color: #2d3748; margin-bottom: 0.5rem; }
+  p  { color: #718096; font-size: 0.9rem; margin-bottom: 1.5rem; }
+}
+
+.up-btn-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #e53e3e;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover { background: #c53030; }
 }
 
 // ── Alert ─────────────────────────────────────────────────────────────────────
