@@ -9,12 +9,13 @@ export interface Usuario {
   token?: string
 }
 
-// Gera credenciais únicas por execução (evita conflito entre runs)
+// Gera credenciais determinísticas por prefixo.
+// Emails são fixos por prefixo: na 1ª execução cria o usuário,
+// nas seguintes detecta 422 e faz login — evita esgotar o rate limit.
 export function gerarUsuario(prefixo = 'cy'): Usuario {
-  const ts = Date.now()
   return {
-    name:  `Cypress ${prefixo} ${ts}`,
-    email: `${prefixo}_${ts}@educore-test.com`,
+    name:  `Cypress ${prefixo}`,
+    email: `cypress_${prefixo}@educore-test.com`,
     senha: 'CypressTest@123',
   }
 }
@@ -33,7 +34,8 @@ declare global {
   }
 }
 
-// Cria uma conta via API e retorna o token
+// Cria uma conta via API e retorna o token.
+// Trata 422 (email já existe → login) e 429 (rate limit → aguarda 65s e tenta novamente).
 Cypress.Commands.add('criarContaAPI', (usuario: Usuario) => {
   return cy.request({
     method: 'POST',
@@ -46,11 +48,16 @@ Cypress.Commands.add('criarContaAPI', (usuario: Usuario) => {
     },
     failOnStatusCode: false,
   }).then((res) => {
-    // Se 422, email já existe — tenta logar
+    // Email já existe — apenas faz login
     if (res.status === 422) {
       return cy.loginAPI(usuario.email, usuario.senha)
     }
-    // Laravel pode retornar 200 ou 201 no register
+    // Rate limit atingido — aguarda 65s e tenta novamente (uma vez)
+    if (res.status === 429) {
+      cy.log('Rate limit atingido no register — aguardando 65s...')
+      cy.wait(65000)
+      return cy.criarContaAPI(usuario)
+    }
     expect(res.status).to.be.oneOf([200, 201])
     const token = res.body.token ?? res.body.access_token
     expect(token).to.be.a('string')
