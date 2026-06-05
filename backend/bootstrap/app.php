@@ -23,9 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Converte Unauthenticated em 401 JSON para todas as rotas de API
-        // API pura — AuthenticationException sempre retorna 401 JSON (nunca redireciona para 'login')
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $_, $request) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
+        });
+        // Validação em rotas /api/* sempre retorna 422 JSON, nunca redireciona
+        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $e->getMessage(), 'errors' => $e->errors()], 422);
+            }
         });
     })->create();

@@ -46,10 +46,12 @@ Cypress.Commands.add('criarContaAPI', (usuario: Usuario) => {
       password: usuario.senha,
       password_confirmation: usuario.senha,
     },
+    headers: { 'Accept': 'application/json' },
     failOnStatusCode: false,
+    followRedirect: false,
   }).then((res) => {
-    // Email já existe — apenas faz login
-    if (res.status === 422) {
+    // Email já existe — apenas faz login (422 = validation error, 302 = fallback redirect)
+    if (res.status === 422 || res.status === 302 || res.status === 301) {
       return cy.loginAPI(usuario.email, usuario.senha)
     }
     // Rate limit atingido — aguarda 65s e tenta novamente (uma vez)
@@ -58,9 +60,9 @@ Cypress.Commands.add('criarContaAPI', (usuario: Usuario) => {
       cy.wait(65000)
       return cy.criarContaAPI(usuario)
     }
-    expect(res.status).to.be.oneOf([200, 201])
+    expect(res.status, `criarContaAPI(${usuario.email}) → HTTP ${res.status}: ${JSON.stringify(res.body).slice(0, 400)}`).to.be.oneOf([200, 201])
     const token = res.body.token ?? res.body.access_token
-    expect(token).to.be.a('string')
+    expect(token, `criarContaAPI(${usuario.email}) → sem token no body: ${JSON.stringify(res.body).slice(0, 400)}`).to.be.a('string')
     return cy.wrap(token as string)
   })
 })
