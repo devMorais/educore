@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="EduCore AI Service",
     description="Microserviço de IA para processamento de PDFs com RAG",
-    version="1.0.0",
+    version="1.1.0",
     lifespan=lifespan
 )
 
@@ -58,6 +58,7 @@ async def health():
     return {
         "status": "ok",
         "service": "EduCore AI Service",
-        "version": "1.0.0",
-        "database": "PostgreSQL + pgvector"
+        "version": "1.1.0",
+        "database": "PostgreSQL + pgvector",
+        "features": ["documents", "admin"]
     }
