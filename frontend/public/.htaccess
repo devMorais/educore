@@ -6,15 +6,10 @@ Options -MultiViews
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Route /api/* requests to Laravel front controller
-    # REQUEST_URI is preserved by Apache so Laravel routing works correctly
-    RewriteRule ^api(/.*)?$ backend/public/index.php [L,QSA]
-
-    # Serve real static files and directories directly
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
+    # Serve existing static files directly (JS, CSS, images, fonts, favicon, router.php)
+    RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
 
-    # Angular SPA routing — all other paths serve index.html
-    RewriteRule ^ index.html [L]
+    # All other requests (API calls + Angular SPA routes) pass through router.php
+    RewriteRule ^ router.php [L,QSA]
 </IfModule>
