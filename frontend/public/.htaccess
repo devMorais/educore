@@ -2,19 +2,12 @@ Options -MultiViews
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Pass Authorization header to PHP (required for Laravel Sanctum Bearer tokens)
-    RewriteCond %{HTTP:Authorization} .
-    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-
-    # Snapshot the original URI now — %{REQUEST_URI} is the browser's URI before
-    # LiteSpeed/Apache overwrites REQUEST_URI with the rewritten path.
-    # Accessible in PHP as $_SERVER['REDIRECT_ORIG_URI']
-    RewriteRule ^ - [E=ORIG_URI:%{REQUEST_URI}]
-
-    # Serve real static files directly (JS, CSS, images, fonts, favicon, router.php)
-    RewriteCond %{REQUEST_FILENAME} -f
+    # Serve real files and directories directly
+    # /api/* is a real directory so requests go directly to api/.htaccess
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # All other requests go through the PHP router
-    RewriteRule ^ router.php [L,QSA]
+    # Angular SPA routing — all other paths serve index.html
+    RewriteRule ^ index.html [L]
 </IfModule>
