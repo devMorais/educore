@@ -1,0 +1,20 @@
+Options -MultiViews
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Pass Authorization header to PHP (required for Laravel Sanctum Bearer tokens)
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Route /api/* requests to Laravel front controller
+    # REQUEST_URI is preserved by Apache so Laravel routing works correctly
+    RewriteRule ^api(/.*)?$ backend/public/index.php [L,QSA]
+
+    # Serve real static files and directories directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Angular SPA routing — all other paths serve index.html
+    RewriteRule ^ index.html [L]
+</IfModule>
