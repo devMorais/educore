@@ -1,17 +1,19 @@
 <?php
 /**
  * EduCore root dispatcher.
- * On LiteSpeed/CloudLinux, mod_rewrite sets REQUEST_URI to the rewritten path
- * (/router.php). REDIRECT_REQUEST_URI holds the original browser URI.
- * We restore it so Symfony/Laravel computes the correct route.
+ * On LiteSpeed/CloudLinux, REQUEST_URI is overwritten with the rewritten path
+ * (/router.php) after mod_rewrite fires. The .htaccess captures the original
+ * browser URI into ORIG_URI before the rewrite, accessible here as
+ * $_SERVER['REDIRECT_ORIG_URI'].
  */
-$uri = $_SERVER['REDIRECT_REQUEST_URI']
-    ?? $_SERVER['ORIG_REQUEST_URI']
-    ?? $_SERVER['REQUEST_URI']
+$uri = $_SERVER['REDIRECT_ORIG_URI']   // set by E=ORIG_URI in .htaccess
+    ?? $_SERVER['REDIRECT_REQUEST_URI'] // Apache classic fallback
+    ?? $_SERVER['REDIRECT_URL']         // some FastCGI configs
+    ?? $_SERVER['REQUEST_URI']          // last resort
     ?? '/';
 
 if (str_starts_with($uri, '/api')) {
-    // Fix $_SERVER so Laravel's Symfony Request sees the original path
+    // Restore correct REQUEST_URI so Symfony/Laravel routes properly
     $_SERVER['REQUEST_URI'] = $uri;
     $_SERVER['SCRIPT_NAME'] = '/router.php';
     $_SERVER['PHP_SELF']    = '/router.php';

@@ -6,10 +6,15 @@ Options -MultiViews
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Serve existing static files directly (JS, CSS, images, fonts, favicon, router.php)
+    # Snapshot the original URI now — %{REQUEST_URI} is the browser's URI before
+    # LiteSpeed/Apache overwrites REQUEST_URI with the rewritten path.
+    # Accessible in PHP as $_SERVER['REDIRECT_ORIG_URI']
+    RewriteRule ^ - [E=ORIG_URI:%{REQUEST_URI}]
+
+    # Serve real static files directly (JS, CSS, images, fonts, favicon, router.php)
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
 
-    # All other requests (API calls + Angular SPA routes) pass through router.php
+    # All other requests go through the PHP router
     RewriteRule ^ router.php [L,QSA]
 </IfModule>
