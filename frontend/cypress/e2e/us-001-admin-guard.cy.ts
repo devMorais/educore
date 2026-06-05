@@ -5,11 +5,16 @@ describe('US-001 · Guard de Role para Área Admin', () => {
   const usuario = gerarUsuario('us001')
 
   before(() => {
-    cy.criarContaAPI(usuario)
+    cy.criarContaAPI(usuario).then(token => Cypress.env('tokenUS001', token))
   })
 
   beforeEach(() => {
-    cy.loginUI(usuario.email, usuario.senha)
+    const token = Cypress.env('tokenUS001') as string
+    cy.visit('/upload', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', token)
+      },
+    })
   })
 
   it('TC-24 · Usuário comum em /admin → não consegue acessar (vai para /upload)', () => {

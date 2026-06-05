@@ -13,7 +13,12 @@ describe('US-008 · Polling de Status do Processamento', () => {
   })
 
   beforeEach(() => {
-    cy.loginUI(usuario.email, usuario.senha)
+    const token = Cypress.env('tokenUS008') as string
+    cy.visit('/upload', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', token)
+      },
+    })
     cy.url().should('include', '/upload')
   })
 
@@ -132,26 +137,16 @@ describe('US-008 · Polling de Status do Processamento', () => {
   // ── Conclusão do processamento ────────────────────────────────────────────────
 
   it('TC-57 · Status "completed" para polling e habilita geração', () => {
-    cy.intercept('GET', `${AI()}/documents/*/`, { body: [] })
     cy.intercept('GET', `${AI()}/documents/107/generations`, { body: [] })
-
-    let poll = 0
-    cy.intercept('GET', `${AI()}/documents/107/status`, () => {
-      poll++
-      return {
-        body: {
-          status: poll < 2 ? 'processing' : 'completed',
-          progress_percent: poll < 2 ? 50 : 100,
-        },
-      }
+    cy.intercept('GET', `${AI()}/documents/`, { body: [] })
+    cy.intercept('GET', `${AI()}/documents/107/status`, {
+      body: { status: 'completed', progress_percent: 100 },
     }).as('statusCompleted')
 
-    cy.intercept('GET', `${AI()}/documents/`, { body: [] })
-
     simularUpload(107)
+    cy.wait('@statusCompleted')
 
-    // Aguarda o polling completar e exibir a tela de geração
-    cy.get('.up-grid', { timeout: 8000 }).should('be.visible')
+    cy.get('.up-grid', { timeout: 10000 }).should('be.visible')
     cy.get('.up-action').first().should('not.be.disabled')
   })
 

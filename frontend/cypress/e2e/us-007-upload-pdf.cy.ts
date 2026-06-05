@@ -13,7 +13,12 @@ describe('US-007 · Upload de PDF — Drag & Drop com Validação', () => {
   })
 
   beforeEach(() => {
-    cy.loginUI(usuario.email, usuario.senha)
+    const token = Cypress.env('tokenUS007') as string
+    cy.visit('/upload', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', token)
+      },
+    })
     cy.url().should('include', '/upload')
   })
 

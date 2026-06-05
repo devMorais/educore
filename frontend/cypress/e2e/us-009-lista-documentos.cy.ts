@@ -15,11 +15,16 @@ describe('US-009 · Lista de Documentos Anteriores', () => {
   const docFalhou = { id: 4, filename: 'falhou.pdf', status: 'failed', progress_percent: 0, created_at: '2026-05-30T12:00:00Z' }
 
   before(() => {
-    cy.criarContaAPI(usuario)
+    cy.criarContaAPI(usuario).then(token => Cypress.env('tokenUS009', token))
   })
 
   beforeEach(() => {
-    cy.loginUI(usuario.email, usuario.senha)
+    const token = Cypress.env('tokenUS009') as string
+    cy.visit('/upload', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', token)
+      },
+    })
     cy.url().should('include', '/upload')
   })
 
