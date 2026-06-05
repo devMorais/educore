@@ -71,10 +71,11 @@ Cypress.Commands.add('loginAPI', (email: string, senha: string) => {
     method: 'POST',
     url: `${Cypress.env('apiUrl')}/auth/login`,
     body: { email, password: senha },
+    failOnStatusCode: false,
   }).then((res) => {
-    expect(res.status).to.eq(200)
+    expect(res.status, `loginAPI(${email}) → HTTP ${res.status}: ${JSON.stringify(res.body).slice(0, 300)}`).to.eq(200)
     const token = res.body.token ?? res.body.access_token
-    expect(token).to.be.a('string')
+    expect(token, `loginAPI(${email}) → sem token no body: ${JSON.stringify(res.body).slice(0, 300)}`).to.be.a('string')
     return cy.wrap(token as string)
   })
 })
