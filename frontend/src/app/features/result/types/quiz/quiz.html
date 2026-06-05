@@ -1,67 +1,149 @@
 <div class="result-page">
   <div class="result-page__content">
 
-    <button class="result-back" (click)="goToUpload()">← Novo material</button>
+    <!-- Botão voltar -->
+    <button class="result-back" (click)="goToUpload()">
+      <i class="pi pi-arrow-left"></i> Novo material
+    </button>
 
+    <!-- Sem dados -->
     @if (!data()) {
       <div class="result-empty">
-        <span style="font-size:3rem; display:block; margin-bottom:1rem">📭</span>
+        <i class="pi pi-inbox result-empty__icon"></i>
         <p>Nenhum quiz para exibir. Gere um a partir de um PDF.</p>
-        <button class="result-back" (click)="goToUpload()">Fazer upload</button>
+        <button class="result-back" (click)="goToUpload()">
+          <i class="pi pi-upload"></i> Fazer upload
+        </button>
       </div>
     } @else {
 
+      <!-- QUESTÃO ATUAL -->
       @if (!finished() && currentQuestion()) {
+
+        <!-- Cabeçalho com progresso -->
         <div class="quiz__header">
-          <h1>{{ data()!.title }}</h1>
-          <span class="quiz__counter">Questão {{ currentIndex() + 1 }} de {{ questions().length }}</span>
+          <div class="quiz__header-top">
+            <h1>{{ data()!.title }}</h1>
+            <span class="quiz__counter">
+              <i class="pi pi-list"></i>
+              Questão {{ currentIndex() + 1 }} de {{ questions().length }}
+            </span>
+          </div>
           <div class="quiz__progress">
             <div class="quiz__progress-bar" [style.width.%]="progressPercent()"></div>
           </div>
         </div>
 
+        <!-- Card da questão -->
         <div class="quiz__card">
+
+          <!-- Badge de dificuldade -->
+          @if (currentQuestion()!.difficulty) {
+            <span class="badge {{ classeDificuldade(currentQuestion()!.difficulty) }}">
+              <i class="pi pi-tag"></i>
+              {{ labelDificuldade(currentQuestion()!.difficulty) }}
+            </span>
+          }
+
+          <!-- Enunciado -->
           <p class="quiz__question">{{ currentQuestion()!.question }}</p>
+
+          <!-- Opções -->
           <div class="quiz__options">
             @for (option of currentQuestion()!.options; track option) {
               <button class="quiz__option"
-                [class.quiz__option--selected]="selectedAnswer() === option && !answered()"
                 [class.quiz__option--correct]="answered() && isCorrect(option)"
                 [class.quiz__option--wrong]="answered() && selectedAnswer() === option && !isCorrect(option)"
+                [class.quiz__option--selected]="selectedAnswer() === option && !answered()"
                 (click)="selectAnswer(option)"
                 [disabled]="answered()">
-                {{ option }}
-                @if (answered() && isCorrect(option)) { ✅ }
-                @if (answered() && selectedAnswer() === option && !isCorrect(option)) { ❌ }
+                <span class="quiz__option-text">{{ option }}</span>
+                @if (answered() && isCorrect(option)) {
+                  <i class="pi pi-check-circle quiz__option-icon"></i>
+                }
+                @if (answered() && selectedAnswer() === option && !isCorrect(option)) {
+                  <i class="pi pi-times-circle quiz__option-icon"></i>
+                }
               </button>
             }
           </div>
 
+          <!-- Após responder -->
           @if (answered()) {
-            <div class="quiz__explanation">
-              <strong>{{ isCorrect(selectedAnswer()!) ? '🎉 Correto!' : '💡 Resposta correta:' }}</strong>
-              {{ currentQuestion()!.explanation }}
-            </div>
+
+            <!-- Botão expandir explicação -->
+            <button class="quiz__explicacao-toggle" (click)="toggleExplicacao()">
+              <i class="pi pi-lightbulb"></i>
+              {{ isCorrect(selectedAnswer()!) ? 'Correto!' : 'Ver resposta correta' }}
+              <i class="pi {{ explicacaoExpandida() ? 'pi-chevron-up' : 'pi-chevron-down' }}"></i>
+            </button>
+
+            <!-- Explicação pedagógica expandível -->
+            @if (explicacaoExpandida()) {
+              <div class="quiz__explanation">
+                <div class="quiz__explanation-header">
+                  <i class="pi pi-book"></i>
+                  <strong>Explicação</strong>
+                </div>
+                <p>{{ currentQuestion()!.explanation }}</p>
+              </div>
+            }
+
+            <!-- Botão próxima -->
             <button class="quiz__next" (click)="nextQuestion()">
-              {{ currentIndex() + 1 >= questions().length ? 'Ver resultado 🏁' : 'Próxima →' }}
+              @if (currentIndex() + 1 >= questions().length) {
+                <i class="pi pi-flag"></i> Ver resultado
+              } @else {
+                Próxima <i class="pi pi-arrow-right"></i>
+              }
             </button>
           }
+
         </div>
       }
 
+      <!-- TELA FINAL -->
       @if (finished()) {
         <div class="quiz__result">
-          <div class="quiz__result-icon">🏆</div>
-          <h1>Quiz concluído!</h1>
-          <p class="quiz__score">Você acertou <strong>{{ score() }}</strong> de {{ questions().length }}</p>
-          <div class="quiz__result-actions">
-            <button class="quiz__restart" (click)="restartQuiz()">🔁 Refazer quiz</button>
-            <button class="quiz__back-btn" (click)="goToUpload()">← Novo material</button>
+
+          <!-- Ícone de classificação -->
+          <div class="quiz__result-badge" [style.color]="classificacao().cor">
+            <i class="pi {{ classificacao().icon }} quiz__result-icon"></i>
           </div>
+
+          <h1>Quiz concluído!</h1>
+          <p class="quiz__classificacao">{{ classificacao().label }}</p>
+
+          <!-- Score -->
+          <div class="quiz__score-box">
+            <span class="quiz__score-num" [style.color]="classificacao().cor">
+              {{ score() }}
+            </span>
+            <span class="quiz__score-total">/ {{ questions().length }}</span>
+            <p class="quiz__score-label">questões corretas</p>
+          </div>
+
+          <!-- Barra de score -->
+          <div class="quiz__score-bar">
+            <div class="quiz__score-bar-fill"
+              [style.width.%]="(score() / questions().length) * 100"
+              [style.background]="classificacao().cor">
+            </div>
+          </div>
+
+          <!-- Ações -->
+          <div class="quiz__result-actions">
+            <button class="quiz__restart" (click)="restartQuiz()">
+              <i class="pi pi-refresh"></i> Refazer quiz
+            </button>
+            <button class="quiz__back-btn" (click)="goToUpload()">
+              <i class="pi pi-arrow-left"></i> Voltar ao Upload
+            </button>
+          </div>
+
         </div>
       }
 
     }
-
   </div>
 </div>
