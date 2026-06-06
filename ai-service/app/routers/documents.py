@@ -6,7 +6,7 @@ import logging
 from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks, Request
 from fastapi.responses import FileResponse, Response
 from app.core.database import get_connection
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, verify_token
 from app.core.limiter import limiter, get_user_identifier
 from app.services.rag_service import rag_service
 from app.models.schemas import GenerationRequest, GenerationType
@@ -296,34 +296,50 @@ async def export_pptx(
     )
 
 
-# ──────────────────────────────────────────────────────── export HTML (Reveal.js)
+# ──────────────────────────────────────────────────────── view HTML (Reveal.js) — nova guia
+@router.get("/{document_id}/html-view")
+async def view_html(
+    document_id: int,
+    token: str,
+):
+    """
+    Serve o HTML da apresentação diretamente no browser (nova guia).
+    Autentica via query param ?token= para permitir window.open() sem headers.
+    """
+    from fastapi.security import HTTPAuthorizationCredentials
+    creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+    user = await verify_token(creds)
+
+    ownership_check(document_id, user["user_id"])
+    _require_completed(document_id)
+
+    slides_data = _get_or_generate_slides(document_id)
+    html_content = _get_or_generate_html(document_id, slides_data)
+
+    return Response(content=html_content, media_type="text/html")
+
+
+# ──────────────────────────────────────────────────────── export HTML (Reveal.js) — download
 @router.post("/{document_id}/export-html")
 async def export_html(
     document_id: int,
     current_user: dict = get_current_user,
 ):
-    from app.services.reveal_service import reveal_service
-
     ownership_check(document_id, current_user["user_id"])
     _require_completed(document_id)
 
     slides_data = _get_or_generate_slides(document_id)
-    output_path = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.html")
-    reveal_service.generate(
-        title=slides_data.get("title", "Apresentação EduCore"),
-        slides=slides_data.get("slides", []),
-        output_path=output_path,
-    )
+    html_content = _get_or_generate_html(document_id, slides_data)
 
     safe_title = (
         (slides_data.get("title") or "Apresentacao")
         .encode("ascii", "ignore").decode()
         .replace(" ", "_")[:60]
     )
-    return FileResponse(
-        path=output_path,
+    return Response(
+        content=html_content,
         media_type="text/html",
-        filename=f"EduCore_{safe_title}.html",
+        headers={"Content-Disposition": f'attachment; filename="EduCore_{safe_title}.html"'},
     )
 
 
@@ -490,6 +506,45 @@ async def delete_document(
 
 
 # ──────────────────────────────────────────────────────── helpers
+def _get_or_generate_html(document_id: int, slides_data: dict) -> str:
+    """Returns cached HTML from DB; only calls reveal_service if no cache exists."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "SELECT content FROM generations WHERE document_id=%s AND type='html_presentation' "
+            "ORDER BY created_at DESC LIMIT 1",
+            (document_id,),
+        )
+        row = cursor.fetchone()
+        if row:
+            cached = row[0]
+            if isinstance(cached, dict) and "html" in cached:
+                logger.info("html-view: cache hit para doc=%d", document_id)
+                return cached["html"]
+    finally:
+        cursor.close()
+        conn.close()
+
+    from app.services.reveal_service import reveal_service
+    output_path = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.html")
+    reveal_service.generate(
+        title=slides_data.get("title", "Apresentação EduCore"),
+        slides=slides_data.get("slides", []),
+        output_path=output_path,
+    )
+    with open(output_path, "r", encoding="utf-8") as f:
+        html_content = f.read()
+    try:
+        os.remove(output_path)
+    except Exception:
+        pass
+
+    _save_generation(document_id, "html_presentation", {"html": html_content})
+    logger.info("html-view: gerado e cacheado no banco para doc=%d", document_id)
+    return html_content
+
+
 def _get_or_generate_slides(document_id: int) -> dict:
     """Returns cached slides from DB; only calls Gemini if no cache exists."""
     conn = get_connection()

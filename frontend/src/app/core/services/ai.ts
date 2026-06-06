@@ -137,6 +137,11 @@ export class AiService {
     );
   }
 
+  /** Returns the direct URL to open the presentation in a new tab (no HTTP call needed). */
+  getHtmlViewUrl(documentId: number, token: string): string {
+    return `${this.aiUrl}/documents/${documentId}/html-view?token=${encodeURIComponent(token)}`;
+  }
+
   downloadHtml(documentId: number): Observable<Blob> {
     return this.http.post(
       `${this.aiUrl}/documents/${documentId}/export-html`,

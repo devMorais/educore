@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { ResultStore } from '../../../../core/services/result-store';
 import { AiService } from '../../../../core/services/ai';
 import { ToastService } from '../../../../core/services/toast';
+import { Auth } from '../../../../core/services/auth';
 import type { SlidesResult, SlideContent } from '../../../../core/models/content.models';
 
 @Component({
@@ -16,6 +17,7 @@ export class Slides {
   private store      = inject(ResultStore);
   private router     = inject(Router);
   private aiService  = inject(AiService);
+  private authService = inject(Auth);
   private toast      = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
 
@@ -26,8 +28,8 @@ export class Slides {
   slideAtual       = signal(0);
   notasExpandidas  = signal(false);
   sugestaoExpandida = signal(false);
-  downloadingPptx  = signal(false);
-  downloadingHtml  = signal(false);
+  downloadingPptx = signal(false);
+  downloadingHtml = signal(false); // kept for template binding (spinner on PPTX)
 
   currentSlide = computed<SlideContent | null>(
     () => this.data()?.slides[this.slideAtual()] ?? null,
@@ -106,39 +108,16 @@ export class Slides {
   exportHtml() {
     const docId = this.documentId();
     if (!docId) return;
-    this.downloadingHtml.set(true);
 
-    // Open window synchronously to avoid popup blocker; redirect once blob is ready
-    const win = window.open('', '_blank');
-    if (win) {
-      win.document.write(
-        '<html><body style="margin:0;background:#0f172a;color:#94a3b8;font-family:Inter,sans-serif;' +
-        'display:flex;align-items:center;justify-content:center;height:100vh;gap:1rem">' +
-        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-        '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' +
-        '<span>Gerando apresentação...</span></body></html>'
-      );
+    const token = this.authService.getToken();
+    if (!token) {
+      this.toast.erro('Sessão expirada. Faça login novamente.', 'Erro');
+      return;
     }
 
-    this.aiService.downloadHtml(docId).subscribe({
-      next: blob => {
-        this.downloadingHtml.set(false);
-        const url = URL.createObjectURL(blob);
-        if (win && !win.closed) {
-          win.location.href = url;
-        } else {
-          window.open(url, '_blank');
-        }
-        setTimeout(() => URL.revokeObjectURL(url), 120_000);
-        this.toast.sucesso('Apresentação aberta em nova guia!', 'Apresentação Interativa');
-      },
-      error: err => {
-        this.downloadingHtml.set(false);
-        if (win && !win.closed) win.close();
-        const msg = err?.error?.detail ?? 'Erro ao exportar. Tente novamente.';
-        this.toast.erro(msg, 'Erro no export HTML');
-      },
-    });
+    const url = this.aiService.getHtmlViewUrl(docId, token);
+    window.open(url, '_blank');
+    this.toast.sucesso('Apresentação aberta em nova guia!', 'Apresentação Interativa');
   }
 
   goToUpload() {
