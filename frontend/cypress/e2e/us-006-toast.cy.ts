@@ -74,10 +74,22 @@ describe('US-006 · Toast Global (PrimeNG p-toast)', () => {
   })
 
   it('TC-63 · Toast de sucesso tem classe/cor correta', () => {
+    // Intercepta login para evitar rate-limit após muitas chamadas em outros specs
+    cy.intercept('POST', '**/auth/login', {
+      statusCode: 200,
+      body: {
+        user: { id: 1, name: 'Cypress User', email: usuario.email, role: 'student' },
+        access_token: 'mock_token_tc63_cypress_test',
+        token_type: 'Bearer',
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+      },
+    }).as('loginMock')
+
     cy.visit('/login')
     cy.get('input[name="email"]').type(usuario.email)
     cy.get('input[name="password"]').type(usuario.senha)
     cy.get('button[type="submit"]').click()
+    cy.wait('@loginMock')
 
     cy.get('p-toast .p-toast-message', { timeout: 10000 })
       .invoke('attr', 'class')
