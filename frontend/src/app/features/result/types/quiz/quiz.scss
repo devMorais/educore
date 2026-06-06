@@ -25,22 +25,173 @@
   color: #787882;
 }
 
+// ── Tela inicial ───────────────────────────────────────────────────────────
+.quiz__intro {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2.5rem;
+
+  h1 { font-size: 1.5rem; font-weight: 700; color: #1e1e2f; margin-bottom: 0.25rem; }
+}
+
+.quiz__intro-sub {
+  font-size: 0.9rem;
+  color: #787882;
+  margin-bottom: 2rem;
+}
+
+.quiz__filter-section,
+.quiz__export-section {
+  margin-bottom: 2rem;
+}
+
+.quiz__filter-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #787882;
+  margin-bottom: 0.75rem;
+}
+
+.quiz__chips {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.quiz__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid #e8e8f0;
+  border-radius: 50px;
+  background: #fff;
+  color: #4a4a5a;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { border-color: #356df1; color: #356df1; }
+
+  &--active {
+    border-color: #356df1;
+    background: rgba(53,109,241,0.08);
+    color: #356df1;
+    font-weight: 600;
+  }
+}
+
+.quiz__chip-count {
+  background: #e8e8f0;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.45rem;
+  color: #787882;
+}
+
+.quiz__chip--active .quiz__chip-count {
+  background: rgba(53,109,241,0.15);
+  color: #356df1;
+}
+
+// ── Exportação (US-013) ────────────────────────────────────────────────────
+.quiz__export-btns {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.quiz__export-btn {
+  padding: 0.6rem 1.1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+
+  &:disabled { opacity: 0.6; cursor: default; }
+
+  &--kahoot {
+    background: rgba(70,130,234,0.08);
+    color: #4682ea;
+    border-color: rgba(70,130,234,0.25);
+    &:hover:not(:disabled) { background: rgba(70,130,234,0.15); }
+  }
+  &--socrative {
+    background: rgba(255,120,50,0.08);
+    color: #e06020;
+    border-color: rgba(255,120,50,0.25);
+    &:hover:not(:disabled) { background: rgba(255,120,50,0.15); }
+  }
+  &--scorm {
+    background: rgba(139,92,246,0.08);
+    color: #7c3aed;
+    border-color: rgba(139,92,246,0.25);
+    &:hover:not(:disabled) { background: rgba(139,92,246,0.15); }
+  }
+}
+
+.quiz__start-btn {
+  width: 100%;
+  padding: 1rem;
+  background: #356df1;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  &:hover { opacity: 0.9; }
+}
+
+// ── Header da questão ───────────────────────────────────────────────────────
 .quiz {
   &__header { margin-bottom: 1.5rem; }
   &__header h1 { font-size: 1.5rem; font-weight: 700; color: #1e1e2f; margin-bottom: 0.5rem; }
 
+  &__header-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
   &__counter { font-size: 0.85rem; color: #787882; }
+
+  &__badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.65rem;
+    border-radius: 50px;
+    letter-spacing: 0.03em;
+  }
 
   &__progress {
     height: 6px; background: #f0f0f8; border-radius: 999px;
-    overflow: hidden; margin-top: 0.75rem;
+    overflow: hidden; margin-top: 0.25rem;
   }
   &__progress-bar {
     height: 100%; background: #356df1; border-radius: 999px;
     transition: width 0.3s ease;
   }
 
+  // ── Questão ──────────────────────────────────────────────────────────────
   &__card { background: #fff; border-radius: 16px; padding: 2.5rem; }
+
+  &__topic {
+    display: inline-block;
+    font-size: 0.75rem;
+    color: #787882;
+    background: #f0f0f8;
+    padding: 0.2rem 0.7rem;
+    border-radius: 50px;
+    margin-bottom: 1rem;
+  }
 
   &__question {
     font-size: 1.2rem; font-weight: 600; color: #1e1e2f;
@@ -64,13 +215,24 @@
     &:hover:not(:disabled) { border-color: #356df1; background: rgba(53,109,241,0.03); }
     &:disabled { cursor: default; }
 
-    &--selected { border-color: #356df1; }
     &--correct { border-color: #43d477; background: rgba(67,212,119,0.08); color: #2a9d5a; }
     &--wrong   { border-color: #e74c3c; background: rgba(231,76,60,0.06); color: #c0392b; }
   }
 
+  &__explanation-toggle {
+    margin-top: 1.25rem;
+    background: none;
+    border: none;
+    color: #356df1;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    &:hover { text-decoration: underline; }
+  }
+
   &__explanation {
-    margin-top: 1.5rem; padding: 1rem 1.25rem;
+    margin-top: 0.75rem; padding: 1rem 1.25rem;
     background: #f8f9fc; border-left: 3px solid #356df1;
     border-radius: 8px; color: #4a4a5a; line-height: 1.6; font-size: 0.9rem;
     strong { color: #1e1e2f; display: block; margin-bottom: 0.25rem; }
@@ -84,10 +246,24 @@
     &:hover { opacity: 0.9; }
   }
 
+  // ── Resultado final ───────────────────────────────────────────────────────
   &__result { background: #fff; border-radius: 16px; padding: 3rem; text-align: center; }
-  &__result-icon { font-size: 3.5rem; color: #f5a623; margin-bottom: 1rem; }
+  &__result-icon { font-size: 3.5rem; margin-bottom: 0.75rem; }
   &__result h1 { font-size: 1.6rem; font-weight: 700; color: #1e1e2f; margin-bottom: 0.5rem; }
-  &__score { font-size: 1.1rem; color: #787882; margin-bottom: 2rem; strong { color: #356df1; font-size: 1.4rem; } }
+
+  &__classification {
+    font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;
+    &.class--gold    { color: #d4a017; }
+    &.class--blue    { color: #356df1; }
+    &.class--green   { color: #2a9d5a; }
+    &.class--neutral { color: #787882; }
+  }
+
+  &__score {
+    font-size: 1.05rem; color: #787882; margin-bottom: 2rem;
+    strong { color: #356df1; font-size: 1.35rem; }
+  }
+  &__score-pct { font-size: 0.85rem; color: #a0a0b8; }
 
   &__result-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
   &__restart, &__back-btn {
@@ -95,6 +271,18 @@
     padding: 0.8rem 1.5rem; border-radius: 12px; font-size: 0.95rem;
     font-weight: 600; cursor: pointer; border: none;
   }
-  &__restart { background: #356df1; color: #fff; }
+  &__restart  { background: #356df1; color: #fff; }
   &__back-btn { background: #f0f0f8; color: #1e1e2f; }
+}
+
+// ── Badges de dificuldade ───────────────────────────────────────────────────
+.badge--easy   { background: rgba(67,212,119,0.12); color: #2a9d5a; }
+.badge--medium { background: rgba(245,166,35,0.12); color: #b87000; }
+.badge--hard   { background: rgba(231,76,60,0.10);  color: #c0392b; }
+
+@media (max-width: 768px) {
+  .result-page { padding: 1.5rem 1rem; }
+  .quiz__intro { padding: 1.5rem; }
+  .quiz__card  { padding: 1.5rem; }
+  .quiz__result { padding: 2rem 1.5rem; }
 }

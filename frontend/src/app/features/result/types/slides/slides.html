@@ -1,5 +1,5 @@
 <div class="result-page">
-  <div class="result-page__content">
+  <div class="result-page__content result-page__content--wide">
 
     <button class="result-back" (click)="goToUpload()">← Novo material</button>
 
@@ -10,34 +10,104 @@
         <button class="result-back" (click)="goToUpload()">Fazer upload</button>
       </div>
     } @else {
-      <div class="result-slides">
-        <div class="result-slides__header">
-          <h1>{{ data()!.title }}</h1>
-          <span class="result-slides__count">{{ data()!.total_slides }} slides</span>
-          <button class="result-slides__download" (click)="downloadPptx()" [disabled]="downloadingPptx()">
-            {{ downloadingPptx() ? '⏳ Gerando...' : '⬇️ Download PPTX' }}
-          </button>
-        </div>
 
-        <div class="result-slides__list">
+      <div class="slides-viewer">
+
+        <!-- ── Painel lateral: miniaturas ── -->
+        <aside class="slides-viewer__strip">
+          <p class="slides-viewer__strip-title">Slides</p>
           @for (slide of data()!.slides; track slide.title; let i = $index) {
-            <div class="result-slide-card result-slide-card--{{ slide.layout }}">
-              <div class="result-slide-card__number">{{ i + 1 }}</div>
-              <div class="result-slide-card__body">
-                <h3>{{ slide.title }}</h3>
-                <ul>
-                  @for (item of slide.content; track item) { <li>{{ item }}</li> }
-                </ul>
-                @if (slide.notes) {
-                  <details class="result-slide-card__notes">
-                    <summary>📝 Notas</summary>
-                    <p>{{ slide.notes }}</p>
-                  </details>
+            <button class="slide-thumb"
+              [class.slide-thumb--active]="activeIndex() === i"
+              (click)="goToSlide(i)">
+              <span class="slide-thumb__num">{{ i + 1 }}</span>
+              <span class="slide-thumb__title">{{ slide.title }}</span>
+            </button>
+          }
+        </aside>
+
+        <!-- ── Área principal ── -->
+        <main class="slides-viewer__main">
+
+          <!-- Cabeçalho -->
+          <div class="slides-viewer__header">
+            <h1 class="slides-viewer__title">{{ data()!.title }}</h1>
+            <div class="slides-viewer__actions">
+              <span class="slides-viewer__counter">{{ activeIndex() + 1 }} / {{ slideCount() }}</span>
+              <button class="slides-viewer__pptx"
+                (click)="downloadPptx()"
+                [disabled]="downloadingPptx()">
+                @if (downloadingPptx()) {
+                  <span>⏳ Gerando apresentação PowerPoint...</span>
+                } @else {
+                  <span>⬇️ Baixar PPTX</span>
+                }
+              </button>
+            </div>
+          </div>
+
+          <!-- Slide ativo -->
+          @if (activeSlide()) {
+            <div class="slide-card slide-card--{{ activeSlide()!.layout }}">
+              <div class="slide-card__inner">
+                <h2 class="slide-card__title">{{ activeSlide()!.title }}</h2>
+
+                @if (activeSlide()!.content?.length) {
+                  <ul class="slide-card__bullets">
+                    @for (item of activeSlide()!.content; track item) {
+                      <li>{{ item }}</li>
+                    }
+                  </ul>
+                }
+
+                @if (activeSlide()!.visual_suggestion) {
+                  <div class="slide-card__visual">
+                    <span class="slide-card__visual-label">🖼 Sugestão visual</span>
+                    <p>{{ activeSlide()!.visual_suggestion }}</p>
+                  </div>
+                }
+
+                @if (activeSlide()!.notes) {
+                  <div class="slide-card__notes-wrap">
+                    <button class="slide-card__notes-toggle" (click)="showNotes.update(v => !v)">
+                      📝 Notas do apresentador {{ showNotes() ? '▲' : '▼' }}
+                    </button>
+                    @if (showNotes()) {
+                      <div class="slide-card__notes">{{ activeSlide()!.notes }}</div>
+                    }
+                  </div>
                 }
               </div>
             </div>
           }
-        </div>
+
+          <!-- Navegação inferior -->
+          <div class="slides-viewer__nav">
+            <button class="slides-viewer__nav-btn"
+              (click)="prevSlide()"
+              [disabled]="activeIndex() === 0">
+              ← Anterior
+            </button>
+            <div class="slides-viewer__dots">
+              @for (slide of data()!.slides; track slide.title; let i = $index) {
+                <button class="slides-viewer__dot"
+                  [class.slides-viewer__dot--active]="activeIndex() === i"
+                  (click)="goToSlide(i)"
+                  [attr.aria-label]="'Ir para slide ' + (i + 1)">
+                </button>
+              }
+            </div>
+            <button class="slides-viewer__nav-btn"
+              (click)="nextSlide()"
+              [disabled]="activeIndex() === slideCount() - 1">
+              Próximo →
+            </button>
+          </div>
+
+          <p class="slides-viewer__keyboard-hint">💡 Use ← → para navegar</p>
+
+        </main>
+
       </div>
     }
 

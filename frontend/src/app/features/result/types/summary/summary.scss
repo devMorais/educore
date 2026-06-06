@@ -1,82 +1,146 @@
 .result-page {
-    min-height: 100vh;
-    background: #f8f9fa;
-    padding: 3rem;
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding: 3rem;
 
-    &__content {
-        max-width: 800px;
-        margin: 0 auto;
-    }
+  &__content { max-width: 800px; margin: 0 auto; }
 }
 
 .result-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #356df1;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 0.9rem;
-    margin-bottom: 1.5rem;
-
-    &:hover {
-        text-decoration: underline;
-    }
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #356df1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  &:hover { text-decoration: underline; }
 }
 
 .result-empty {
-    text-align: center;
-    padding: 4rem;
-    color: #787882;
+  text-align: center;
+  padding: 4rem;
+  color: #787882;
 }
 
 .result-summary {
-    background: #fff;
-    border-radius: 16px;
-    padding: 2.5rem;
+  background: #fff;
+  border-radius: 16px;
+  padding: 2.5rem;
+
+  &__header { margin-bottom: 1.5rem; }
+
+  &__header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
 
     h1 {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #1e1e2f;
-        margin-bottom: 0.5rem;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1e1e2f;
+      margin: 0;
+      flex: 1;
     }
+  }
 
-    &__meta {
-        display: inline-block;
-        font-size: 0.8rem;
-        color: #a0a0b8;
-        background: #f0f0f8;
-        padding: 0.3rem 0.9rem;
-        border-radius: 50px;
-        margin-bottom: 1.5rem;
+  &__copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    background: rgba(53,109,241,0.07);
+    color: #356df1;
+    border: 1.5px solid rgba(53,109,241,0.25);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      background: rgba(53,109,241,0.14);
     }
-
-    &__body p {
-        color: #4a4a5a;
-        line-height: 1.7;
-        margin-bottom: 1rem;
+    &:disabled {
+      background: rgba(67,212,119,0.10);
+      color: #2a9d5a;
+      border-color: rgba(67,212,119,0.3);
+      cursor: default;
     }
+  }
 
-    h2 {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #1e1e2f;
-        margin: 2rem 0 1rem;
+  &__meta {
+    display: inline-block;
+    font-size: 0.8rem;
+    color: #a0a0b8;
+    background: #f0f0f8;
+    padding: 0.3rem 0.9rem;
+    border-radius: 50px;
+  }
+
+  &__body p {
+    color: #4a4a5a;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    font-size: 0.97rem;
+  }
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #1e1e2f;
+    margin: 2rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f0f0f8;
+  }
+
+  &__points {
+    list-style: none;
+    padding: 0;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      color: #4a4a5a;
+      line-height: 1.6;
+      margin-bottom: 0.85rem;
+      font-size: 0.95rem;
     }
+  }
 
-    &__points {
-        list-style: none;
-        padding: 0;
+  &__check { flex-shrink: 0; }
 
-        li {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.6rem;
-            color: #4a4a5a;
-            line-height: 1.5;
-            margin-bottom: 0.8rem;
-        }
-    }
+  &__footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f0f0f8;
+  }
+
+  &__copy-bottom {
+    @extend .result-summary__copy;
+  }
+}
+
+@media (max-width: 640px) {
+  .result-page { padding: 1.5rem 1rem; }
+  .result-summary { padding: 1.5rem; }
+
+  .result-summary__header-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .result-summary__copy { width: 100%; justify-content: center; }
 }

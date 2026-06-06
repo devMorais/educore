@@ -11,49 +11,122 @@
       </div>
     } @else {
 
-      @if (!finished() && currentQuestion()) {
+      <!-- ── Tela inicial: filtro por dificuldade + exportação ── -->
+      @if (!quizStarted()) {
+        <div class="quiz__intro">
+          <h1>{{ data()!.title }}</h1>
+          <p class="quiz__intro-sub">{{ data()!.total_questions }} questões disponíveis</p>
+
+          <div class="quiz__filter-section">
+            <p class="quiz__filter-label">Filtrar por dificuldade</p>
+            <div class="quiz__chips">
+              @for (chip of difficultyChips; track chip.key) {
+                <button class="quiz__chip"
+                  [class.quiz__chip--active]="selectedDifficulty() === chip.key"
+                  (click)="selectedDifficulty.set(chip.key)">
+                  {{ chip.label }}
+                  @if (chip.key !== 'all') {
+                    <span class="quiz__chip-count">{{ countByDifficulty($any(chip.key)) }}</span>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (documentId()) {
+            <div class="quiz__export-section">
+              <p class="quiz__filter-label">Exportar para plataformas</p>
+              <div class="quiz__export-btns">
+                <button class="quiz__export-btn quiz__export-btn--kahoot"
+                  [disabled]="loadingExport() !== null"
+                  (click)="exportQuiz('kahoot')">
+                  {{ loadingExport() === 'kahoot' ? '⏳ Exportando...' : '🎮 Kahoot' }}
+                </button>
+                <button class="quiz__export-btn quiz__export-btn--socrative"
+                  [disabled]="loadingExport() !== null"
+                  (click)="exportQuiz('socrative')">
+                  {{ loadingExport() === 'socrative' ? '⏳ Exportando...' : '📊 Socrative' }}
+                </button>
+                <button class="quiz__export-btn quiz__export-btn--scorm"
+                  [disabled]="loadingExport() !== null"
+                  (click)="exportQuiz('scorm')">
+                  {{ loadingExport() === 'scorm' ? '⏳ Exportando...' : '📦 SCORM 1.2' }}
+                </button>
+              </div>
+            </div>
+          }
+
+          <button class="quiz__start-btn" (click)="startQuiz()">
+            Iniciar Quiz →
+          </button>
+        </div>
+      }
+
+      <!-- ── Questão ativa ── -->
+      @if (quizStarted() && !finished() && currentQuestion()) {
         <div class="quiz__header">
           <h1>{{ data()!.title }}</h1>
-          <span class="quiz__counter">Questão {{ currentIndex() + 1 }} de {{ questions().length }}</span>
+          <div class="quiz__header-row">
+            <span class="quiz__counter">Questão {{ currentIndex() + 1 }} de {{ filteredQuestions().length }}</span>
+            @if (currentQuestion()!.difficulty) {
+              <span class="quiz__badge {{ difficultyColors[$any(currentQuestion()!.difficulty!)] }}">
+                {{ difficultyLabels[$any(currentQuestion()!.difficulty!)] }}
+              </span>
+            }
+          </div>
           <div class="quiz__progress">
             <div class="quiz__progress-bar" [style.width.%]="progressPercent()"></div>
           </div>
         </div>
 
         <div class="quiz__card">
+          @if (currentQuestion()!.topic) {
+            <span class="quiz__topic">{{ currentQuestion()!.topic }}</span>
+          }
           <p class="quiz__question">{{ currentQuestion()!.question }}</p>
           <div class="quiz__options">
             @for (option of currentQuestion()!.options; track option) {
               <button class="quiz__option"
-                [class.quiz__option--selected]="selectedAnswer() === option && !answered()"
                 [class.quiz__option--correct]="answered() && isCorrect(option)"
                 [class.quiz__option--wrong]="answered() && selectedAnswer() === option && !isCorrect(option)"
                 (click)="selectAnswer(option)"
                 [disabled]="answered()">
                 {{ option }}
-                @if (answered() && isCorrect(option)) { ✅ }
-                @if (answered() && selectedAnswer() === option && !isCorrect(option)) { ❌ }
+                @if (answered() && isCorrect(option)) { <span>✅</span> }
+                @if (answered() && selectedAnswer() === option && !isCorrect(option)) { <span>❌</span> }
               </button>
             }
           </div>
 
           @if (answered()) {
-            <div class="quiz__explanation">
-              <strong>{{ isCorrect(selectedAnswer()!) ? '🎉 Correto!' : '💡 Resposta correta:' }}</strong>
-              {{ currentQuestion()!.explanation }}
-            </div>
+            <button class="quiz__explanation-toggle" (click)="toggleExplanation()">
+              💡 {{ showExplanation() ? 'Ocultar' : 'Ver' }} explicação
+            </button>
+
+            @if (showExplanation()) {
+              <div class="quiz__explanation">
+                <strong>{{ isCorrect(selectedAnswer()!) ? '🎉 Correto!' : '💡 Resposta correta:' }}</strong>
+                {{ currentQuestion()!.explanation }}
+              </div>
+            }
+
             <button class="quiz__next" (click)="nextQuestion()">
-              {{ currentIndex() + 1 >= questions().length ? 'Ver resultado 🏁' : 'Próxima →' }}
+              {{ currentIndex() + 1 >= filteredQuestions().length ? 'Ver resultado 🏁' : 'Próxima →' }}
             </button>
           }
         </div>
       }
 
+      <!-- ── Tela de resultado ── -->
       @if (finished()) {
         <div class="quiz__result">
-          <div class="quiz__result-icon">🏆</div>
+          <div class="quiz__result-icon">{{ classification().emoji }}</div>
           <h1>Quiz concluído!</h1>
-          <p class="quiz__score">Você acertou <strong>{{ score() }}</strong> de {{ questions().length }}</p>
+          <p class="quiz__classification {{ classification().cls }}">{{ classification().label }}</p>
+          <p class="quiz__score">
+            Você acertou <strong>{{ score() }}</strong> de {{ filteredQuestions().length }}
+            <span class="quiz__score-pct">({{ scorePercent() }}%)</span>
+          </p>
           <div class="quiz__result-actions">
             <button class="quiz__restart" (click)="restartQuiz()">🔁 Refazer quiz</button>
             <button class="quiz__back-btn" (click)="goToUpload()">← Novo material</button>
