@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     quiz_context_chunks: int = 20
 
     # Slides
-    default_slide_count: int = 25
+    default_slide_count: int = 20
     slides_context_chunks: int = 30
 
     # Mind map

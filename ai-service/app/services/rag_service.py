@@ -272,30 +272,67 @@ Retorne APENAS JSON válido:
     # ──────────────────────────────────────────────────────── slides
     def generate_slides(self, document_id: int, num_slides: int = None) -> dict:
         n = num_slides or settings.default_slide_count
-        prompt = f"""Você é um designer instrucional e especialista em apresentações educacionais de ALTO NÍVEL.
+        prompt = f"""Você é um DESIGNER INSTRUCIONAL SÊNIOR e especialista em aprendizagem ativa.
+Sua missão: criar apresentações educacionais de NÍVEL OURO que transformam conteúdo em experiência de aprendizagem.
 
-TAREFA: Crie uma apresentação com {n} slides:
-1. Slide de CAPA (layout: "cover")
-2. Slide de OBJETIVOS (layout: "objectives") — 4-5 objetivos Bloom
-3. 2-3 DIVISORES DE SEÇÃO (layout: "section_divider")
-4. Slides de CONTEÚDO variando: "content_bullets", "two_column", "quote_highlight", "stats_numbers", "timeline"
-5. Slide de SÍNTESE (layout: "summary")
-6. Slide de AVALIAÇÃO (layout: "assessment") — 3 questões de reflexão
-7. Slide de ENCERRAMENTO (layout: "closing")
+═══════════════════════════════════════════════════════════
+PADRÃO OURO PEDAGÓGICO — REGRAS OBRIGATÓRIAS
+═══════════════════════════════════════════════════════════
 
-Princípios: UM conceito por slide, regra 6×6, títulos provocativos, speaker notes detalhados.
+ESTRUTURA OBRIGATÓRIA ({n} slides):
+  1 × CAPA          (layout: "cover")
+  1 × OBJETIVOS     (layout: "objectives") — 4-6 objetivos nos níveis de Bloom: lembrar→criar
+  2-3 × DIVISOR     (layout: "section_divider") — separa grandes blocos temáticos
+  N × CONTEÚDO      (layouts variados: "content_bullets", "two_column", "quote_highlight",
+                     "stats_numbers", "timeline") — UM conceito por slide, REGRA 6×6
+  1 × VERIFICAÇÃO   (layout: "assessment") — 3-5 questões de reflexão ativas/provocativas
+  1 × PARA SABER +  (layout: "content_bullets", title: "Para Saber Mais") — fontes e próximos passos
+  1 × SÍNTESE       (layout: "summary") — os 5-7 pontos mais importantes
+  1 × ENCERRAMENTO  (layout: "closing")
 
-Retorne APENAS JSON válido:
+REGRA 6×6 (OBRIGATÓRIA para content_bullets, two_column, summary):
+  • Máximo 6 itens por slide
+  • Máximo 6 palavras por item (fragmentos, não frases completas)
+  • Exceção: quote_highlight pode ter 1 citação longa
+
+TÍTULOS ATIVOS E PROVOCATIVOS (OBRIGATÓRIO):
+  ✓ "Por que 70% dos projetos falham?" (pergunta retórica)
+  ✓ "O erro que todos cometem em X" (tensão cognitiva)
+  ✓ "3 princípios que mudam tudo" (número + impacto)
+  ✗ "Introdução ao Tema" — PROIBIDO (genérico demais)
+  ✗ "Conceitos Básicos" — PROIBIDO (genérico demais)
+
+SPEAKER NOTES (OBRIGATÓRIO — mínimo 3 frases por slide):
+  Frase 1: gancho ou contexto para o apresentador iniciar o slide.
+  Frase 2: aprofundamento, dado concreto ou exemplo que não está no slide.
+  Frase 3: pergunta para engajar a audiência ou transição para o próximo slide.
+
+VISUAL_SUGGESTION (OBRIGATÓRIO em cada slide):
+  Descreva com precisão: tipo de imagem, composição, paleta de cores, emoção transmitida.
+  Exemplo: "Infográfico circular mostrando ciclo de feedback com 4 etapas em azul e laranja,
+            fundo branco clean, estilo flat design — transmite processo contínuo e clareza"
+
+ACCENT_COLOR — variar para criar ritmo visual (máximo 40% da mesma cor):
+  "blue" = informativo/padrão | "orange" = urgência/impacto | "green" = positivo/conclusão | "purple" = reflexão/criatividade
+
+CAMPO estimated_time_minutes por slide:
+  cover/closing/section_divider: 0.5 | conteúdo simples: 1.5 | conteúdo rico/debate: 2-3
+
+═══════════════════════════════════════════════════════════
+
+Retorne APENAS JSON válido (sem markdown, sem texto extra):
 {{
-  "title": "título completo",
+  "title": "Título Completo e Descritivo da Apresentação",
+  "estimated_time_minutes": {n * 2},
   "slides": [
     {{
-      "title": "título do slide",
+      "title": "Título Ativo e Provocativo",
       "layout": "cover",
-      "content": ["item 1"],
-      "notes": "notas para o apresentador",
-      "visual_suggestion": "sugestão visual",
-      "accent_color": "blue"
+      "content": ["subtítulo ou contexto em até 10 palavras"],
+      "notes": "Frase de abertura para o apresentador. Dado ou contexto adicional relevante. Pergunta de engajamento ou transição.",
+      "visual_suggestion": "Descrição detalhada da imagem ideal: tipo, composição, cores, emoção",
+      "accent_color": "blue",
+      "estimated_time_minutes": 0.5
     }}
   ]
 }}"""
@@ -305,7 +342,7 @@ Retorne APENAS JSON válido:
             result = _generate_with_file(file_uri, prompt)
         else:
             chunks = embed_service.search_similar_chunks(
-                query="estrutura, tópicos principais, argumentos, evidências, dados, conclusões",
+                query="estrutura, tópicos principais, argumentos, evidências, dados, conclusões, exemplos",
                 document_id=document_id,
                 limit=settings.slides_context_chunks,
             )
