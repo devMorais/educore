@@ -60,6 +60,13 @@
     i { font-size: 0.72rem; }
   }
 
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
   &__export {
     display: inline-flex;
     align-items: center;
@@ -77,6 +84,16 @@
 
     &:hover:not(:disabled) { opacity: 0.9; }
     &:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    &--html {
+      background: linear-gradient(135deg, #0f172a, #1d4ed8);
+      border: 1.5px solid #356df1;
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #1e293b, #2563eb);
+        opacity: 1;
+      }
+    }
   }
 }
 

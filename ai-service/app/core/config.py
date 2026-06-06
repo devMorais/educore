@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # Google Slides API — service account JSON (string base64 ou JSON raw)
     google_service_account_json: str | None = None
 
+    # Pexels API — background images for Reveal.js presentations
+    pexels_api_key: str | None = None
+
     # CORS — origens permitidas (BS-003)
     allowed_origins: list[str] = [
         "http://localhost:4200",

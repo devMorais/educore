@@ -137,6 +137,14 @@ export class AiService {
     );
   }
 
+  downloadHtml(documentId: number): Observable<Blob> {
+    return this.http.post(
+      `${this.aiUrl}/documents/${documentId}/export-html`,
+      {},
+      { responseType: 'blob' },
+    );
+  }
+
   /** Trigger browser file download from a Blob */
   triggerDownload(blob: Blob, filename: string): void {
     if (!isPlatformBrowser(this.platformId)) return;

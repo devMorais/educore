@@ -296,6 +296,37 @@ async def export_pptx(
     )
 
 
+# ──────────────────────────────────────────────────────── export HTML (Reveal.js)
+@router.post("/{document_id}/export-html")
+async def export_html(
+    document_id: int,
+    current_user: dict = get_current_user,
+):
+    from app.services.reveal_service import reveal_service
+
+    ownership_check(document_id, current_user["user_id"])
+    _require_completed(document_id)
+
+    slides_data = rag_service.generate_slides(document_id)
+    output_path = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.html")
+    reveal_service.generate(
+        title=slides_data.get("title", "Apresentação EduCore"),
+        slides=slides_data.get("slides", []),
+        output_path=output_path,
+    )
+
+    safe_title = (
+        (slides_data.get("title") or "Apresentacao")
+        .encode("ascii", "ignore").decode()
+        .replace(" ", "_")[:60]
+    )
+    return FileResponse(
+        path=output_path,
+        media_type="text/html",
+        filename=f"EduCore_{safe_title}.html",
+    )
+
+
 # ──────────────────────────────────────────────────────── export Kahoot
 @router.get("/{document_id}/export-kahoot")
 async def export_kahoot(

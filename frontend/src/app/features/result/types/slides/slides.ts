@@ -27,6 +27,7 @@ export class Slides {
   notasExpandidas  = signal(false);
   sugestaoExpandida = signal(false);
   downloadingPptx  = signal(false);
+  downloadingHtml  = signal(false);
 
   currentSlide = computed<SlideContent | null>(
     () => this.data()?.slides[this.slideAtual()] ?? null,
@@ -98,6 +99,31 @@ export class Slides {
         this.downloadingPptx.set(false);
         const msg = err?.error?.detail ?? 'Erro ao exportar a apresentação. Tente novamente.';
         this.toast.erro(msg, 'Erro no download');
+      },
+    });
+  }
+
+  exportHtml() {
+    const docId = this.documentId();
+    if (!docId) return;
+    this.downloadingHtml.set(true);
+
+    const rawTitle = this.data()?.title ?? 'apresentacao';
+    const filename = rawTitle
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
+      + '.html';
+
+    this.aiService.downloadHtml(docId).subscribe({
+      next: blob => {
+        this.downloadingHtml.set(false);
+        this.aiService.triggerDownload(blob, filename);
+        this.toast.sucesso(`"${filename}" exportado com sucesso!`, 'Apresentação Interativa');
+      },
+      error: err => {
+        this.downloadingHtml.set(false);
+        const msg = err?.error?.detail ?? 'Erro ao exportar. Tente novamente.';
+        this.toast.erro(msg, 'Erro no export HTML');
       },
     });
   }
