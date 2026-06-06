@@ -108,20 +108,33 @@ export class Slides {
     if (!docId) return;
     this.downloadingHtml.set(true);
 
-    const rawTitle = this.data()?.title ?? 'apresentacao';
-    const filename = rawTitle
-      .normalize('NFD').replace(/[̀-ͯ]/g, '')
-      .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
-      + '.html';
+    // Open window synchronously to avoid popup blocker; redirect once blob is ready
+    const win = window.open('', '_blank');
+    if (win) {
+      win.document.write(
+        '<html><body style="margin:0;background:#0f172a;color:#94a3b8;font-family:Inter,sans-serif;' +
+        'display:flex;align-items:center;justify-content:center;height:100vh;gap:1rem">' +
+        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+        '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' +
+        '<span>Gerando apresentação...</span></body></html>'
+      );
+    }
 
     this.aiService.downloadHtml(docId).subscribe({
       next: blob => {
         this.downloadingHtml.set(false);
-        this.aiService.triggerDownload(blob, filename);
-        this.toast.sucesso(`"${filename}" exportado com sucesso!`, 'Apresentação Interativa');
+        const url = URL.createObjectURL(blob);
+        if (win && !win.closed) {
+          win.location.href = url;
+        } else {
+          window.open(url, '_blank');
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 120_000);
+        this.toast.sucesso('Apresentação aberta em nova guia!', 'Apresentação Interativa');
       },
       error: err => {
         this.downloadingHtml.set(false);
+        if (win && !win.closed) win.close();
         const msg = err?.error?.detail ?? 'Erro ao exportar. Tente novamente.';
         this.toast.erro(msg, 'Erro no export HTML');
       },

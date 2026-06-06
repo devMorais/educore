@@ -3,13 +3,14 @@ RevealService — Generates Reveal.js HTML presentations.
 
 Features:
   - Pexels API: background images auto-fetched per slide topic
-  - GSAP: entrance animations on slide change
   - Phosphor Icons: modern icon set via CDN
+  - Split layouts (content left / image right) on alternating slides
+  - Decorative watermark icon inside every content card
+  - CSS-only staggered animations per list item (no JS dependency)
   - 11 layout types (cover, objectives, content_bullets, two_column,
     section_divider, quote_highlight, assessment, summary,
     closing, stats_numbers, timeline)
   - accent_color per slide (blue / orange / green / purple)
-  - GSAP entrance animation on every slide — no fragments (content visible immediately)
 """
 
 import os
@@ -145,7 +146,7 @@ class RevealService:
             logger.debug('Pexels [%r]: %s', query, exc)
         return None
 
-    def _bg(self, s: dict, pt: str, idx: int, opacity: float = 0.4) -> str:
+    def _bg(self, s: dict, pt: str, idx: int, opacity: float = 0.22) -> str:
         q = (s.get('visual_suggestion') or s.get('title') or pt or 'education')
         q = q.split('.')[0][:60]
         img = self._pexels(q)
@@ -199,11 +200,11 @@ class RevealService:
         sub    = _e(s.get('subtitle') or '')
         et     = total * 2
         icon   = _ICONS.get((s.get('layout') or 'cover').lower(), 'ph-presentation-chart')
-        bg     = self._bg(s, pt, idx, 0.35)
+        bg     = self._bg(s, pt, idx, 0.40)
         sub_h  = f'<p class="ec-cover__sub">{sub}</p>' if sub else ''
         return (
             f'<section class="ec-cover" {bg}>'
-            f'<div class="ec-cover__veil" style="background:linear-gradient(160deg,{a}1a 0%,rgba(0,0,0,.72) 100%)"></div>'
+            f'<div class="ec-cover__veil" style="background:linear-gradient(160deg,{a}1a 0%,rgba(0,0,0,.75) 100%)"></div>'
             f'<div class="ec-cover__body">'
             f'<div class="ec-badge" style="border-color:{a};color:{a}">'
             f'<i class="ph {icon}"></i> Apresentação EduCore</div>'
@@ -229,6 +230,7 @@ class RevealService:
             f'<section class="ec-divider has-dark-background" {bg}>'
             f'<div class="ec-divider__veil" style="background:linear-gradient(135deg,{a}cc,{ad}88)"></div>'
             f'<div class="ec-divider__body">'
+            f'<div class="ec-divider__num">{idx}</div>'
             f'<div class="ec-divider__line" style="background:{a}"></div>'
             f'<h2 class="ec-divider__h2">{title}</h2>'
             f'{sub_h}'
@@ -243,16 +245,26 @@ class RevealService:
         items = s.get('content') or []
         layout = (s.get('layout') or 'content_bullets').lower()
         icon  = _ICONS.get(layout, 'ph-list-bullets')
-        bg    = self._bg(s, pt, idx, 0.32)
+
+        # Every 3rd slide (idx % 3 == 2): split layout — card left, image right
+        use_split = (idx % 3 == 2) and len(_norm(items, 8)) <= 6
+        limit = 5 if use_split else 8
+        bg_opacity = 0.30 if use_split else 0.20
+        bg = self._bg(s, pt, idx, bg_opacity)
+
         li_html = ''.join(
             f'<li>'
             f'<span class="ec-dot" style="background:{a}"><i class="ph ph-caret-right-bold"></i></span>'
             f'{_e(it)}</li>'
-            for it in _norm(items, 8)
+            for it in _norm(items, limit)
         )
+
+        inner_cls = 'ec-inner ec-inner--split' if use_split else 'ec-inner'
+
         return (
             f'<section class="ec-slide" {bg}>'
-            f'<div class="ec-inner">'
+            f'<div class="{inner_cls}" style="--accent:{a}">'
+            f'<div class="ec-inner__deco" aria-hidden="true"><i class="ph {icon}"></i></div>'
             f'<div class="ec-head">'
             f'<div class="ec-head__icon" style="background:{a}22;color:{a}">'
             f'<i class="ph {icon}"></i></div>'
@@ -272,7 +284,7 @@ class RevealService:
         cols  = s.get('columns') or {}
         left  = _norm(cols.get('left') or s.get('content', [])[:4], 6)
         right = _norm(cols.get('right') or s.get('content', [])[4:], 6)
-        bg    = self._bg(s, pt, idx, 0.32)
+        bg    = self._bg(s, pt, idx, 0.22)
 
         def col_items(lst):
             return ''.join(
@@ -283,12 +295,13 @@ class RevealService:
 
         return (
             f'<section class="ec-slide" {bg}>'
-            f'<div class="ec-inner">'
+            f'<div class="ec-inner" style="--accent:{a}">'
+            f'<div class="ec-inner__deco" aria-hidden="true"><i class="ph ph-columns"></i></div>'
             f'<h2 class="ec-two__h2" style="color:{a}">{title}</h2>'
             f'<div class="ec-two__grid">'
-            f'<div class="ec-col" style="border-color:{a}33">'
+            f'<div class="ec-col" style="border-color:{a}33;border-left:3px solid {a}">'
             f'<ul class="ec-col__ul">{col_items(left)}</ul></div>'
-            f'<div class="ec-col" style="border-color:{a}33">'
+            f'<div class="ec-col" style="border-color:{a}33;border-left:3px solid {a}88">'
             f'<ul class="ec-col__ul">{col_items(right)}</ul></div>'
             f'</div></div>'
             f'{self._footer(idx, total, a)}'
@@ -302,7 +315,7 @@ class RevealService:
         title = _e(s.get('title') or '')
         quote = _e(s.get('quote') or (s.get('content') or [''])[0])
         src   = _e(s.get('subtitle') or '')
-        bg    = self._bg(s, pt, idx, 0.32)
+        bg    = self._bg(s, pt, idx, 0.30)
         src_h = (
             f'<cite class="ec-quote__src" style="color:{a}">— {src}</cite>'
             if src else ''
@@ -329,16 +342,17 @@ class RevealService:
             'ph-number-circle-one', 'ph-number-circle-two', 'ph-number-circle-three',
             'ph-number-circle-four', 'ph-number-circle-five', 'ph-number-circle-six',
         ]
-        bg    = self._bg(s, pt, idx, 0.28)
+        bg    = self._bg(s, pt, idx, 0.20)
         items = ''.join(
             f'<div class="ec-assess__item" style="border-left-color:{a}">'
             f'<i class="ph {nums[min(i, 5)]}" style="color:{a}"></i>'
-            f'<span>{_e(it)}</span></div>'
+            f'<span>{_e(_clean(str(it)))}</span></div>'
             for i, it in enumerate(s.get('content', [])[:6])
         )
         return (
             f'<section class="ec-slide" {bg}>'
-            f'<div class="ec-inner">'
+            f'<div class="ec-inner" style="--accent:{a}">'
+            f'<div class="ec-inner__deco" aria-hidden="true"><i class="ph ph-question"></i></div>'
             f'<div class="ec-assess__hdr">'
             f'<div class="ec-assess__badge" style="background:{a}22;color:{a}">'
             f'<i class="ph ph-question"></i> Verificação de Aprendizagem</div>'
@@ -369,7 +383,7 @@ class RevealService:
                     else:
                         p = [it[:20], it[20:]]
                     stats.append({'value': p[0].strip(), 'label': p[1].strip() if len(p) > 1 else ''})
-        bg    = self._bg(s, pt, idx, 0.28)
+        bg    = self._bg(s, pt, idx, 0.20)
         cards = ''.join(
             f'<div class="ec-stat" style="border-top-color:{a}">'
             f'<div class="ec-stat__val" style="color:{a}">{_e(str(st.get("value", "")))}</div>'
@@ -378,7 +392,8 @@ class RevealService:
         )
         return (
             f'<section class="ec-slide" {bg}>'
-            f'<div class="ec-inner">'
+            f'<div class="ec-inner" style="--accent:{a}">'
+            f'<div class="ec-inner__deco" aria-hidden="true"><i class="ph ph-chart-bar"></i></div>'
             f'<h2 class="ec-head__h2" style="color:{a}">{title}</h2>'
             f'<div class="ec-stats__grid">{cards}</div>'
             f'</div>'
@@ -394,7 +409,7 @@ class RevealService:
         events = list(s.get('events') or [])
         if not events:
             events = [{'year': '', 'desc': it} for it in s.get('content', [])[:6]]
-        bg     = self._bg(s, pt, idx, 0.28)
+        bg     = self._bg(s, pt, idx, 0.20)
         items  = ''
         for e in events[:6]:
             if isinstance(e, dict):
@@ -412,7 +427,8 @@ class RevealService:
             )
         return (
             f'<section class="ec-slide" {bg}>'
-            f'<div class="ec-inner">'
+            f'<div class="ec-inner" style="--accent:{a}">'
+            f'<div class="ec-inner__deco" aria-hidden="true"><i class="ph ph-clock-countdown"></i></div>'
             f'<h2 class="ec-head__h2" style="color:{a}">{title}</h2>'
             f'<div class="ec-tl">'
             f'<div class="ec-tl__line" style="background:{a}33"></div>'
@@ -444,18 +460,18 @@ _TEMPLATE = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
 <title>__TITLE__</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/bold/style.css">
 <style>
 :root {
-  --bg:      #0f172a;
-  --surface: rgba(255,255,255,.065);
-  --border:  rgba(255,255,255,.10);
+  --bg:      #0b0f1e;
+  --surface: rgba(255,255,255,.055);
+  --border:  rgba(255,255,255,.09);
   --text:    #f1f5f9;
   --muted:   #94a3b8;
-  --r:       12px;
+  --r:       14px;
   --font:    'Inter', system-ui, -apple-system, sans-serif;
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -487,7 +503,7 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 }
 .reveal p,.reveal li,.reveal blockquote { font-family: var(--font); }
 .reveal .progress { height: 3px; }
-.reveal .controls { bottom: 10px; right: 10px; }
+.reveal .controls { bottom: 12px; right: 14px; }
 .reveal blockquote {
   background: transparent;
   box-shadow: none;
@@ -511,44 +527,45 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 .ec-cover__body {
   position: relative;
   z-index: 1;
-  padding: 0 3.5rem 4rem;
+  padding: 0 3.5rem 4.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  max-width: 940px;
+  gap: 1.1rem;
+  max-width: 960px;
 }
 .ec-badge {
   display: inline-flex;
   align-items: center;
   gap: .45rem;
   border: 1.5px solid;
-  padding: .3rem 1rem;
+  padding: .32rem 1.1rem;
   border-radius: 50px;
   font-size: .78rem;
   font-weight: 600;
-  backdrop-filter: blur(8px);
-  background: rgba(0,0,0,.3);
+  backdrop-filter: blur(12px);
+  background: rgba(0,0,0,.35);
   width: fit-content;
-  color: inherit;
 }
 .ec-cover__h1 {
-  font-size: clamp(2rem,4.8vw,3.4rem);
+  font-size: clamp(2.1rem,4.8vw,3.6rem);
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1.08;
   color: #fff !important;
-  text-shadow: 0 2px 24px rgba(0,0,0,.65);
+  text-shadow: 0 2px 32px rgba(0,0,0,.7);
+  max-width: 900px;
 }
 .ec-cover__sub {
-  font-size: clamp(.95rem,1.8vw,1.3rem);
-  color: rgba(255,255,255,.82);
+  font-size: clamp(.95rem,1.8vw,1.35rem);
+  color: rgba(255,255,255,.8);
   margin: 0;
   font-weight: 400;
+  max-width: 720px;
 }
 .ec-cover__meta {
   display: flex;
   gap: 1.5rem;
   font-size: .82rem;
-  color: rgba(255,255,255,.65);
+  color: rgba(255,255,255,.6);
   align-items: center;
   flex-wrap: wrap;
 }
@@ -556,6 +573,10 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
   display: inline-flex;
   align-items: center;
   gap: .4rem;
+  background: rgba(255,255,255,.08);
+  padding: .3rem .85rem;
+  border-radius: 50px;
+  backdrop-filter: blur(8px);
 }
 .ec-cover__bar {
   position: absolute;
@@ -583,61 +604,116 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
   padding: 3rem;
   gap: 1.1rem;
 }
+.ec-divider__num {
+  font-size: 6rem;
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(255,255,255,.06);
+  letter-spacing: -.05em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-55%);
+  pointer-events: none;
+  z-index: 0;
+}
 .ec-divider__line {
-  width: 80px;
+  width: 64px;
   height: 4px;
   border-radius: 4px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 .ec-divider__h2 {
-  font-size: clamp(1.9rem,4vw,3rem);
+  font-size: clamp(2rem,4.2vw,3.2rem);
   font-weight: 900;
   color: #fff !important;
-  text-shadow: 0 2px 20px rgba(0,0,0,.55);
-  line-height: 1.15;
-  max-width: 820px;
+  text-shadow: 0 2px 24px rgba(0,0,0,.6);
+  line-height: 1.12;
+  max-width: 840px;
+  position: relative;
+  z-index: 1;
 }
 .ec-divider__sub {
-  font-size: clamp(.95rem,1.6vw,1.2rem);
-  color: rgba(255,255,255,.8);
-  max-width: 620px;
+  font-size: clamp(.95rem,1.6vw,1.25rem);
+  color: rgba(255,255,255,.78);
+  max-width: 640px;
   margin: 0;
+  position: relative;
+  z-index: 1;
 }
 
 /* ── CONTENT SLIDES ──────────────────────────────────────── */
 .ec-slide {
-  padding: 1.25rem 1.5rem !important;
+  padding: 1.4rem 1.6rem 3.8rem !important;
 }
 .ec-inner {
-  padding: 1.5rem 2rem .85rem;
+  position: relative;
+  padding: 1.6rem 2rem 1.2rem;
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
   flex: 1;
   overflow: hidden;
-  background: rgba(8,12,28,.87);
-  border-radius: 12px;
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,.07);
+  background: rgba(7,10,25,.88);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 8px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
 }
+/* Accent left border stripe */
+.ec-inner::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 16px; bottom: 16px;
+  width: 3px;
+  background: var(--accent, #356df1);
+  border-radius: 0 3px 3px 0;
+  opacity: .65;
+}
+/* Decorative large watermark icon */
+.ec-inner__deco {
+  position: absolute;
+  right: -0.5rem;
+  bottom: -1rem;
+  font-size: 10rem;
+  opacity: 0.035;
+  pointer-events: none;
+  z-index: 0;
+  line-height: 1;
+  color: var(--accent, #356df1);
+}
+.ec-inner > *:not(.ec-inner__deco) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Split layout — card takes 60%, right 40% shows background image */
+.ec-inner--split {
+  width: 62%;
+  flex: none !important;
+  align-self: stretch;
+}
+
 .ec-head {
   display: flex;
   align-items: center;
-  gap: .85rem;
+  gap: .9rem;
   flex-shrink: 0;
 }
 .ec-head__icon {
-  width: 2.4rem;
-  height: 2.4rem;
-  border-radius: 9px;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   flex-shrink: 0;
 }
 .ec-head__h2 {
-  font-size: clamp(1.25rem,2.4vw,1.9rem);
+  font-size: clamp(1.25rem,2.4vw,1.95rem);
   font-weight: 800;
   line-height: 1.2;
 }
@@ -649,34 +725,38 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: .65rem;
+  gap: .7rem;
   flex: 1;
   overflow: hidden;
 }
 .ec-list li {
   display: flex;
   align-items: flex-start;
-  gap: .7rem;
-  font-size: clamp(.85rem,1.4vw,1.05rem);
+  gap: .75rem;
+  font-size: clamp(.84rem,1.35vw,1.05rem);
   line-height: 1.6;
   color: var(--text);
+  padding: .45rem .7rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,.022);
+  transition: background .15s;
 }
 .ec-dot {
-  min-width: 1.45rem;
-  height: 1.45rem;
-  border-radius: 6px;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: .65rem;
   color: #fff;
   flex-shrink: 0;
-  margin-top: .18rem;
+  margin-top: .14rem;
 }
 
 /* ── TWO COLUMN ──────────────────────────────────────────── */
 .ec-two__h2 {
-  font-size: clamp(1.2rem,2.2vw,1.7rem);
+  font-size: clamp(1.2rem,2.2vw,1.75rem);
   font-weight: 800;
   flex-shrink: 0;
 }
@@ -690,7 +770,7 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 }
 .ec-col {
   background: var(--surface);
-  border: 1px solid;
+  border: 1px solid var(--border);
   border-radius: var(--r);
   padding: 1.2rem 1.4rem;
   backdrop-filter: blur(8px);
@@ -702,12 +782,12 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: .6rem;
+  gap: .65rem;
 }
 .ec-col__ul li {
   display: flex;
   align-items: flex-start;
-  gap: .5rem;
+  gap: .55rem;
   font-size: clamp(.78rem,1.2vw,.95rem);
   line-height: 1.55;
   color: var(--text);
@@ -722,32 +802,33 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 2.5rem 3.5rem;
-  gap: 1rem;
+  padding: 2.5rem 4rem;
+  gap: 1.2rem;
   flex: 1;
-  background: rgba(8,12,28,.87);
-  border-radius: 12px;
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,.07);
+  background: rgba(7,10,25,.88);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 8px 40px rgba(0,0,0,.45);
 }
 .ec-quote__mark {
-  font-size: 4rem;
+  font-size: 5rem;
   line-height: 1;
-  opacity: .45;
+  opacity: .3;
 }
 .ec-quote__text {
-  font-size: clamp(1rem,1.9vw,1.55rem);
+  font-size: clamp(1.05rem,1.9vw,1.6rem);
   font-weight: 500;
   font-style: italic;
-  line-height: 1.7;
+  line-height: 1.72;
   color: var(--text);
-  max-width: 820px;
+  max-width: 840px;
 }
 .ec-quote__src {
   font-size: .82rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .1em;
+  letter-spacing: .12em;
   font-style: normal;
 }
 .ec-quote__ctx {
@@ -784,22 +865,22 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
   display: flex;
   align-items: center;
   gap: .75rem;
-  padding: .6rem 1rem;
+  padding: .65rem 1rem;
   background: var(--surface);
   border-left: 3px solid;
-  border-radius: 0 var(--r) var(--r) 0;
+  border-radius: 0 10px 10px 0;
   font-size: clamp(.78rem,1.3vw,.97rem);
   line-height: 1.5;
   color: var(--text);
   backdrop-filter: blur(6px);
 }
-.ec-assess__item i { font-size: 1.15rem; flex-shrink: 0; }
+.ec-assess__item i { font-size: 1.2rem; flex-shrink: 0; }
 
 /* ── STATS ───────────────────────────────────────────────── */
 .ec-stats__grid {
   display: grid;
   grid-template-columns: repeat(2,1fr);
-  gap: 1.15rem;
+  gap: 1.2rem;
   flex: 1;
   min-height: 0;
 }
@@ -807,17 +888,19 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
   background: var(--surface);
   border-top: 3px solid;
   border-radius: var(--r);
-  padding: 1.4rem;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: .4rem;
+  gap: .45rem;
   backdrop-filter: blur(8px);
   text-align: center;
+  border: 1px solid var(--border);
+  border-top-width: 3px;
 }
 .ec-stat__val {
-  font-size: clamp(1.8rem,3.2vw,2.7rem);
+  font-size: clamp(1.9rem,3.2vw,2.8rem);
   font-weight: 900;
   line-height: 1;
 }
@@ -833,8 +916,8 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: .85rem;
-  padding-left: 2.2rem;
+  gap: .9rem;
+  padding-left: 2.3rem;
   flex: 1;
   overflow: hidden;
 }
@@ -874,41 +957,125 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
   color: var(--text);
 }
 
-/* ── FOOTER ──────────────────────────────────────────────── */
+/* ── FOOTER (absolute — fora do fluxo do conteúdo) ───────── */
 .ec-footer {
+  position: absolute;
+  bottom: 0.65rem;
+  left: 1.6rem;
+  right: 1.6rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: .4rem 1.5rem;
-  font-size: .7rem;
+  padding: .35rem 1.25rem;
+  font-size: .68rem;
   color: var(--muted);
-  flex-shrink: 0;
-  background: rgba(8,12,28,.72);
+  background: rgba(7,10,25,.75);
   border-radius: 8px;
-  margin-top: .6rem;
-  border: 1px solid rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.07);
+  backdrop-filter: blur(8px);
 }
 .ec-footer__brand {
   font-weight: 700;
-  letter-spacing: .07em;
+  letter-spacing: .09em;
   text-transform: uppercase;
-  opacity: .55;
+  opacity: .5;
 }
 .ec-footer__page { font-weight: 700; }
 
-/* ── Entrance animation (CSS-only, sem dependência JS) ───── */
+/* ════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ════════════════════════════════════════════════════════════ */
+
+/* Card entrance — translateY only (opacity always 1) */
 @keyframes ec-in {
-  from { transform: translateY(22px); }
-  to   { transform: translateY(0); }
+  from { transform: translateY(18px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 .reveal .slides section.present .ec-inner,
 .reveal .slides section.present .ec-cover__body,
 .reveal .slides section.present .ec-divider__body,
 .reveal .slides section.present .ec-quote__body {
-  animation: ec-in 0.48s cubic-bezier(.22,.6,.36,1) both;
+  animation: ec-in 0.52s cubic-bezier(.22,.6,.36,1) both;
 }
-.reveal .slides section.present .ec-inner { animation-delay: 0.05s; }
-.reveal .slides section.present .ec-cover__body { animation-delay: 0.08s; }
+.reveal .slides section.present .ec-inner { animation-delay: 0.04s; }
+.reveal .slides section.present .ec-cover__body { animation-delay: 0.06s; }
+.reveal .slides section.present .ec-divider__body { animation-delay: 0.06s; }
+.reveal .slides section.present .ec-quote__body { animation-delay: 0.04s; }
+
+/* Title entrance — slide from left */
+@keyframes ec-title-in {
+  from { opacity: 0; transform: translateX(-18px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.reveal .slides section.present .ec-head__h2,
+.reveal .slides section.present .ec-two__h2 {
+  animation: ec-title-in 0.42s cubic-bezier(.22,.6,.36,1) both;
+  animation-delay: 0.14s;
+}
+
+/* List items — staggered slide from left */
+@keyframes ec-li-in {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.reveal .slides section.present .ec-list li {
+  animation: ec-li-in 0.38s cubic-bezier(.22,.6,.36,1) both;
+}
+.reveal .slides section.present .ec-list li:nth-child(1) { animation-delay: 0.18s; }
+.reveal .slides section.present .ec-list li:nth-child(2) { animation-delay: 0.26s; }
+.reveal .slides section.present .ec-list li:nth-child(3) { animation-delay: 0.34s; }
+.reveal .slides section.present .ec-list li:nth-child(4) { animation-delay: 0.42s; }
+.reveal .slides section.present .ec-list li:nth-child(5) { animation-delay: 0.50s; }
+.reveal .slides section.present .ec-list li:nth-child(6) { animation-delay: 0.58s; }
+.reveal .slides section.present .ec-list li:nth-child(7) { animation-delay: 0.66s; }
+.reveal .slides section.present .ec-list li:nth-child(8) { animation-delay: 0.74s; }
+
+/* Column items */
+.reveal .slides section.present .ec-col__ul li {
+  animation: ec-li-in 0.38s cubic-bezier(.22,.6,.36,1) both;
+}
+.reveal .slides section.present .ec-col:nth-child(1) .ec-col__ul li:nth-child(1) { animation-delay: 0.18s; }
+.reveal .slides section.present .ec-col:nth-child(1) .ec-col__ul li:nth-child(2) { animation-delay: 0.26s; }
+.reveal .slides section.present .ec-col:nth-child(1) .ec-col__ul li:nth-child(3) { animation-delay: 0.34s; }
+.reveal .slides section.present .ec-col:nth-child(2) .ec-col__ul li:nth-child(1) { animation-delay: 0.28s; }
+.reveal .slides section.present .ec-col:nth-child(2) .ec-col__ul li:nth-child(2) { animation-delay: 0.36s; }
+.reveal .slides section.present .ec-col:nth-child(2) .ec-col__ul li:nth-child(3) { animation-delay: 0.44s; }
+
+/* Assessment items */
+.reveal .slides section.present .ec-assess__item {
+  animation: ec-li-in 0.38s cubic-bezier(.22,.6,.36,1) both;
+}
+.reveal .slides section.present .ec-assess__item:nth-child(1) { animation-delay: 0.18s; }
+.reveal .slides section.present .ec-assess__item:nth-child(2) { animation-delay: 0.26s; }
+.reveal .slides section.present .ec-assess__item:nth-child(3) { animation-delay: 0.34s; }
+.reveal .slides section.present .ec-assess__item:nth-child(4) { animation-delay: 0.42s; }
+.reveal .slides section.present .ec-assess__item:nth-child(5) { animation-delay: 0.50s; }
+.reveal .slides section.present .ec-assess__item:nth-child(6) { animation-delay: 0.58s; }
+
+/* Stat cards — pop in */
+@keyframes ec-pop {
+  0%   { transform: scale(0.72); opacity: 0; }
+  75%  { transform: scale(1.04); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.reveal .slides section.present .ec-stat {
+  animation: ec-pop 0.52s cubic-bezier(.34,1.56,.64,1) both;
+}
+.reveal .slides section.present .ec-stat:nth-child(1) { animation-delay: 0.12s; }
+.reveal .slides section.present .ec-stat:nth-child(2) { animation-delay: 0.22s; }
+.reveal .slides section.present .ec-stat:nth-child(3) { animation-delay: 0.32s; }
+.reveal .slides section.present .ec-stat:nth-child(4) { animation-delay: 0.42s; }
+
+/* Timeline items */
+.reveal .slides section.present .ec-tl__item {
+  animation: ec-li-in 0.38s cubic-bezier(.22,.6,.36,1) both;
+}
+.reveal .slides section.present .ec-tl__item:nth-child(1) { animation-delay: 0.18s; }
+.reveal .slides section.present .ec-tl__item:nth-child(2) { animation-delay: 0.28s; }
+.reveal .slides section.present .ec-tl__item:nth-child(3) { animation-delay: 0.38s; }
+.reveal .slides section.present .ec-tl__item:nth-child(4) { animation-delay: 0.48s; }
+.reveal .slides section.present .ec-tl__item:nth-child(5) { animation-delay: 0.58s; }
+.reveal .slides section.present .ec-tl__item:nth-child(6) { animation-delay: 0.68s; }
 </style>
 </head>
 <body>
