@@ -230,10 +230,11 @@ def _section_divider(prs, slide_data: dict):
     _set_bg(slide, accent)
 
     # Decorative circle (lighter shade) top-right
+    # RGBColor extends tuple — [0]=R, [1]=G, [2]=B
     lighter = RGBColor(
-        min(accent.red + 45, 255),
-        min(accent.green + 45, 255),
-        min(accent.blue + 45, 255),
+        min(accent[0] + 45, 255),
+        min(accent[1] + 45, 255),
+        min(accent[2] + 45, 255),
     )
     _oval(slide, Inches(9.3), Inches(0.8), Inches(4.8), Inches(4.8), lighter)
 
