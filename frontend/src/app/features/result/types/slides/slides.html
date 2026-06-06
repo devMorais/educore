@@ -1,115 +1,156 @@
-<div class="result-page">
-  <div class="result-page__content result-page__content--wide">
+<div class="slides-page">
 
-    <button class="result-back" (click)="goToUpload()">← Novo material</button>
+  <!-- Cabeçalho fixo -->
+  <div class="slides-header">
+    <button class="slides-header__back" (click)="goToUpload()">
+      <i class="pi pi-arrow-left"></i> Novo material
+    </button>
 
-    @if (!data()) {
-      <div class="result-empty">
-        <span style="font-size:3rem; display:block; margin-bottom:1rem">📭</span>
-        <p>Nenhuma apresentação para exibir. Gere uma a partir de um PDF.</p>
-        <button class="result-back" (click)="goToUpload()">Fazer upload</button>
+    @if (data()) {
+      <div class="slides-header__info">
+        <h1>{{ data()!.title }}</h1>
+        <span class="slides-header__counter">
+          <i class="pi pi-desktop"></i>
+          Slide {{ slideAtual() + 1 }} de {{ totalSlides() }}
+        </span>
       </div>
-    } @else {
 
-      <div class="slides-viewer">
+      <button
+        class="slides-header__export"
+        (click)="downloadPptx()"
+        [disabled]="!documentId() || downloadingPptx()">
+        @if (downloadingPptx()) {
+          <i class="pi pi-spin pi-spinner"></i> Gerando...
+        } @else {
+          <i class="pi pi-file-export"></i> Exportar PPTX
+        }
+      </button>
+    }
+  </div>
 
-        <!-- ── Painel lateral: miniaturas ── -->
-        <aside class="slides-viewer__strip">
-          <p class="slides-viewer__strip-title">Slides</p>
-          @for (slide of data()!.slides; track slide.title; let i = $index) {
-            <button class="slide-thumb"
-              [class.slide-thumb--active]="activeIndex() === i"
-              (click)="goToSlide(i)">
-              <span class="slide-thumb__num">{{ i + 1 }}</span>
-              <span class="slide-thumb__title">{{ slide.title }}</span>
-            </button>
-          }
-        </aside>
+  @if (!data()) {
+    <div class="slides-empty">
+      <i class="pi pi-inbox slides-empty__icon"></i>
+      <p>Nenhuma apresentação para exibir. Gere uma a partir de um PDF.</p>
+      <button class="slides-header__back" (click)="goToUpload()">
+        <i class="pi pi-upload"></i> Fazer upload
+      </button>
+    </div>
+  } @else {
 
-        <!-- ── Área principal ── -->
-        <main class="slides-viewer__main">
+    <div class="slides-layout">
 
-          <!-- Cabeçalho -->
-          <div class="slides-viewer__header">
-            <h1 class="slides-viewer__title">{{ data()!.title }}</h1>
-            <div class="slides-viewer__actions">
-              <span class="slides-viewer__counter">{{ activeIndex() + 1 }} / {{ slideCount() }}</span>
-              <button class="slides-viewer__pptx"
-                (click)="downloadPptx()"
-                [disabled]="downloadingPptx()">
-                @if (downloadingPptx()) {
-                  <span>⏳ Gerando apresentação PowerPoint...</span>
-                } @else {
-                  <span>⬇️ Baixar PPTX</span>
+      <!-- Strip de miniaturas -->
+      <aside class="slides-strip">
+        @for (slide of data()!.slides; track slide.title; let i = $index) {
+          <button
+            class="slides-strip__thumb"
+            [class.slides-strip__thumb--ativo]="slideAtual() === i"
+            (click)="irParaSlide(i)"
+            [style.border-color]="slideAtual() === i ? corDestaqueSlide(slide) : 'transparent'">
+            <span class="slides-strip__num" [style.background]="corDestaqueSlide(slide)">
+              {{ i + 1 }}
+            </span>
+            <span class="slides-strip__titulo">{{ slide.title }}</span>
+          </button>
+        }
+      </aside>
+
+      <!-- Área principal -->
+      <main class="slides-main">
+
+        @if (currentSlide()) {
+
+          <div class="slides-card" [style.border-top-color]="corDestaque()">
+
+            @if (currentSlide()!.layout) {
+              <span class="slides-card__layout-badge">{{ currentSlide()!.layout }}</span>
+            }
+
+            <h2 class="slides-card__titulo" [style.color]="corDestaque()">
+              {{ currentSlide()!.title }}
+            </h2>
+
+            @if (currentSlide()!.content.length > 0) {
+              <ul class="slides-card__bullets">
+                @for (item of currentSlide()!.content; track item) {
+                  <li>
+                    <span class="slides-card__bullet-dot" [style.background]="corDestaque()"></span>
+                    {{ item }}
+                  </li>
                 }
-              </button>
-            </div>
-          </div>
+              </ul>
+            }
 
-          <!-- Slide ativo -->
-          @if (activeSlide()) {
-            <div class="slide-card slide-card--{{ activeSlide()!.layout }}">
-              <div class="slide-card__inner">
-                <h2 class="slide-card__title">{{ activeSlide()!.title }}</h2>
-
-                @if (activeSlide()!.content?.length) {
-                  <ul class="slide-card__bullets">
-                    @for (item of activeSlide()!.content; track item) {
-                      <li>{{ item }}</li>
-                    }
-                  </ul>
-                }
-
-                @if (activeSlide()!.visual_suggestion) {
-                  <div class="slide-card__visual">
-                    <span class="slide-card__visual-label">🖼 Sugestão visual</span>
-                    <p>{{ activeSlide()!.visual_suggestion }}</p>
-                  </div>
-                }
-
-                @if (activeSlide()!.notes) {
-                  <div class="slide-card__notes-wrap">
-                    <button class="slide-card__notes-toggle" (click)="showNotes.update(v => !v)">
-                      📝 Notas do apresentador {{ showNotes() ? '▲' : '▼' }}
-                    </button>
-                    @if (showNotes()) {
-                      <div class="slide-card__notes">{{ activeSlide()!.notes }}</div>
-                    }
+            <!-- Speaker Notes colapsável -->
+            @if (currentSlide()!.notes) {
+              <div class="slides-card__section">
+                <button class="slides-card__toggle" (click)="toggleNotas()">
+                  <i class="pi pi-comment"></i>
+                  Speaker Notes
+                  <i class="pi {{ notasExpandidas() ? 'pi-chevron-up' : 'pi-chevron-down' }} slides-card__toggle-icon"></i>
+                </button>
+                @if (notasExpandidas()) {
+                  <div class="slides-card__notes">
+                    <p>{{ currentSlide()!.notes }}</p>
                   </div>
                 }
               </div>
-            </div>
-          }
+            }
 
-          <!-- Navegação inferior -->
-          <div class="slides-viewer__nav">
-            <button class="slides-viewer__nav-btn"
-              (click)="prevSlide()"
-              [disabled]="activeIndex() === 0">
-              ← Anterior
+            <!-- Sugestão Visual colapsável -->
+            @if (currentSlide()!.visual_suggestion) {
+              <div class="slides-card__section">
+                <button class="slides-card__toggle" (click)="toggleSugestao()">
+                  <i class="pi pi-image"></i>
+                  Sugestão Visual
+                  <i class="pi {{ sugestaoExpandida() ? 'pi-chevron-up' : 'pi-chevron-down' }} slides-card__toggle-icon"></i>
+                </button>
+                @if (sugestaoExpandida()) {
+                  <div class="slides-card__sugestao">
+                    <i class="pi pi-lightbulb"></i>
+                    <p>{{ currentSlide()!.visual_suggestion }}</p>
+                  </div>
+                }
+              </div>
+            }
+
+          </div>
+
+          <!-- Navegação -->
+          <div class="slides-nav">
+            <button class="slides-nav__btn" (click)="anterior()" [disabled]="slideAtual() === 0">
+              <i class="pi pi-chevron-left"></i> Anterior
             </button>
-            <div class="slides-viewer__dots">
+
+            <div class="slides-nav__dots">
               @for (slide of data()!.slides; track slide.title; let i = $index) {
-                <button class="slides-viewer__dot"
-                  [class.slides-viewer__dot--active]="activeIndex() === i"
-                  (click)="goToSlide(i)"
+                <button
+                  class="slides-nav__dot"
+                  [class.slides-nav__dot--ativo]="slideAtual() === i"
+                  [style.background]="slideAtual() === i ? corDestaque() : '#e8e8f0'"
+                  (click)="irParaSlide(i)"
                   [attr.aria-label]="'Ir para slide ' + (i + 1)">
                 </button>
               }
             </div>
-            <button class="slides-viewer__nav-btn"
-              (click)="nextSlide()"
-              [disabled]="activeIndex() === slideCount() - 1">
-              Próximo →
+
+            <button class="slides-nav__btn" (click)="proximo()" [disabled]="slideAtual() + 1 >= totalSlides()">
+              Próximo <i class="pi pi-chevron-right"></i>
             </button>
           </div>
 
-          <p class="slides-viewer__keyboard-hint">💡 Use ← → para navegar</p>
+          <p class="slides-keyboard-hint">
+            <i class="pi pi-info-circle"></i>
+            Use as setas do teclado para navegar
+          </p>
 
-        </main>
+        }
 
-      </div>
-    }
+      </main>
 
-  </div>
+    </div>
+
+  }
+
 </div>

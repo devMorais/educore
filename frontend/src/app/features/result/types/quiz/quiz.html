@@ -1,78 +1,118 @@
 <div class="result-page">
   <div class="result-page__content">
 
-    <button class="result-back" (click)="goToUpload()">← Novo material</button>
+    <button class="result-back" (click)="goToUpload()">
+      <i class="pi pi-arrow-left"></i> Novo material
+    </button>
 
     @if (!data()) {
       <div class="result-empty">
-        <span style="font-size:3rem; display:block; margin-bottom:1rem">📭</span>
+        <i class="pi pi-inbox result-empty__icon"></i>
         <p>Nenhum quiz para exibir. Gere um a partir de um PDF.</p>
-        <button class="result-back" (click)="goToUpload()">Fazer upload</button>
+        <button class="result-back" (click)="goToUpload()">
+          <i class="pi pi-upload"></i> Fazer upload
+        </button>
       </div>
     } @else {
 
-      <!-- ── Tela inicial: filtro por dificuldade + exportação ── -->
-      @if (!quizStarted()) {
-        <div class="quiz__intro">
-          <h1>{{ data()!.title }}</h1>
-          <p class="quiz__intro-sub">{{ data()!.total_questions }} questões disponíveis</p>
+      <!-- TELA INICIAL — Filtro + Exportação -->
+      @if (!quizIniciado()) {
+        <div class="quiz__filtro-tela">
 
-          <div class="quiz__filter-section">
-            <p class="quiz__filter-label">Filtrar por dificuldade</p>
-            <div class="quiz__chips">
-              @for (chip of difficultyChips; track chip.key) {
-                <button class="quiz__chip"
-                  [class.quiz__chip--active]="selectedDifficulty() === chip.key"
-                  (click)="selectedDifficulty.set(chip.key)">
-                  {{ chip.label }}
-                  @if (chip.key !== 'all') {
-                    <span class="quiz__chip-count">{{ countByDifficulty($any(chip.key)) }}</span>
+          <div class="quiz__filtro-header">
+            <h1>{{ data()!.title }}</h1>
+            <p>Selecione o nível de dificuldade ou exporte para plataformas externas</p>
+          </div>
+
+          <div class="quiz__chips">
+            @for (chip of chips; track chip.valor) {
+              <button
+                class="chip {{ chip.classe }}"
+                [class.chip--ativo]="filtroAtivo() === chip.valor"
+                (click)="selecionarFiltro(chip.valor)">
+                {{ chip.label }}
+                <span class="chip__contador">{{ contadorNivel()[chip.valor] }}</span>
+              </button>
+            }
+          </div>
+
+          <div class="quiz__filtro-resumo">
+            <i class="pi pi-info-circle"></i>
+            @if (filtroAtivo() === 'todas') {
+              Você responderá <strong>{{ contadorNivel().todas }}</strong> questões no total
+            } @else {
+              Você responderá <strong>{{ questoesFiltradas().length }}</strong> questões
+              @if (filtroAtivo() === 'easy')   { de nível <strong>Fácil</strong>   }
+              @if (filtroAtivo() === 'medium') { de nível <strong>Médio</strong>   }
+              @if (filtroAtivo() === 'hard')   { de nível <strong>Difícil</strong> }
+            }
+          </div>
+
+          <button
+            class="quiz__iniciar"
+            (click)="iniciarQuiz()"
+            [disabled]="questoesFiltradas().length === 0">
+            <i class="pi pi-play"></i>
+            Iniciar Quiz
+          </button>
+
+          @if (questoesFiltradas().length === 0) {
+            <p class="quiz__filtro-vazio">
+              <i class="pi pi-exclamation-triangle"></i>
+              Nenhuma questão disponível neste nível.
+            </p>
+          }
+
+          <!-- Exportação (US-013) -->
+          <div class="quiz__export-section">
+            <div class="quiz__export-titulo">
+              <i class="pi pi-download"></i>
+              <span>Exportar para plataformas externas</span>
+            </div>
+
+            <div class="quiz__export-botoes">
+              @for (btn of botoesExport; track btn.formato) {
+                <button
+                  class="quiz__export-btn {{ btn.cor }}"
+                  (click)="exportar(btn.formato)"
+                  [disabled]="!documentId() || exportandoAlgum()">
+                  @if (estaExportando(btn.formato)) {
+                    <i class="pi pi-spin pi-spinner"></i>
+                  } @else {
+                    <i class="pi {{ btn.icon }}"></i>
+                  }
+                  <div class="quiz__export-info">
+                    <strong>{{ btn.label }}</strong>
+                    <small>{{ btn.desc }}</small>
+                  </div>
+                  @if (estaExportando(btn.formato)) {
+                    <span class="quiz__export-loading">Exportando...</span>
                   }
                 </button>
               }
             </div>
+
+            @if (!documentId()) {
+              <p class="quiz__export-aviso">
+                <i class="pi pi-lock"></i>
+                Exportação disponível apenas para quizzes gerados nesta sessão.
+              </p>
+            }
           </div>
 
-          @if (documentId()) {
-            <div class="quiz__export-section">
-              <p class="quiz__filter-label">Exportar para plataformas</p>
-              <div class="quiz__export-btns">
-                <button class="quiz__export-btn quiz__export-btn--kahoot"
-                  [disabled]="loadingExport() !== null"
-                  (click)="exportQuiz('kahoot')">
-                  {{ loadingExport() === 'kahoot' ? '⏳ Exportando...' : '🎮 Kahoot' }}
-                </button>
-                <button class="quiz__export-btn quiz__export-btn--socrative"
-                  [disabled]="loadingExport() !== null"
-                  (click)="exportQuiz('socrative')">
-                  {{ loadingExport() === 'socrative' ? '⏳ Exportando...' : '📊 Socrative' }}
-                </button>
-                <button class="quiz__export-btn quiz__export-btn--scorm"
-                  [disabled]="loadingExport() !== null"
-                  (click)="exportQuiz('scorm')">
-                  {{ loadingExport() === 'scorm' ? '⏳ Exportando...' : '📦 SCORM 1.2' }}
-                </button>
-              </div>
-            </div>
-          }
-
-          <button class="quiz__start-btn" (click)="startQuiz()">
-            Iniciar Quiz →
-          </button>
         </div>
       }
 
-      <!-- ── Questão ativa ── -->
-      @if (quizStarted() && !finished() && currentQuestion()) {
+      <!-- QUESTÃO ATUAL -->
+      @if (quizIniciado() && !finished() && currentQuestion()) {
+
         <div class="quiz__header">
-          <h1>{{ data()!.title }}</h1>
-          <div class="quiz__header-row">
-            <span class="quiz__counter">Questão {{ currentIndex() + 1 }} de {{ filteredQuestions().length }}</span>
-            @if (currentQuestion()!.difficulty) {
-              <span class="quiz__badge {{ difficultyColors[$any(currentQuestion()!.difficulty!)] }}">
-                {{ difficultyLabels[$any(currentQuestion()!.difficulty!)] }}
-              </span>
-            }
+          <div class="quiz__header-top">
+            <h1>{{ data()!.title }}</h1>
+            <span class="quiz__counter">
+              <i class="pi pi-list"></i>
+              Questão {{ currentIndex() + 1 }} de {{ questoesFiltradas().length }}
+            </span>
           </div>
           <div class="quiz__progress">
             <div class="quiz__progress-bar" [style.width.%]="progressPercent()"></div>
@@ -80,61 +120,113 @@
         </div>
 
         <div class="quiz__card">
-          @if (currentQuestion()!.topic) {
-            <span class="quiz__topic">{{ currentQuestion()!.topic }}</span>
+
+          @if (currentQuestion()!.difficulty) {
+            <span class="badge {{ classeDificuldade(currentQuestion()!.difficulty) }}">
+              <i class="pi pi-tag"></i>
+              {{ labelDificuldade(currentQuestion()!.difficulty) }}
+            </span>
           }
+
+          @if (currentQuestion()!.topic) {
+            <p class="quiz__topic">{{ currentQuestion()!.topic }}</p>
+          }
+
           <p class="quiz__question">{{ currentQuestion()!.question }}</p>
+
           <div class="quiz__options">
             @for (option of currentQuestion()!.options; track option) {
               <button class="quiz__option"
                 [class.quiz__option--correct]="answered() && isCorrect(option)"
                 [class.quiz__option--wrong]="answered() && selectedAnswer() === option && !isCorrect(option)"
+                [class.quiz__option--selected]="selectedAnswer() === option && !answered()"
                 (click)="selectAnswer(option)"
                 [disabled]="answered()">
-                {{ option }}
-                @if (answered() && isCorrect(option)) { <span>✅</span> }
-                @if (answered() && selectedAnswer() === option && !isCorrect(option)) { <span>❌</span> }
+                <span class="quiz__option-text">{{ option }}</span>
+                @if (answered() && isCorrect(option)) {
+                  <i class="pi pi-check-circle quiz__option-icon"></i>
+                }
+                @if (answered() && selectedAnswer() === option && !isCorrect(option)) {
+                  <i class="pi pi-times-circle quiz__option-icon"></i>
+                }
               </button>
             }
           </div>
 
           @if (answered()) {
-            <button class="quiz__explanation-toggle" (click)="toggleExplanation()">
-              💡 {{ showExplanation() ? 'Ocultar' : 'Ver' }} explicação
+            <button class="quiz__explicacao-toggle" (click)="toggleExplicacao()">
+              <i class="pi pi-lightbulb"></i>
+              {{ isCorrect(selectedAnswer()!) ? 'Correto!' : 'Ver resposta correta' }}
+              <i class="pi {{ explicacaoExpandida() ? 'pi-chevron-up' : 'pi-chevron-down' }}"></i>
             </button>
 
-            @if (showExplanation()) {
+            @if (explicacaoExpandida()) {
               <div class="quiz__explanation">
-                <strong>{{ isCorrect(selectedAnswer()!) ? '🎉 Correto!' : '💡 Resposta correta:' }}</strong>
-                {{ currentQuestion()!.explanation }}
+                <div class="quiz__explanation-header">
+                  <i class="pi pi-book"></i>
+                  <strong>Explicação</strong>
+                </div>
+                <p>{{ currentQuestion()!.explanation }}</p>
               </div>
             }
 
             <button class="quiz__next" (click)="nextQuestion()">
-              {{ currentIndex() + 1 >= filteredQuestions().length ? 'Ver resultado 🏁' : 'Próxima →' }}
+              @if (currentIndex() + 1 >= questoesFiltradas().length) {
+                <i class="pi pi-flag"></i> Ver resultado
+              } @else {
+                Próxima <i class="pi pi-arrow-right"></i>
+              }
             </button>
           }
+
         </div>
       }
 
-      <!-- ── Tela de resultado ── -->
+      <!-- TELA FINAL -->
       @if (finished()) {
         <div class="quiz__result">
-          <div class="quiz__result-icon">{{ classification().emoji }}</div>
-          <h1>Quiz concluído!</h1>
-          <p class="quiz__classification {{ classification().cls }}">{{ classification().label }}</p>
-          <p class="quiz__score">
-            Você acertou <strong>{{ score() }}</strong> de {{ filteredQuestions().length }}
-            <span class="quiz__score-pct">({{ scorePercent() }}%)</span>
-          </p>
-          <div class="quiz__result-actions">
-            <button class="quiz__restart" (click)="restartQuiz()">🔁 Refazer quiz</button>
-            <button class="quiz__back-btn" (click)="goToUpload()">← Novo material</button>
+
+          <div class="quiz__result-badge" [style.color]="classificacao().cor">
+            <i class="pi {{ classificacao().icon }} quiz__result-icon"></i>
           </div>
+
+          <h1>Quiz concluído!</h1>
+          <p class="quiz__classificacao">{{ classificacao().label }}</p>
+
+          <div class="quiz__score-box">
+            <span class="quiz__score-num" [style.color]="classificacao().cor">{{ score() }}</span>
+            <span class="quiz__score-total">/ {{ questoesFiltradas().length }}</span>
+            <p class="quiz__score-label">questões corretas</p>
+          </div>
+
+          <div class="quiz__score-bar">
+            <div class="quiz__score-bar-fill"
+              [style.width.%]="questoesFiltradas().length > 0 ? (score() / questoesFiltradas().length) * 100 : 0"
+              [style.background]="classificacao().cor">
+            </div>
+          </div>
+
+          <p class="quiz__filtro-usado">
+            <i class="pi pi-filter"></i>
+            Nível:
+            @if (filtroAtivo() === 'todas')  { Todas as questões }
+            @if (filtroAtivo() === 'easy')   { Fácil }
+            @if (filtroAtivo() === 'medium') { Médio }
+            @if (filtroAtivo() === 'hard')   { Difícil }
+          </p>
+
+          <div class="quiz__result-actions">
+            <button class="quiz__restart" (click)="restartQuiz()">
+              <i class="pi pi-refresh"></i> Refazer quiz
+            </button>
+            <button class="quiz__back-btn" (click)="goToUpload()">
+              <i class="pi pi-arrow-left"></i> Voltar ao Upload
+            </button>
+          </div>
+
         </div>
       }
 
     }
-
   </div>
 </div>

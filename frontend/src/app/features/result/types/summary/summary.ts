@@ -22,25 +22,29 @@ export class Summary {
     return s.split('\n\n').filter(p => p.trim().length > 0);
   });
 
-  copying = signal(false);
+  copiando = signal(false);
 
-  async copyToClipboard() {
-    const text = [
-      this.data()?.title ?? '',
+  async copiarResumo() {
+    const data = this.data();
+    if (!data) return;
+
+    const texto = [
+      data.title,
       '',
-      this.data()?.summary ?? '',
+      data.summary,
       '',
       'Pontos-Chave:',
-      ...(this.data()?.key_points ?? []).map(p => `• ${p}`),
+      ...data.key_points.map(p => `• ${p}`),
     ].join('\n');
 
     try {
-      await navigator.clipboard.writeText(text);
-      this.copying.set(true);
-      this.toast.sucesso('Resumo copiado para a área de transferência!', 'Copiado');
-      setTimeout(() => this.copying.set(false), 2000);
+      this.copiando.set(true);
+      await navigator.clipboard.writeText(texto);
+      this.toast.sucesso('Resumo copiado para a área de transferência!', 'Copiado!');
     } catch {
-      this.toast.erro('Não foi possível copiar. Tente selecionar o texto manualmente.');
+      this.toast.erro('Não foi possível copiar o resumo.', 'Erro');
+    } finally {
+      this.copiando.set(false);
     }
   }
 

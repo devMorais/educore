@@ -1,46 +1,73 @@
 <div class="result-page">
   <div class="result-page__content">
 
-    <button class="result-back" (click)="goToUpload()">← Novo material</button>
+    <button class="result-back" (click)="goToUpload()">
+      <i class="pi pi-arrow-left"></i> Novo material
+    </button>
 
     @if (!data()) {
       <div class="result-empty">
-        <span style="font-size:3rem; display:block; margin-bottom:1rem">📭</span>
+        <i class="pi pi-inbox result-empty__icon"></i>
         <p>Nenhum resumo para exibir. Gere um a partir de um PDF.</p>
-        <button class="result-back" (click)="goToUpload()">Fazer upload</button>
+        <button class="result-back" (click)="goToUpload()">
+          <i class="pi pi-upload"></i> Fazer upload
+        </button>
       </div>
     } @else {
+
       <div class="result-summary">
+
         <div class="result-summary__header">
           <div class="result-summary__header-top">
             <h1>{{ data()!.title }}</h1>
-            <button class="result-summary__copy" (click)="copyToClipboard()" [disabled]="copying()">
-              {{ copying() ? '✅ Copiado!' : '📋 Copiar resumo' }}
+            <span class="result-summary__badge">
+              <i class="pi pi-file-edit"></i>
+              {{ data()!.word_count }} palavras
+            </span>
+          </div>
+
+          <div class="result-summary__actions">
+            <button
+              class="result-summary__btn-copiar"
+              (click)="copiarResumo()"
+              [disabled]="copiando()">
+              @if (copiando()) {
+                <i class="pi pi-spin pi-spinner"></i> Copiando...
+              } @else {
+                <i class="pi pi-copy"></i> Copiar Resumo
+              }
+            </button>
+            <button class="result-summary__btn-voltar" (click)="goToUpload()">
+              <i class="pi pi-arrow-left"></i> Voltar ao Upload
             </button>
           </div>
-          <span class="result-summary__meta">📝 {{ data()!.word_count }} palavras</span>
         </div>
 
         <div class="result-summary__body">
           @for (p of paragraphs(); track p) { <p>{{ p }}</p> }
         </div>
 
-        <h2>Pontos-Chave</h2>
-        <ul class="result-summary__points">
-          @for (point of data()!.key_points; track point) {
-            <li>
-              <span class="result-summary__check">✅</span>
-              {{ point }}
-            </li>
-          }
-        </ul>
+        <div class="result-summary__pontos">
+          <div class="result-summary__pontos-header">
+            <i class="pi pi-list-check"></i>
+            <h2>Pontos-Chave</h2>
+            <span class="result-summary__pontos-count">
+              {{ data()!.key_points.length }} itens
+            </span>
+          </div>
 
-        <div class="result-summary__footer">
-          <button class="result-summary__copy-bottom" (click)="copyToClipboard()" [disabled]="copying()">
-            {{ copying() ? '✅ Copiado!' : '📋 Copiar resumo' }}
-          </button>
-          <button class="result-back" (click)="goToUpload()">← Voltar ao Upload</button>
+          <ul class="result-summary__points">
+            @for (point of data()!.key_points; track point) {
+              <li>
+                <span class="result-summary__check">
+                  <i class="pi pi-check"></i>
+                </span>
+                <span>{{ point }}</span>
+              </li>
+            }
+          </ul>
         </div>
+
       </div>
     }
 
