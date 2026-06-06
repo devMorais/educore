@@ -1,43 +1,233 @@
-.result-page {
+// ── Layout geral ──────────────────────────────────────────────────────────────
+.mm-page {
   min-height: 100vh;
-  background: #f8f9fa;
-  padding: 3rem;
-
-  &__content { max-width: 800px; margin: 0 auto; }
+  background: #1a1a2e;
+  display: flex;
+  flex-direction: column;
 }
 
-.result-back {
+// ── Cabeçalho ─────────────────────────────────────────────────────────────────
+.mm-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.5rem;
+  background: #16213e;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-wrap: wrap;
+
+  &__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #7c9fff;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0;
+    white-space: nowrap;
+    transition: color 0.2s;
+
+    &:hover { color: #fff; }
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+
+    h1 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+}
+
+// ── Botões de controle ────────────────────────────────────────────────────────
+.mm-ctrl-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #356df1;
-  background: none;
-  border: none;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #cbd5e1;
   cursor: pointer;
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-  &:hover { text-decoration: underline; }
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+  }
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  &--export {
+    background: linear-gradient(135deg, #356df1, #7c3aed);
+    color: #fff;
+    border-color: transparent;
+
+    &:hover:not(:disabled) {
+      opacity: 0.9;
+      color: #fff;
+    }
+  }
 }
 
-.result-empty {
+.mm-ctrl-zoom {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+  min-width: 42px;
+  text-align: center;
+}
+
+// ── Vazio ─────────────────────────────────────────────────────────────────────
+.mm-empty {
   text-align: center;
   padding: 4rem;
-  color: #787882;
-}
+  color: #64748b;
 
-.result-mindmap {
-  h1 { font-size: 1.5rem; font-weight: 700; color: #1e1e2f; margin-bottom: 0.5rem; }
-
-  &__hint {
-    font-size: 0.85rem; color: #787882; margin-bottom: 1.5rem;
-  }
-
-  &__tree {
-    background: #fff; border-radius: 16px; padding: 2rem;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow-x: auto;
+  &__icon {
+    font-size: 3.5rem;
+    color: #334155;
+    display: block;
+    margin-bottom: 1rem;
   }
 }
 
+// ── Container com zoom/pan ────────────────────────────────────────────────────
+.mm-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  cursor: grab;
+  user-select: none;
+  background:
+    radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+
+  &--arrastando { cursor: grabbing; }
+}
+
+// ── Canvas do mapa ────────────────────────────────────────────────────────────
+.mm-canvas {
+  display: inline-block;
+  transform-origin: center center;
+  padding: 4rem;
+  min-width: 100%;
+  min-height: calc(100vh - 60px);
+}
+
+// ── Árvore ────────────────────────────────────────────────────────────────────
+.mm-tree {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem;
+}
+
+// ── Nó do mapa ───────────────────────────────────────────────────────────────
+.mm-no {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+
+  &--raiz { align-items: center; }
+
+  &__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    letter-spacing: 0.01em;
+
+    &--clicavel {
+      cursor: pointer;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        filter: brightness(1.1);
+      }
+    }
+  }
+
+  &__toggle-icon {
+    font-size: 0.65rem;
+    opacity: 0.9;
+    flex-shrink: 0;
+  }
+
+  &__filhos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-left: 2rem;
+    margin-top: 0.6rem;
+    padding-left: 1.25rem;
+    border-left: 2px solid rgba(255,255,255,0.1);
+    animation: expandir 0.25s ease;
+
+    &--raiz { margin-left: 2.5rem; }
+  }
+
+  &__filho-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+  }
+
+  &__linha {
+    width: 1.5rem;
+    height: 2px;
+    border-top: 2px solid;
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes expandir {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────────
 @media (max-width: 768px) {
-  .result-page { padding: 1.5rem 1rem; }
+  .mm-header {
+    padding: 0.75rem 1rem;
+    &__controls { width: 100%; justify-content: flex-end; }
+  }
+
+  .mm-ctrl-btn { padding: 0.4rem 0.7rem; font-size: 0.78rem; }
+  .mm-no__label { font-size: 0.8rem; max-width: 200px; }
 }

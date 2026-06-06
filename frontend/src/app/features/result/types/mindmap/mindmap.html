@@ -1,23 +1,113 @@
-<div class="result-page">
-  <div class="result-page__content">
+<div class="mm-page">
 
-    <button class="result-back" (click)="goToUpload()">← Novo material</button>
+  <!-- Cabeçalho -->
+  <div class="mm-header">
+    <button class="mm-header__back" (click)="goToUpload()">
+      <i class="pi pi-arrow-left"></i> Novo material
+    </button>
 
-    @if (!data()) {
-      <div class="result-empty">
-        <span style="font-size:3rem; display:block; margin-bottom:1rem">📭</span>
-        <p>Nenhum mapa mental para exibir. Gere um a partir de um PDF.</p>
-        <button class="result-back" (click)="goToUpload()">Fazer upload</button>
-      </div>
-    } @else {
-      <div class="result-mindmap">
+    @if (data()) {
+      <div class="mm-header__info">
         <h1>{{ data()!.title }}</h1>
-        <p class="result-mindmap__hint">🗺️ Explore os ramos do seu documento</p>
-        <div class="result-mindmap__tree">
-          <app-mindmap-node [node]="data()!.root" [level]="0"></app-mindmap-node>
-        </div>
+      </div>
+
+      <!-- Controles -->
+      <div class="mm-header__controls">
+        <button class="mm-ctrl-btn" (click)="zoomOut()" title="Zoom Out">
+          <i class="pi pi-minus"></i>
+        </button>
+        <span class="mm-ctrl-zoom">{{ (zoom() * 100).toFixed(0) }}%</span>
+        <button class="mm-ctrl-btn" (click)="zoomIn()" title="Zoom In">
+          <i class="pi pi-plus"></i>
+        </button>
+        <button class="mm-ctrl-btn" (click)="centralizar()" title="Centralizar">
+          <i class="pi pi-arrows-alt"></i>
+        </button>
+        <button class="mm-ctrl-btn mm-ctrl-btn--export"
+          (click)="exportarPng()"
+          [disabled]="exportando()">
+          @if (exportando()) {
+            <i class="pi pi-spin pi-spinner"></i>
+          } @else {
+            <i class="pi pi-image"></i>
+          }
+          {{ exportando() ? 'Exportando...' : 'Exportar PNG' }}
+        </button>
       </div>
     }
-
   </div>
+
+  <!-- Sem dados -->
+  @if (!data()) {
+    <div class="mm-empty">
+      <i class="pi pi-inbox mm-empty__icon"></i>
+      <p>Nenhum mapa mental para exibir. Gere um a partir de um PDF.</p>
+      <button class="mm-header__back" (click)="goToUpload()">
+        <i class="pi pi-upload"></i> Fazer upload
+      </button>
+    </div>
+  } @else {
+
+    <!-- Container com zoom e pan -->
+    <div class="mm-container"
+      #containerRef
+      [class.mm-container--arrastando]="arrastando()"
+      (mousedown)="iniciarArraste($event)"
+      (mousemove)="moverArraste($event)"
+      (mouseup)="pararArraste()"
+      (mouseleave)="pararArraste()">
+
+      <!-- Área do mapa com transform -->
+      <div class="mm-canvas"
+        #mapaRef
+        [style.transform]="'translate(' + panX() + 'px, ' + panY() + 'px) scale(' + zoom() + ')'">
+
+        <!-- Nó raiz e árvore -->
+        <div class="mm-tree">
+          <ng-container *ngTemplateOutlet="noTemplate; context: { node: data()!.root, nivel: 0 }">
+          </ng-container>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Template recursivo do nó -->
+    <ng-template #noTemplate let-node="node" let-nivel="nivel">
+      <div class="mm-no" [class.mm-no--raiz]="nivel === 0">
+
+        <!-- Label do nó -->
+        <div class="mm-no__label"
+          [style.background]="corNivel(nivel)"
+          [style.color]="nivel >= 2 ? '#1e1e2f' : '#fff'"
+          (click)="node.children?.length ? toggleNo(node.id) : null"
+          [class.mm-no__label--clicavel]="node.children?.length">
+
+          <span>{{ node.topic }}</span>
+
+          @if (node.children?.length) {
+            <i class="pi mm-no__toggle-icon"
+              [class.pi-chevron-down]="!estaColapsado(node.id)"
+              [class.pi-chevron-right]="estaColapsado(node.id)">
+            </i>
+          }
+        </div>
+
+        <!-- Filhos -->
+        @if (node.children?.length && !estaColapsado(node.id)) {
+          <div class="mm-no__filhos" [class.mm-no__filhos--raiz]="nivel === 0">
+            @for (filho of node.children; track filho.id) {
+              <div class="mm-no__filho-wrapper">
+                <div class="mm-no__linha" [style.border-color]="corNivel(nivel + 1)"></div>
+                <ng-container *ngTemplateOutlet="noTemplate; context: { node: filho, nivel: nivel + 1 }">
+                </ng-container>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    </ng-template>
+
+  }
+
 </div>
