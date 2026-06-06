@@ -17,10 +17,12 @@ describe('BS-007 · Token Refresh + Expiração 24h', () => {
   // ── expires_at no register ────────────────────────────────────────────────
 
   it('TC-105 · POST /auth/register retorna expires_at em ISO8601', () => {
-    const novo = gerarUsuario('bs007reg')
+    const ts = Date.now()
+    const novo = { name: 'Cypress BS007', email: `cypress_bs007reg_${ts}@educore-test.com`, senha: 'CypressTest@123' }
     cy.request({
       method: 'POST',
       url: `${API()}/auth/register`,
+      headers: { 'Accept': 'application/json' },
       body: {
         name: novo.name,
         email: novo.email,
