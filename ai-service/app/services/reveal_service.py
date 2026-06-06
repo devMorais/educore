@@ -13,6 +13,7 @@ Features:
 """
 
 import os
+import re as _re
 import html as _h
 import logging
 import threading
@@ -66,6 +67,35 @@ def _e(v) -> str:
 
 def _ac(s: dict) -> tuple[str, str]:
     return _ACCENTS.get(s.get('accent_color', ''), _DEFAULT_ACCENT)
+
+
+def _clean(v: str) -> str:
+    """Strip markdown syntax from a single string."""
+    v = str(v).strip()
+    v = _re.sub(r'\*{1,3}([^*\n]+)\*{1,3}', r'\1', v)  # bold/italic first
+    v = _re.sub(r'`([^`]+)`', r'\1', v)                 # inline code
+    v = _re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', v)     # links
+    v = _re.sub(r'^\s*[*\-#>]+\s*', '', v)              # bullet/header markers last
+    return v.strip()
+
+
+def _norm(v, limit: int = 8) -> list[str]:
+    """Normalize a content value (str, list, None) to a clean list of strings."""
+    if not v:
+        return []
+    if isinstance(v, str):
+        raw = v.split('\n')
+    elif isinstance(v, list):
+        raw = []
+        for item in v:
+            if isinstance(item, str):
+                raw.extend(item.split('\n'))
+            elif item:
+                raw.append(str(item))
+    else:
+        return []
+    result = [_clean(line) for line in raw]
+    return [r for r in result if r][:limit]
 
 
 # ── Service ────────────────────────────────────────────────────────────────────
@@ -218,7 +248,7 @@ class RevealService:
             f'<li>'
             f'<span class="ec-dot" style="background:{a}"><i class="ph ph-caret-right-bold"></i></span>'
             f'{_e(it)}</li>'
-            for it in items[:8]
+            for it in _norm(items, 8)
         )
         return (
             f'<section class="ec-slide" {bg}>'
@@ -240,15 +270,15 @@ class RevealService:
         a, _  = _ac(s)
         title = _e(s.get('title') or '')
         cols  = s.get('columns') or {}
-        left  = cols.get('left') or s.get('content', [])[:4]
-        right = cols.get('right') or s.get('content', [])[4:]
+        left  = _norm(cols.get('left') or s.get('content', [])[:4], 6)
+        right = _norm(cols.get('right') or s.get('content', [])[4:], 6)
         bg    = self._bg(s, pt, idx, 0.32)
 
         def col_items(lst):
             return ''.join(
                 f'<li>'
                 f'<i class="ph ph-check" style="color:{a}"></i>{_e(it)}</li>'
-                for it in lst[:5]
+                for it in lst
             )
 
         return (
@@ -871,8 +901,19 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 }
 .ec-footer__page { font-weight: 700; }
 
-/* ── GSAP entrance ───────────────────────────────────────── */
-.ec-inner, .ec-cover__body, .ec-divider__body, .ec-quote__body { will-change: transform, opacity; }
+/* ── Entrance animation (CSS-only, sem dependência JS) ───── */
+@keyframes ec-in {
+  from { transform: translateY(22px); }
+  to   { transform: translateY(0); }
+}
+.reveal .slides section.present .ec-inner,
+.reveal .slides section.present .ec-cover__body,
+.reveal .slides section.present .ec-divider__body,
+.reveal .slides section.present .ec-quote__body {
+  animation: ec-in 0.48s cubic-bezier(.22,.6,.36,1) both;
+}
+.reveal .slides section.present .ec-inner { animation-delay: 0.05s; }
+.reveal .slides section.present .ec-cover__body { animation-delay: 0.08s; }
 </style>
 </head>
 <body>
@@ -884,7 +925,6 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>
 Reveal.initialize({
   hash: true,
@@ -892,8 +932,8 @@ Reveal.initialize({
   controls: true,
   controlsTutorial: false,
   center: false,
-  transition: 'slide',
-  transitionSpeed: 'default',
+  transition: 'fade',
+  transitionSpeed: 'fast',
   backgroundTransition: 'fade',
   keyboard: true,
   touch: true,
@@ -905,22 +945,6 @@ Reveal.initialize({
   minScale: 0.1,
   maxScale: 2.0,
 });
-
-function animateIn(slide) {
-  var targets = slide.querySelectorAll(
-    '.ec-cover__body, .ec-divider__body, .ec-inner, .ec-quote__body'
-  );
-  if (!targets.length) return;
-  gsap.fromTo(
-    targets,
-    { opacity: 0, y: 45 },
-    { opacity: 1, y: 0, duration: 0.65, stagger: 0.08,
-      ease: 'power3.out', clearProps: 'all' }
-  );
-}
-
-Reveal.on('ready',       function(e) { animateIn(e.currentSlide); });
-Reveal.on('slidechanged',function(e) { animateIn(e.currentSlide); });
 </script>
 
 </body>
