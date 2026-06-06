@@ -9,7 +9,7 @@ Features:
     section_divider, quote_highlight, assessment, summary,
     closing, stats_numbers, timeline)
   - accent_color per slide (blue / orange / green / purple)
-  - Fragments: bullet points appear step-by-step on keypress
+  - GSAP entrance animation on every slide — no fragments (content visible immediately)
 """
 
 import os
@@ -167,19 +167,19 @@ class RevealService:
         a, ad  = _ac(s)
         title  = _e(s.get('title') or pt)
         sub    = _e(s.get('subtitle') or '')
-        et     = s.get('estimated_time_minutes') or (total * 2)
+        et     = total * 2
         icon   = _ICONS.get((s.get('layout') or 'cover').lower(), 'ph-presentation-chart')
         bg     = self._bg(s, pt, idx, 0.35)
-        sub_h  = f'<p class="ec-cover__sub fragment fade-up">{sub}</p>' if sub else ''
+        sub_h  = f'<p class="ec-cover__sub">{sub}</p>' if sub else ''
         return (
             f'<section class="ec-cover" {bg}>'
             f'<div class="ec-cover__veil" style="background:linear-gradient(160deg,{a}1a 0%,rgba(0,0,0,.72) 100%)"></div>'
             f'<div class="ec-cover__body">'
-            f'<div class="ec-badge fragment fade-up" style="border-color:{a};color:{a}">'
+            f'<div class="ec-badge" style="border-color:{a};color:{a}">'
             f'<i class="ph {icon}"></i> Apresentação EduCore</div>'
-            f'<h1 class="ec-cover__h1 fragment fade-up">{title}</h1>'
+            f'<h1 class="ec-cover__h1">{title}</h1>'
             f'{sub_h}'
-            f'<div class="ec-cover__meta fragment fade-up">'
+            f'<div class="ec-cover__meta">'
             f'<span><i class="ph ph-stack"></i> {total} slides</span>'
             f'<span><i class="ph ph-clock"></i> ~{et} min</span>'
             f'</div></div>'
@@ -194,13 +194,13 @@ class RevealService:
         title = _e(s.get('title') or '')
         sub   = _e(s.get('subtitle') or '')
         bg    = self._bg(s, pt, idx, 0.45)
-        sub_h = f'<p class="ec-divider__sub fragment fade-up">{sub}</p>' if sub else ''
+        sub_h = f'<p class="ec-divider__sub">{sub}</p>' if sub else ''
         return (
             f'<section class="ec-divider has-dark-background" {bg}>'
             f'<div class="ec-divider__veil" style="background:linear-gradient(135deg,{a}cc,{ad}88)"></div>'
             f'<div class="ec-divider__body">'
-            f'<div class="ec-divider__line fragment fade-up" style="background:{a}"></div>'
-            f'<h2 class="ec-divider__h2 fragment fade-up">{title}</h2>'
+            f'<div class="ec-divider__line" style="background:{a}"></div>'
+            f'<h2 class="ec-divider__h2">{title}</h2>'
             f'{sub_h}'
             f'</div></section>'
         )
@@ -213,9 +213,9 @@ class RevealService:
         items = s.get('content') or []
         layout = (s.get('layout') or 'content_bullets').lower()
         icon  = _ICONS.get(layout, 'ph-list-bullets')
-        bg    = self._bg(s, pt, idx, 0.07)
+        bg    = self._bg(s, pt, idx, 0.32)
         li_html = ''.join(
-            f'<li class="fragment fade-left">'
+            f'<li>'
             f'<span class="ec-dot" style="background:{a}"><i class="ph ph-caret-right-bold"></i></span>'
             f'{_e(it)}</li>'
             for it in items[:8]
@@ -224,9 +224,9 @@ class RevealService:
             f'<section class="ec-slide" {bg}>'
             f'<div class="ec-inner">'
             f'<div class="ec-head">'
-            f'<div class="ec-head__icon fragment fade-right" style="background:{a}22;color:{a}">'
+            f'<div class="ec-head__icon" style="background:{a}22;color:{a}">'
             f'<i class="ph {icon}"></i></div>'
-            f'<h2 class="ec-head__h2 fragment fade-right" style="color:{a}">{title}</h2>'
+            f'<h2 class="ec-head__h2" style="color:{a}">{title}</h2>'
             f'</div>'
             f'<ul class="ec-list">{li_html}</ul>'
             f'</div>'
@@ -242,11 +242,11 @@ class RevealService:
         cols  = s.get('columns') or {}
         left  = cols.get('left') or s.get('content', [])[:4]
         right = cols.get('right') or s.get('content', [])[4:]
-        bg    = self._bg(s, pt, idx, 0.07)
+        bg    = self._bg(s, pt, idx, 0.32)
 
         def col_items(lst):
             return ''.join(
-                f'<li class="fragment fade-up">'
+                f'<li>'
                 f'<i class="ph ph-check" style="color:{a}"></i>{_e(it)}</li>'
                 for it in lst[:5]
             )
@@ -254,11 +254,11 @@ class RevealService:
         return (
             f'<section class="ec-slide" {bg}>'
             f'<div class="ec-inner">'
-            f'<h2 class="ec-two__h2 fragment fade-down" style="color:{a}">{title}</h2>'
+            f'<h2 class="ec-two__h2" style="color:{a}">{title}</h2>'
             f'<div class="ec-two__grid">'
-            f'<div class="ec-col fragment fade-right" style="border-color:{a}33">'
+            f'<div class="ec-col" style="border-color:{a}33">'
             f'<ul class="ec-col__ul">{col_items(left)}</ul></div>'
-            f'<div class="ec-col fragment fade-left" style="border-color:{a}33">'
+            f'<div class="ec-col" style="border-color:{a}33">'
             f'<ul class="ec-col__ul">{col_items(right)}</ul></div>'
             f'</div></div>'
             f'{self._footer(idx, total, a)}'
@@ -272,19 +272,19 @@ class RevealService:
         title = _e(s.get('title') or '')
         quote = _e(s.get('quote') or (s.get('content') or [''])[0])
         src   = _e(s.get('subtitle') or '')
-        bg    = self._bg(s, pt, idx, 0.12)
+        bg    = self._bg(s, pt, idx, 0.32)
         src_h = (
-            f'<cite class="ec-quote__src fragment fade-up" style="color:{a}">— {src}</cite>'
+            f'<cite class="ec-quote__src" style="color:{a}">— {src}</cite>'
             if src else ''
         )
         return (
             f'<section class="ec-slide ec-quote-slide" {bg}>'
             f'<div class="ec-quote__body">'
-            f'<div class="ec-quote__mark fragment fade-down" style="color:{a}">'
+            f'<div class="ec-quote__mark" style="color:{a}">'
             f'<i class="ph ph-quotes"></i></div>'
-            f'<blockquote class="ec-quote__text fragment fade-up">&ldquo;{quote}&rdquo;</blockquote>'
+            f'<blockquote class="ec-quote__text">&ldquo;{quote}&rdquo;</blockquote>'
             f'{src_h}'
-            f'<p class="ec-quote__ctx fragment fade-up">{title}</p>'
+            f'<p class="ec-quote__ctx">{title}</p>'
             f'</div>'
             f'{self._footer(idx, total, a)}'
             f'</section>'
@@ -299,9 +299,9 @@ class RevealService:
             'ph-number-circle-one', 'ph-number-circle-two', 'ph-number-circle-three',
             'ph-number-circle-four', 'ph-number-circle-five', 'ph-number-circle-six',
         ]
-        bg    = self._bg(s, pt, idx, 0.07)
+        bg    = self._bg(s, pt, idx, 0.28)
         items = ''.join(
-            f'<div class="ec-assess__item fragment fade-up" style="border-left-color:{a}">'
+            f'<div class="ec-assess__item" style="border-left-color:{a}">'
             f'<i class="ph {nums[min(i, 5)]}" style="color:{a}"></i>'
             f'<span>{_e(it)}</span></div>'
             for i, it in enumerate(s.get('content', [])[:6])
@@ -310,9 +310,9 @@ class RevealService:
             f'<section class="ec-slide" {bg}>'
             f'<div class="ec-inner">'
             f'<div class="ec-assess__hdr">'
-            f'<div class="ec-assess__badge fragment fade-down" style="background:{a}22;color:{a}">'
+            f'<div class="ec-assess__badge" style="background:{a}22;color:{a}">'
             f'<i class="ph ph-question"></i> Verificação de Aprendizagem</div>'
-            f'<h2 class="ec-head__h2 fragment fade-up" style="color:{a}">{title}</h2>'
+            f'<h2 class="ec-head__h2" style="color:{a}">{title}</h2>'
             f'</div>'
             f'<div class="ec-assess__grid">{items}</div>'
             f'</div>'
@@ -328,16 +328,20 @@ class RevealService:
         stats = list(s.get('stats') or [])
         if not stats:
             for it in s.get('content', [])[:4]:
-                if '—' in it:
-                    p = it.split('—', 1)
-                elif ':' in it:
-                    p = it.split(':', 1)
+                if isinstance(it, dict):
+                    stats.append(it)
                 else:
-                    p = [it[:20], it[20:]]
-                stats.append({'value': p[0].strip(), 'label': p[1].strip() if len(p) > 1 else ''})
-        bg    = self._bg(s, pt, idx, 0.08)
+                    it = str(it)
+                    if '—' in it:
+                        p = it.split('—', 1)
+                    elif ':' in it:
+                        p = it.split(':', 1)
+                    else:
+                        p = [it[:20], it[20:]]
+                    stats.append({'value': p[0].strip(), 'label': p[1].strip() if len(p) > 1 else ''})
+        bg    = self._bg(s, pt, idx, 0.28)
         cards = ''.join(
-            f'<div class="ec-stat fragment fade-up" style="border-top-color:{a}">'
+            f'<div class="ec-stat" style="border-top-color:{a}">'
             f'<div class="ec-stat__val" style="color:{a}">{_e(str(st.get("value", "")))}</div>'
             f'<div class="ec-stat__lbl">{_e(str(st.get("label", "")))}</div></div>'
             for st in stats[:4]
@@ -345,7 +349,7 @@ class RevealService:
         return (
             f'<section class="ec-slide" {bg}>'
             f'<div class="ec-inner">'
-            f'<h2 class="ec-head__h2 fragment fade-down" style="color:{a}">{title}</h2>'
+            f'<h2 class="ec-head__h2" style="color:{a}">{title}</h2>'
             f'<div class="ec-stats__grid">{cards}</div>'
             f'</div>'
             f'{self._footer(idx, total, a)}'
@@ -360,7 +364,7 @@ class RevealService:
         events = list(s.get('events') or [])
         if not events:
             events = [{'year': '', 'desc': it} for it in s.get('content', [])[:6]]
-        bg     = self._bg(s, pt, idx, 0.08)
+        bg     = self._bg(s, pt, idx, 0.28)
         items  = ''
         for e in events[:6]:
             if isinstance(e, dict):
@@ -370,7 +374,7 @@ class RevealService:
                 yr, desc = '', _e(str(e))
             yr_h = f'<span class="ec-tl__yr" style="color:{a}">{yr}</span>' if yr else ''
             items += (
-                f'<div class="ec-tl__item fragment fade-right">'
+                f'<div class="ec-tl__item">'
                 f'<div class="ec-tl__dot" style="background:{a};box-shadow:0 0 0 4px {a}33"></div>'
                 f'{yr_h}'
                 f'<span class="ec-tl__desc">{desc}</span>'
@@ -379,7 +383,7 @@ class RevealService:
         return (
             f'<section class="ec-slide" {bg}>'
             f'<div class="ec-inner">'
-            f'<h2 class="ec-head__h2 fragment fade-down" style="color:{a}">{title}</h2>'
+            f'<h2 class="ec-head__h2" style="color:{a}">{title}</h2>'
             f'<div class="ec-tl">'
             f'<div class="ec-tl__line" style="background:{a}33"></div>'
             f'{items}'
@@ -468,7 +472,6 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 .ec-cover {
   position: relative !important;
   justify-content: flex-end !important;
-  background: var(--bg);
 }
 .ec-cover__veil {
   position: absolute;
@@ -535,7 +538,6 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 /* ── DIVIDER ─────────────────────────────────────────────── */
 .ec-divider {
   position: relative !important;
-  background: var(--bg);
 }
 .ec-divider__veil {
   position: absolute;
@@ -577,14 +579,21 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 }
 
 /* ── CONTENT SLIDES ──────────────────────────────────────── */
-.ec-slide { background: var(--bg); }
+.ec-slide {
+  position: relative !important;
+  padding: 1.25rem 1.5rem !important;
+}
 .ec-inner {
-  padding: 2rem 2.5rem 1rem;
+  padding: 1.5rem 2rem .85rem;
   display: flex;
   flex-direction: column;
-  gap: 1.15rem;
+  gap: 1.1rem;
   flex: 1;
   overflow: hidden;
+  background: rgba(8,12,28,.87);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.07);
 }
 .ec-head {
   display: flex;
@@ -688,9 +697,13 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 3rem 4rem;
+  padding: 2.5rem 3.5rem;
   gap: 1rem;
-  height: 100%;
+  flex: 1;
+  background: rgba(8,12,28,.87);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.07);
 }
 .ec-quote__mark {
   font-size: 4rem;
@@ -841,12 +854,14 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: .5rem 2.5rem .7rem;
+  padding: .4rem 1.5rem;
   font-size: .7rem;
   color: var(--muted);
-  border-top: 1px solid var(--border);
-  margin-top: auto;
   flex-shrink: 0;
+  background: rgba(8,12,28,.72);
+  border-radius: 8px;
+  margin-top: .6rem;
+  border: 1px solid rgba(255,255,255,.06);
 }
 .ec-footer__brand {
   font-weight: 700;
@@ -856,8 +871,8 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 }
 .ec-footer__page { font-weight: 700; }
 
-/* ── Fragment + GSAP ─────────────────────────────────────── */
-.reveal .fragment { will-change: transform, opacity; }
+/* ── GSAP entrance ───────────────────────────────────────── */
+.ec-inner, .ec-cover__body, .ec-divider__body, .ec-quote__body { will-change: transform, opacity; }
 </style>
 </head>
 <body>
@@ -883,7 +898,7 @@ Reveal.initialize({
   keyboard: true,
   touch: true,
   mouseWheel: false,
-  fragments: true,
+  fragments: false,
   width: 1280,
   height: 720,
   margin: 0,

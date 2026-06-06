@@ -281,7 +281,7 @@ async def export_pptx(
     ownership_check(document_id, current_user["user_id"])
     _require_completed(document_id)
 
-    slides_data = rag_service.generate_slides(document_id)
+    slides_data = _get_or_generate_slides(document_id)
     output_path = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.pptx")
     pptx_service.generate(
         title=slides_data.get("title", "Apresentação EduCore"),
@@ -307,7 +307,7 @@ async def export_html(
     ownership_check(document_id, current_user["user_id"])
     _require_completed(document_id)
 
-    slides_data = rag_service.generate_slides(document_id)
+    slides_data = _get_or_generate_slides(document_id)
     output_path = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.html")
     reveal_service.generate(
         title=slides_data.get("title", "Apresentação EduCore"),
@@ -490,6 +490,27 @@ async def delete_document(
 
 
 # ──────────────────────────────────────────────────────── helpers
+def _get_or_generate_slides(document_id: int) -> dict:
+    """Returns cached slides from DB; only calls Gemini if no cache exists."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "SELECT content FROM generations WHERE document_id=%s AND type='slides' "
+            "ORDER BY created_at DESC LIMIT 1",
+            (document_id,),
+        )
+        row = cursor.fetchone()
+        if row:
+            logger.info("export: usando slides do cache para doc=%d", document_id)
+            return row[0]
+    finally:
+        cursor.close()
+        conn.close()
+    logger.info("export: gerando slides via Gemini para doc=%d", document_id)
+    return rag_service.generate_slides(document_id)
+
+
 def _save_generation(document_id: int, gen_type: str, content: dict,
                      google_slides_url: str | None = None):
     conn = get_connection()
