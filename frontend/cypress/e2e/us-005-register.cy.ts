@@ -76,7 +76,8 @@ describe('US-005 · Página de Cadastro — Validação e UX', () => {
   })
 
   it('TC-57 · Cadastro completo → toast de boas-vindas + redirect /upload', () => {
-    const usuario = gerarUsuario('us005reg')
+    const ts = Date.now()
+    const usuario = { name: 'Cypress US005', email: `cypress_us005reg_${ts}@educore-test.com`, senha: 'CypressTest@123' }
 
     cy.get('input[name="name"]').type(usuario.name)
     cy.get('input[name="email"]').type(usuario.email).blur()

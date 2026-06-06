@@ -379,16 +379,20 @@ export class Upload implements OnInit, OnDestroy {
     this.generatingType.set(type);
     this.errorMessage.set('');
 
-    // US-010: se já existe em cache, avisa que está usando o resultado salvo
-    if (this.isCached(type)) {
+    const cached = this.isCached(type);
+    if (cached) {
       this.toast.info('Usando resultado salvo.', 'Conteúdo em cache');
     }
 
-    this.aiService.generateContent(documentId, type as GenerationType).subscribe({
+    const source = cached
+      ? this.aiService.getCachedGeneration(documentId, type)
+      : this.aiService.generateContent(documentId, type as GenerationType);
+
+    source.subscribe({
       next: response => {
         this.generating.set(false);
         this.generatingType.set('');
-        this.loadGenerations(documentId);
+        if (!cached) this.loadGenerations(documentId);
         this.store.set({ result: response, type: type as GenerationType, documentId });
         this.router.navigate(['/resultado', type]);
       },

@@ -31,6 +31,7 @@ describe('BS-009 · Admin Stats Dashboard — Laravel', () => {
     cy.request({
       method: 'GET',
       url: `${API()}/admin/stats`,
+      headers: { 'Accept': 'application/json' },
       failOnStatusCode: false,
     }).then((res) => {
       expect(res.status).to.eq(401)
@@ -92,6 +93,7 @@ describe('BS-009 · Admin Stats Dashboard — Laravel', () => {
     cy.request({
       method: 'GET',
       url: `${API()}/admin/users`,
+      headers: { 'Accept': 'application/json' },
       failOnStatusCode: false,
     }).then((res) => {
       expect(res.status).to.eq(401)

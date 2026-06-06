@@ -41,6 +41,7 @@ describe('BS-004 · Endpoint de Verificação de Token — Laravel', () => {
     cy.request({
       method: 'GET',
       url: `${API()}/auth/verify`,
+      headers: { 'Accept': 'application/json' },
       failOnStatusCode: false,
     }).then((res) => {
       expect(res.status).to.eq(401)
@@ -51,7 +52,7 @@ describe('BS-004 · Endpoint de Verificação de Token — Laravel', () => {
     cy.request({
       method: 'GET',
       url: `${API()}/auth/verify`,
-      headers: { Authorization: 'Bearer invalido_cypress_test' },
+      headers: { Authorization: 'Bearer invalido_cypress_test', 'Accept': 'application/json' },
       failOnStatusCode: false,
     }).then((res) => {
       expect(res.status).to.eq(401)

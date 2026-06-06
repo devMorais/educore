@@ -26,6 +26,23 @@ describe('BS-006 · Sistema de Roles', () => {
     cy.criarContaAPI(professor).then((t) => Cypress.env('tokenProfessor', t))
     cy.criarContaAPI(student).then((t)   => Cypress.env('tokenStudent', t))
     tokenAdmin().then((t)                => Cypress.env('tokenAdmin', t))
+    // Garante role 'student' — pode ter sido alterado pelo TC-100 em runs anteriores
+    cy.wrap(null).then(() => {
+      return cy.request({
+        method: 'GET',
+        url: `${API()}/auth/me`,
+        headers: { Authorization: `Bearer ${Cypress.env('tokenStudent') as string}` },
+      }).then((res) => {
+        if (res.body.role !== 'student') {
+          return cy.request({
+            method: 'PATCH',
+            url: `${API()}/admin/users/${res.body.id}/role`,
+            headers: { Authorization: `Bearer ${Cypress.env('tokenAdmin') as string}` },
+            body: { role: 'student' },
+          })
+        }
+      })
+    })
   })
 
   // ── Role padrão ────────────────────────────────────────────────────────────
@@ -83,6 +100,7 @@ describe('BS-006 · Sistema de Roles', () => {
     cy.request({
       method: 'GET',
       url: `${API()}/admin/stats`,
+      headers: { 'Accept': 'application/json' },
       failOnStatusCode: false,
     }).then((res) => {
       expect(res.status).to.eq(401)

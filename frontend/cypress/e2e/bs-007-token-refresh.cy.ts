@@ -73,6 +73,7 @@ describe('BS-007 · Token Refresh + Expiração 24h', () => {
     cy.request({
       method: 'POST',
       url: `${API()}/auth/refresh`,
+      headers: { 'Accept': 'application/json' },
       failOnStatusCode: false,
     }).then((res) => {
       expect(res.status).to.eq(401)
@@ -83,7 +84,7 @@ describe('BS-007 · Token Refresh + Expiração 24h', () => {
     cy.request({
       method: 'POST',
       url: `${API()}/auth/refresh`,
-      headers: { Authorization: 'Bearer token_falso_cypress' },
+      headers: { Authorization: 'Bearer token_falso_cypress', 'Accept': 'application/json' },
       failOnStatusCode: false,
     }).then((res) => {
       expect(res.status).to.eq(401)
@@ -150,7 +151,7 @@ describe('BS-007 · Token Refresh + Expiração 24h', () => {
         cy.request({
           method: 'GET',
           url: `${API()}/auth/me`,
-          headers: { Authorization: `Bearer ${tokenOriginal}` },
+          headers: { Authorization: `Bearer ${tokenOriginal}`, 'Accept': 'application/json' },
           failOnStatusCode: false,
         }).then((res) => {
           expect(res.status).to.eq(401)

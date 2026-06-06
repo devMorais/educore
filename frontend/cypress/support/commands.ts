@@ -73,8 +73,15 @@ Cypress.Commands.add('loginAPI', (email: string, senha: string) => {
     method: 'POST',
     url: `${Cypress.env('apiUrl')}/auth/login`,
     body: { email, password: senha },
+    headers: { 'Accept': 'application/json' },
     failOnStatusCode: false,
+    followRedirect: false,
   }).then((res) => {
+    if (res.status === 429) {
+      cy.log('Rate limit atingido no login — aguardando 65s...')
+      cy.wait(65000)
+      return cy.loginAPI(email, senha)
+    }
     expect(res.status, `loginAPI(${email}) → HTTP ${res.status}: ${JSON.stringify(res.body).slice(0, 300)}`).to.eq(200)
     const token = res.body.token ?? res.body.access_token
     expect(token, `loginAPI(${email}) → sem token no body: ${JSON.stringify(res.body).slice(0, 300)}`).to.be.a('string')
