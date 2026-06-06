@@ -500,7 +500,6 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 
 /* ── COVER ───────────────────────────────────────────────── */
 .ec-cover {
-  position: relative !important;
   justify-content: flex-end !important;
 }
 .ec-cover__veil {
@@ -566,9 +565,6 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 }
 
 /* ── DIVIDER ─────────────────────────────────────────────── */
-.ec-divider {
-  position: relative !important;
-}
 .ec-divider__veil {
   position: absolute;
   inset: 0;
@@ -610,7 +606,6 @@ body, html { margin: 0; padding: 0; background: var(--bg); }
 
 /* ── CONTENT SLIDES ──────────────────────────────────────── */
 .ec-slide {
-  position: relative !important;
   padding: 1.25rem 1.5rem !important;
 }
 .ec-inner {
