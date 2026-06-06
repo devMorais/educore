@@ -75,8 +75,17 @@ def init_db():
                 type VARCHAR(50) NOT NULL,
                 content JSONB NOT NULL,
                 status VARCHAR(50) DEFAULT 'completed',
+                google_slides_url TEXT,
                 created_at TIMESTAMP DEFAULT NOW()
             );
+        """)
+
+        # Idempotent column addition for existing deployments (BS-013)
+        cursor.execute("""
+            DO $$ BEGIN
+                ALTER TABLE generations ADD COLUMN IF NOT EXISTS google_slides_url TEXT;
+            EXCEPTION WHEN duplicate_column THEN NULL;
+            END $$;
         """)
 
         # Note: vector index skipped — pgvector requires <= 2000 dims for HNSW/IVFFlat

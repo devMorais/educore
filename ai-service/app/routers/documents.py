@@ -242,12 +242,16 @@ async def generate_content(
         conn.close()
 
     try:
+        google_url = None
         if body.type == GenerationType.QUIZ:
             result = rag_service.generate_quiz(document_id)
         elif body.type == GenerationType.SUMMARY:
             result = rag_service.generate_summary(document_id)
         elif body.type == GenerationType.SLIDES:
             result = rag_service.generate_slides(document_id)
+            google_url = _try_google_slides(result, current_user.get("email"))
+            if google_url:
+                result["google_slides_url"] = google_url
         elif body.type == GenerationType.MINDMAP:
             result = rag_service.generate_mindmap(document_id)
         elif body.type == GenerationType.FLASHCARDS:
@@ -257,7 +261,7 @@ async def generate_content(
         else:
             raise HTTPException(status_code=400, detail="Tipo de geração não suportado")
 
-        _save_generation(document_id, body.type.value, result)
+        _save_generation(document_id, body.type.value, result, google_slides_url=google_url)
         return result
     except HTTPException:
         raise
@@ -455,13 +459,15 @@ async def delete_document(
 
 
 # ──────────────────────────────────────────────────────── helpers
-def _save_generation(document_id: int, gen_type: str, content: dict):
+def _save_generation(document_id: int, gen_type: str, content: dict,
+                     google_slides_url: str | None = None):
     conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO generations (document_id, type, content) VALUES (%s, %s, %s)",
-            (document_id, gen_type, json.dumps(content)),
+            """INSERT INTO generations (document_id, type, content, google_slides_url)
+               VALUES (%s, %s, %s, %s)""",
+            (document_id, gen_type, json.dumps(content), google_slides_url),
         )
         conn.commit()
     except Exception as e:
@@ -470,6 +476,25 @@ def _save_generation(document_id: int, gen_type: str, content: dict):
     finally:
         cursor.close()
         conn.close()
+
+
+def _try_google_slides(slides_result: dict, user_email: str | None) -> str | None:
+    """Attempts to create a Google Slides presentation. Returns URL or None (graceful fallback)."""
+    try:
+        from app.services.slides_service import slides_service
+        if not slides_service.available:
+            return None
+        gs = slides_service.create_presentation(
+            title=slides_result.get("title", "Apresentação EduCore"),
+            slides_data=slides_result.get("slides", []),
+            user_email=user_email,
+        )
+        if gs:
+            logger.info("Google Slides criado: %s", gs["url"])
+            return gs["url"]
+    except Exception as exc:
+        logger.warning("Falha ao criar Google Slides (fallback para PPTX): %s", exc)
+    return None
 
 
 def _require_completed(document_id: int):

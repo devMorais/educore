@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     # Laravel — URL base para verificação de tokens Sanctum
     laravel_api_url: str = "http://educore.test"
 
+    # Google Slides API — service account JSON (string base64 ou JSON raw)
+    google_service_account_json: str | None = None
+
     # CORS — origens permitidas (BS-003)
     allowed_origins: list[str] = [
         "http://localhost:4200",
