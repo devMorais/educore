@@ -1,1 +1,259 @@
-<p>users works!</p>
+<div class="admin-users">
+
+  <!-- Cabeçalho -->
+  <div class="admin-users__header">
+    <div>
+      <h1>Gerenciamento de Usuários</h1>
+      <p>{{ totalUsuarios() }} usuários cadastrados</p>
+    </div>
+    <button class="btn-export" (click)="exportarCsv()" [disabled]="exportandoCsv()">
+      @if (exportandoCsv()) {
+        <i class="pi pi-spin pi-spinner"></i>
+      } @else {
+        <i class="pi pi-download"></i>
+      }
+      Exportar CSV
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="admin-users__filtros">
+    <div class="filtro-busca">
+      <i class="pi pi-search"></i>
+      <input
+        type="text"
+        placeholder="Buscar por nome ou email..."
+        [value]="termoBusca()"
+        (input)="onBusca($any($event.target).value)">
+    </div>
+
+    <select class="filtro-role" (change)="onFiltroRole($any($event.target).value)">
+      @for (opcao of opcoesRole; track opcao.valor) {
+        <option [value]="opcao.valor">{{ opcao.label }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Tabela -->
+  <div class="admin-users__tabela-wrapper">
+    @if (carregando()) {
+      <div class="admin-users__loading">
+        <i class="pi pi-spin pi-spinner"></i>
+        Carregando usuários...
+      </div>
+    } @else if (usuarios().length === 0) {
+      <div class="admin-users__vazio">
+        <i class="pi pi-users"></i>
+        <p>Nenhum usuário encontrado.</p>
+      </div>
+    } @else {
+      <table class="admin-tabela">
+        <thead>
+          <tr>
+            <th>Usuário</th>
+            <th>Email</th>
+            <th>Perfil</th>
+            <th>Cadastro</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios(); track usuario.id) {
+            <tr [class.bloqueado]="isBloqueado(usuario)">
+
+              <!-- Avatar + Nome -->
+              <td>
+                <div class="user-info">
+                  @if (usuario.avatar) {
+                    <img [src]="usuario.avatar" [alt]="usuario.name" class="user-avatar">
+                  } @else {
+                    <div class="user-avatar user-avatar--iniciais">
+                      {{ iniciais(usuario.name) }}
+                    </div>
+                  }
+                  <span class="user-nome">{{ usuario.name }}</span>
+                </div>
+              </td>
+
+              <!-- Email -->
+              <td class="user-email">{{ usuario.email }}</td>
+
+              <!-- Role com dropdown -->
+              <td>
+                <select
+                  class="role-select"
+                  [class.role-select--admin]="usuario.role === 'admin'"
+                  [class.role-select--professor]="usuario.role === 'professor'"
+                  [value]="usuario.role"
+                  [disabled]="salvandoRole() === usuario.id"
+                  (change)="mudarRole(usuario, $any($event.target).value)">
+                  @for (opcao of opcoesRoleMudanca; track opcao.valor) {
+                    <option [value]="opcao.valor">{{ opcao.label }}</option>
+                  }
+                </select>
+              </td>
+
+              <!-- Data de cadastro -->
+              <td class="user-data">{{ formatarData(usuario.created_at) }}</td>
+
+              <!-- Status -->
+              <td>
+                <span class="status-badge"
+                  [class.status-badge--ativo]="!isBloqueado(usuario)"
+                  [class.status-badge--bloqueado]="isBloqueado(usuario)">
+                  <i class="pi"
+                    [class.pi-check-circle]="!isBloqueado(usuario)"
+                    [class.pi-ban]="isBloqueado(usuario)"></i>
+                  {{ isBloqueado(usuario) ? 'Bloqueado' : 'Ativo' }}
+                </span>
+              </td>
+
+              <!-- Ações -->
+              <td>
+                <div class="acoes">
+                  <button class="acao-btn acao-btn--detalhes"
+                    (click)="verDetalhes(usuario)"
+                    title="Ver detalhes">
+                    <i class="pi pi-eye"></i>
+                  </button>
+
+                  <button class="acao-btn"
+                    [class.acao-btn--bloquear]="!isBloqueado(usuario)"
+                    [class.acao-btn--desbloquear]="isBloqueado(usuario)"
+                    (click)="confirmarBloqueio(usuario)"
+                    [disabled]="salvandoBloqueio() === usuario.id"
+                    [title]="isBloqueado(usuario) ? 'Desbloquear' : 'Bloquear'">
+                    @if (salvandoBloqueio() === usuario.id) {
+                      <i class="pi pi-spin pi-spinner"></i>
+                    } @else {
+                      <i class="pi"
+                        [class.pi-lock]="!isBloqueado(usuario)"
+                        [class.pi-lock-open]="isBloqueado(usuario)"></i>
+                    }
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <!-- Paginação -->
+  @if (totalPaginas() > 1) {
+    <div class="admin-users__paginacao">
+      <button class="pag-btn" (click)="irParaPagina(paginaAtual() - 1)"
+        [disabled]="paginaAtual() === 1">
+        <i class="pi pi-chevron-left"></i>
+      </button>
+
+      @for (pagina of paginas(); track pagina) {
+        <button class="pag-btn" [class.pag-btn--ativo]="paginaAtual() === pagina"
+          (click)="irParaPagina(pagina)">
+          {{ pagina }}
+        </button>
+      }
+
+      <button class="pag-btn" (click)="irParaPagina(paginaAtual() + 1)"
+        [disabled]="paginaAtual() === totalPaginas()">
+        <i class="pi pi-chevron-right"></i>
+      </button>
+
+      <span class="pag-info">
+        Página {{ paginaAtual() }} de {{ totalPaginas() }}
+      </span>
+    </div>
+  }
+
+</div>
+
+<!-- Modal de Detalhes -->
+@if (modalAberto() && usuarioSelecionado()) {
+  <div class="modal-overlay" (click)="fecharModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h2>Detalhes do Usuário</h2>
+        <button class="modal__fechar" (click)="fecharModal()">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="modal-user">
+          @if (usuarioSelecionado()!.avatar) {
+            <img [src]="usuarioSelecionado()!.avatar" class="modal-avatar">
+          } @else {
+            <div class="modal-avatar modal-avatar--iniciais">
+              {{ iniciais(usuarioSelecionado()!.name) }}
+            </div>
+          }
+          <div>
+            <h3>{{ usuarioSelecionado()!.name }}</h3>
+            <p>{{ usuarioSelecionado()!.email }}</p>
+          </div>
+        </div>
+
+        <div class="modal-info">
+          <div class="modal-info__item">
+            <span>Perfil</span>
+            <strong>{{ traduzirRole(usuarioSelecionado()!.role) }}</strong>
+          </div>
+          <div class="modal-info__item">
+            <span>Status</span>
+            <strong>{{ isBloqueado(usuarioSelecionado()!) ? 'Bloqueado' : 'Ativo' }}</strong>
+          </div>
+          <div class="modal-info__item">
+            <span>Cadastro</span>
+            <strong>{{ formatarData(usuarioSelecionado()!.created_at) }}</strong>
+          </div>
+          @if (usuarioSelecionado()!.last_login_at) {
+            <div class="modal-info__item">
+              <span>Último acesso</span>
+              <strong>{{ formatarData(usuarioSelecionado()!.last_login_at!) }}</strong>
+            </div>
+          }
+          @if (usuarioSelecionado()!.documents_count !== undefined) {
+            <div class="modal-info__item">
+              <span>Documentos</span>
+              <strong>{{ usuarioSelecionado()!.documents_count }}</strong>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal de Confirmação de Bloqueio -->
+@if (confirmacaoAberta() && usuarioBloqueando()) {
+  <div class="modal-overlay" (click)="cancelarBloqueio()">
+    <div class="modal modal--confirmacao" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h2>Confirmar ação</h2>
+        <button class="modal__fechar" (click)="cancelarBloqueio()">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <p>
+          Deseja {{ isBloqueado(usuarioBloqueando()!) ? 'desbloquear' : 'bloquear' }} o usuário
+          <strong>{{ usuarioBloqueando()!.name }}</strong>?
+        </p>
+      </div>
+      <div class="modal__footer">
+        <button class="btn-cancelar" (click)="cancelarBloqueio()">Cancelar</button>
+        <button class="btn-confirmar"
+          [class.btn-confirmar--bloquear]="!isBloqueado(usuarioBloqueando()!)"
+          [class.btn-confirmar--desbloquear]="isBloqueado(usuarioBloqueando()!)"
+          (click)="executarBloqueio()">
+          <i class="pi"
+            [class.pi-lock]="!isBloqueado(usuarioBloqueando()!)"
+            [class.pi-lock-open]="isBloqueado(usuarioBloqueando()!)"></i>
+          {{ isBloqueado(usuarioBloqueando()!) ? 'Desbloquear' : 'Bloquear' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
