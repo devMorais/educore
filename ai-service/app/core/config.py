@@ -57,11 +57,11 @@ class Settings(BaseSettings):
     groq_base_url: str = "https://api.groq.com/openai/v1"
 
     cerebras_api_key: str | None = None
-    cerebras_model: str = "llama-3.3-70b"
+    cerebras_model: str = "gpt-oss-120b"
     cerebras_base_url: str = "https://api.cerebras.ai/v1"
 
     openrouter_api_key: str | None = None
-    openrouter_model: str = "meta-llama/llama-3.3-70b-instruct:free"
+    openrouter_model: str = "google/gemma-4-31b-it:free"
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
     mistral_api_key: str | None = None
