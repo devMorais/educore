@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import unicodedata
 from google import genai
 from google.genai import types
 from app.core.config import settings
@@ -7,6 +8,17 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 client = genai.Client(api_key=settings.gemini_api_key)
+
+
+def _ascii_safe(nome: str) -> str:
+    """
+    Converte o nome do arquivo para ASCII (o display_name vai em header HTTP).
+    Translitera acentos (ç→c, ã→a) e descarta caracteres não-ASCII como o traço
+    longo "–", evitando UnicodeEncodeError no upload ao Gemini Files API.
+    """
+    normalizado = unicodedata.normalize("NFKD", nome or "")
+    ascii_nome = normalizado.encode("ascii", "ignore").decode("ascii").strip()
+    return ascii_nome or "document.pdf"
 
 
 class GeminiFileService:
@@ -27,7 +39,7 @@ class GeminiFileService:
             file=file_path,
             config=types.UploadFileConfig(
                 mime_type="application/pdf",
-                display_name=display_name or file_path.split("/")[-1],
+                display_name=_ascii_safe(display_name or file_path.split("/")[-1]),
             ),
         )
         # Wait until file is ACTIVE (processing on Google's side)

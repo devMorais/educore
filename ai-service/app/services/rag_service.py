@@ -1,8 +1,11 @@
 import logging
 import json
 import re
+import time
+import random
 from google import genai
 from google.genai import types
+from google.genai import errors as genai_errors
 from app.core.config import settings
 from app.core.database import get_connection
 from app.services.pdf_service import pdf_service
@@ -54,10 +57,38 @@ def _get_gemini_file_uri(document_id: int) -> str | None:
         conn.close()
 
 
+# Códigos HTTP transitórios do Gemini que valem nova tentativa
+# (503 = sobrecarga, 429 = limite de taxa, 500 = instabilidade interna)
+_CODIGOS_RETRY = {429, 500, 503}
+_MAX_TENTATIVAS = 4
+
+
+def _gerar_conteudo(contents):
+    """
+    Chama o Gemini com retry e backoff exponencial + jitter em erros transitórios.
+    Em 503/429/500 espera (1s, 2s, 4s…) e tenta de novo; demais erros sobem na hora.
+    """
+    for tentativa in range(1, _MAX_TENTATIVAS + 1):
+        try:
+            return client.models.generate_content(
+                model=settings.generation_model, contents=contents
+            )
+        except genai_errors.APIError as e:
+            codigo = getattr(e, "code", None)
+            if codigo not in _CODIGOS_RETRY or tentativa == _MAX_TENTATIVAS:
+                raise
+            espera = min(2 ** (tentativa - 1), 8) + random.uniform(0, 0.5)
+            logger.warning(
+                f"Gemini retornou {codigo} (tentativa {tentativa}/{_MAX_TENTATIVAS}); "
+                f"aguardando {espera:.1f}s antes de tentar novamente."
+            )
+            time.sleep(espera)
+
+
 def _generate_with_file(file_uri: str, prompt: str) -> dict:
     """Generate content by passing the full PDF to Gemini — no chunking needed."""
     contents = gemini_file_service.build_content_parts(file_uri, prompt)
-    response = client.models.generate_content(model=settings.generation_model, contents=contents)
+    response = _gerar_conteudo(contents)
     return _parse_json(response.text)
 
 
@@ -65,7 +96,7 @@ def _generate_with_rag(chunks: list[dict], prompt_template: str) -> dict:
     """Fallback: use RAG context chunks."""
     context = _build_context(chunks)
     full_prompt = prompt_template.replace("{CONTEXT}", context)
-    response = client.models.generate_content(model=settings.generation_model, contents=full_prompt)
+    response = _gerar_conteudo(full_prompt)
     return _parse_json(response.text)
 
 

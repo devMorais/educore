@@ -267,7 +267,14 @@ async def generate_content(
         raise
     except Exception as e:
         logger.error(f"Erro na geração [{body.type}]: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e)
+        # Gemini sobrecarregado/limite de taxa após os retries → 503 com mensagem amigável
+        if any(t in msg for t in ("503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED")):
+            raise HTTPException(
+                status_code=503,
+                detail="O modelo de IA está sobrecarregado no momento. Aguarde alguns segundos e tente novamente.",
+            )
+        raise HTTPException(status_code=500, detail=msg)
 
 
 # ──────────────────────────────────────────────────────── export PPTX
