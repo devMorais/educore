@@ -1,207 +1,145 @@
 <div class="home">
 
-  <!-- HERO -->
+  <!-- ── HERO ──────────────────────────────────────────────────────────── -->
   <section class="hero">
+    <div class="hero__grid-bg"></div>
+    <div class="hero__glow"></div>
 
-    <!-- Elementos flutuantes -->
-    <div class="hero-float hero-float--1">
-      <img src="images/banner_feature_icon_1.png" alt="">
-    </div>
-    <div class="hero-float hero-float--2">
-      <img src="images/banner_feature_icon_2.png" alt="">
-    </div>
-    <div class="hero-float hero-float--3">
-      <img src="images/banner_feature_icon_3.png" alt="">
-    </div>
-    <div class="hero-float hero-float--4">
-      <img src="images/badge_1.png" alt="">
-    </div>
-    <div class="hero-float hero-float--5">
-      <img src="images/badge_2.png" alt="">
-    </div>
-    <div class="hero-float hero-float--6">
-      <img src="images/badge_3.png" alt="">
+    <div class="hero__content animate">
+      <div class="hero__badge">
+        <i class="pi pi-bolt"></i>
+        Powered by Gemini 2.5-Flash
+      </div>
+
+      <h1 class="hero__title">
+        Transforme PDFs em
+        <span class="hero__title--gradient">Experiências de Aprendizado</span>
+      </h1>
+
+      <p class="hero__desc">
+        A IA do EduCore converte qualquer material didático em Quiz, Resumo,
+        Slides, Mapa Mental, Flashcards e Conteúdo Acessível — em segundos.
+      </p>
+
+      <div class="hero__cta">
+        <a routerLink="/upload" class="btn-primary btn-primary--pulse">
+          <i class="pi pi-play-circle"></i>
+          Começar Agora
+        </a>
+        <a routerLink="/register" class="btn-secondary">
+          <i class="pi pi-user-plus"></i>
+          Criar conta grátis
+        </a>
+      </div>
     </div>
 
-    <div class="hero-container">
-      <div class="hero-badge animate">
-        <svg lucideIcon="sparkles" class="badge-icon"></svg>
-        Powered by IA
+    <!-- Browser mockup com vídeo -->
+    <div class="browser-mockup animate">
+      <div class="browser-mockup__bar">
+        <span class="browser-mockup__dot browser-mockup__dot--red"></span>
+        <span class="browser-mockup__dot browser-mockup__dot--yellow"></span>
+        <span class="browser-mockup__dot browser-mockup__dot--green"></span>
+        <div class="browser-mockup__url">
+          <i class="pi pi-lock"></i> educore.app
+        </div>
       </div>
-      <h1 class="animate">Um PDF. Um clique.<br><span class="gradient-text">Aula completa.</span></h1>
-      <p class="animate">O professor envia um documento e a IA gera slides, quizzes, resumos e conteúdo acessível — tudo
-        em segundos, em uma única plataforma.</p>
-      <div class="hero-actions animate">
-        <a routerLink="/cadastro" class="btn-primary">Começar grátis →</a>
-        <a routerLink="/login" class="btn-ghost">Já tenho conta</a>
-      </div>
-      <p class="hero-hint animate">Sem cartão de crédito • Grátis para começar</p>
-    </div>
-  </section>
-
-  <!-- FEATURES -->
-  <section class="features" id="features">
-    <div class="section-container">
-      <div class="section-header animate">
-        <h2>Tudo que você precisa em <span class="gradient-text">um só lugar</span></h2>
-        <p>Do PDF à aula completa em segundos. Sem complicação.</p>
-      </div>
-      <div class="features-grid">
-        <div class="feature-card animate">
-          <div class="feature-icon"><svg lucideIcon="presentation"></svg></div>
-          <h3>Slides prontos</h3>
-          <p>Apresentações geradas automaticamente, exportáveis para PowerPoint e Google Slides.</p>
-        </div>
-        <div class="feature-card animate">
-          <div class="feature-icon"><svg lucideIcon="file-text"></svg></div>
-          <h3>Quizzes</h3>
-          <p>Avaliações criadas a partir do conteúdo, prontas para aplicar com os alunos.</p>
-        </div>
-        <div class="feature-card animate">
-          <div class="feature-icon"><svg lucideIcon="file-check"></svg></div>
-          <h3>Resumos</h3>
-          <p>Sínteses claras que transformam PDFs densos em material de estudo objetivo.</p>
-        </div>
-        <div class="feature-card animate">
-          <div class="feature-icon"><svg lucideIcon="accessibility"></svg></div>
-          <h3>Acessibilidade (PcD)</h3>
-          <p>Conteúdo adaptado para deficiência visual e dislexia, combatendo a exclusão educacional.</p>
-        </div>
+      <div class="browser-mockup__screen">
+        <iframe
+          [src]="videoUrl"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
+          allowfullscreen>
+        </iframe>
       </div>
     </div>
   </section>
 
-  <!-- COMO FUNCIONA -->
-  <section class="how-it-works">
-    <div class="section-container">
-      <div class="how-grid">
-        <div class="how-image animate">
-          <img src="images/banner_img.png" alt="Professor usando EduCore">
-        </div>
-        <div class="how-content animate">
-          <div class="how-badge">Como funciona</div>
-          <h2>Do PDF à aula completa <span class="gradient-text">em 3 passos</span></h2>
-          <div class="how-steps">
-            <div class="how-step">
-              <div class="step-number">1</div>
-              <div>
-                <h4>Faça upload do PDF</h4>
-                <p>Envie qualquer material didático em PDF — apostilas, artigos, livros.</p>
-              </div>
-            </div>
-            <div class="how-step">
-              <div class="step-number">2</div>
-              <div>
-                <h4>A IA processa tudo</h4>
-                <p>Nossa IA analisa o conteúdo e gera slides, quizzes, resumos e muito mais.</p>
-              </div>
-            </div>
-            <div class="how-step">
-              <div class="step-number">3</div>
-              <div>
-                <h4>Baixe e aplique</h4>
-                <p>Exporte para PowerPoint, Kahoot, SCORM e aplique com seus alunos.</p>
-              </div>
-            </div>
+  <!-- ── COMO FUNCIONA ─────────────────────────────────────────────────── -->
+  <section class="como-funciona">
+    <div class="section-header animate">
+      <span class="section-badge">Simples assim</span>
+      <h2>Como funciona o EduCore</h2>
+      <p>Três passos para transformar qualquer PDF em material educacional completo</p>
+    </div>
+
+    <div class="passos">
+      @for (passo of passos; track passo.numero) {
+        <div class="passo animate">
+          <div class="passo__numero">{{ passo.numero }}</div>
+          <div class="passo__icone">
+            <i class="pi {{ passo.icone }}"></i>
           </div>
-          <a routerLink="/cadastro" class="btn-primary">Experimentar agora →</a>
+          <h3>{{ passo.titulo }}</h3>
+          <p>{{ passo.desc }}</p>
         </div>
-      </div>
+      }
     </div>
   </section>
 
-  <!-- PROFESSORES -->
-  <section class="instructors">
-    <div class="section-container">
-      <div class="section-header animate">
-        <h2>Feito para <span class="gradient-text">professores reais</span></h2>
-        <p>Quem já usa o EduCore economiza horas toda semana.</p>
-      </div>
-      <div class="instructors-grid">
-        <div class="instructor-card animate">
-          <img src="images/instructor_1.jpg" alt="Professor">
-          <div class="instructor-info">
-            <h4>Ana Silva</h4>
-            <p>Professora de Biologia</p>
-            <span>"Reduzi meu tempo de preparação de 4 horas para 20 minutos."</span>
+  <!-- ── CARDS DE CONTEÚDO ─────────────────────────────────────────────── -->
+  <section class="content-section">
+    <div class="section-header animate">
+      <span class="section-badge">6 formatos</span>
+      <h2>Tudo que você precisa para ensinar</h2>
+      <p>Cada PDF gera até 6 tipos de conteúdo educacional de alta qualidade</p>
+    </div>
+
+    <div class="content-grid">
+      @for (card of contentCards; track card.label) {
+        <div class="content-card animate">
+          <div class="content-card__icon" [style.background]="card.color + '22'">
+            <i class="pi {{ card.icon }}" [style.color]="card.color"></i>
           </div>
+          <h3>{{ card.label }}</h3>
+          <p>{{ card.desc }}</p>
+          <div class="content-card__glow" [style.background]="card.color"></div>
         </div>
-        <div class="instructor-card animate">
-          <img src="images/instructor_2.jpg" alt="Professor">
-          <div class="instructor-info">
-            <h4>Carlos Mendes</h4>
-            <p>Professor de História</p>
-            <span>"Meus alunos adoraram os quizzes gerados automaticamente."</span>
-          </div>
-        </div>
-        <div class="instructor-card animate">
-          <img src="images/instructor_3.jpg" alt="Professor">
-          <div class="instructor-info">
-            <h4>Maria Costa</h4>
-            <p>Professora de Matemática</p>
-            <span>"A acessibilidade para PcD mudou a vida dos meus alunos."</span>
-          </div>
-        </div>
-      </div>
+      }
     </div>
   </section>
 
-  <!-- PLANOS -->
-  <section class="pricing" id="pricing">
-    <div class="section-container">
-      <div class="section-header animate">
-        <h2>Planos para <span class="gradient-text">todos os professores</span></h2>
-        <p>Comece grátis e escale conforme sua necessidade.</p>
-      </div>
-      <div class="pricing-grid">
-        <div class="pricing-card animate">
-          <div class="plan-name">Grátis</div>
-          <div class="plan-price">R$ 0<span>/mês</span></div>
-          <ul class="plan-features">
-            <li>✅ 5 PDFs por mês</li>
-            <li>✅ Slides básicos</li>
-            <li>✅ Resumos</li>
-            <li>❌ Quizzes</li>
-            <li>❌ Exportação PowerPoint</li>
-          </ul>
-          <a routerLink="/cadastro" class="btn-outline">Começar grátis</a>
+  <!-- ── ESTATÍSTICAS ──────────────────────────────────────────────────── -->
+  <section class="stats-section">
+    <div class="stats-grid">
+      @for (stat of estatisticas; track stat.label) {
+        <div class="stat-card animate">
+          <i class="pi {{ stat.icone }} stat-card__icon"></i>
+          <div class="stat-card__numero">
+            {{ stat.atual.toLocaleString('pt-BR') }}{{ stat.sufixo }}
+          </div>
+          <div class="stat-card__label">{{ stat.label }}</div>
         </div>
-        <div class="pricing-card featured animate">
-          <div class="plan-badge">Mais popular</div>
-          <div class="plan-name">Pro</div>
-          <div class="plan-price">R$ 49<span>/mês</span></div>
-          <ul class="plan-features">
-            <li>✅ PDFs ilimitados</li>
-            <li>✅ Slides avançados</li>
-            <li>✅ Resumos</li>
-            <li>✅ Quizzes</li>
-            <li>✅ Exportação PowerPoint</li>
-          </ul>
-          <a routerLink="/cadastro" class="btn-primary">Assinar Pro</a>
-        </div>
-        <div class="pricing-card animate">
-          <div class="plan-name">Escola</div>
-          <div class="plan-price">R$ 199<span>/mês</span></div>
-          <ul class="plan-features">
-            <li>✅ Tudo do Pro</li>
-            <li>✅ Até 20 professores</li>
-            <li>✅ Painel administrativo</li>
-            <li>✅ Suporte prioritário</li>
-            <li>✅ Relatórios de uso</li>
-          </ul>
-          <a routerLink="/cadastro" class="btn-outline">Falar com vendas</a>
-        </div>
-      </div>
+      }
     </div>
   </section>
 
-  <!-- CTA FINAL -->
-  <section class="cta-section">
-    <div class="cta-container animate">
-      <h2>Pronto para transformar suas aulas?</h2>
-      <p>Junte-se a milhares de professores que já usam o EduCore.</p>
-      <a routerLink="/cadastro" class="btn-primary">Começar grátis agora →</a>
-    </div>
+  <!-- ── CTA FINAL ─────────────────────────────────────────────────────── -->
+  <section class="cta-section animate">
+    <div class="cta-section__glow"></div>
+    <h2>Pronto para revolucionar suas aulas?</h2>
+    <p>Junte-se a mais de 1.200 professores que já usam o EduCore</p>
+    <a routerLink="/register" class="btn-primary btn-primary--pulse">
+      <i class="pi pi-rocket"></i>
+      Começar gratuitamente
+    </a>
   </section>
+
+  <!-- ── FOOTER ────────────────────────────────────────────────────────── -->
+  <footer class="footer-home">
+    <div class="footer-home__content">
+      <div class="footer-home__brand">
+        <i class="pi pi-bolt footer-home__logo-icon"></i>
+        <span>EduCore</span>
+      </div>
+      <p class="footer-home__copy">
+        © 2025 EduCore · Desenvolvido no
+        <strong>SENAC-DF</strong> · Todos os direitos reservados
+      </p>
+      <div class="footer-home__links">
+        <a routerLink="/login">Entrar</a>
+        <a routerLink="/register">Cadastrar</a>
+      </div>
+    </div>
+  </footer>
 
 </div>
