@@ -6,68 +6,61 @@
       <h1>Dashboard</h1>
       <p>Bem-vinda, {{ userName() }}! Aqui está o resumo da plataforma.</p>
     </div>
-    <button class="btn-atualizar" (click)="carregarStats()" [disabled]="carregando()">
+    <button class="btn-atualizar" (click)="atualizar()" [disabled]="carregando()">
       <i class="pi" [class.pi-refresh]="!carregando()" [class.pi-spin]="carregando()" [class.pi-spinner]="carregando()"></i>
       {{ carregando() ? 'Atualizando...' : 'Atualizar' }}
     </button>
   </div>
 
-  <!-- Skeleton de carregamento -->
+  <!-- ── KPIs + gráficos (skeleton enquanto carrega) ────────────────────── -->
   @if (carregando()) {
-    <div class="skeleton-grid">
-      @for (i of [1,2,3,4]; track i) {
-        <div class="skeleton-card">
-          <div class="skeleton-icon"></div>
-          <div class="skeleton-info">
-            <div class="skeleton-value"></div>
-            <div class="skeleton-label"></div>
+
+    <!-- Skeleton dos 4 cards -->
+    <div class="metrics-grid">
+      @for (s of skeletonCards; track s) {
+        <div class="metric-card">
+          <app-skeleton shape="circle" width="52px" height="52px"></app-skeleton>
+          <div class="metric-info metric-info--skeleton">
+            <app-skeleton width="70%" height="26px" borderRadius="6px"></app-skeleton>
+            <app-skeleton width="90%" height="14px" borderRadius="4px"></app-skeleton>
           </div>
         </div>
       }
     </div>
-    <div class="skeleton-charts">
-      <div class="skeleton-chart"></div>
-      <div class="skeleton-chart"></div>
-    </div>
-    <div class="skeleton-chart skeleton-chart--full"></div>
-  }
 
-  <!-- Conteúdo real -->
-  @if (!carregando()) {
+    <!-- Skeleton dos gráficos -->
+    <div class="content-grid">
+      <div class="card"><app-skeleton width="100%" height="260px" borderRadius="12px"></app-skeleton></div>
+      <div class="card"><app-skeleton width="100%" height="260px" borderRadius="12px"></app-skeleton></div>
+    </div>
+
+  } @else {
 
     <!-- 4 Cards KPI -->
     <div class="metrics-grid">
       <div class="metric-card">
-        <div class="metric-icon blue">
-          <i class="pi pi-users"></i>
-        </div>
+        <div class="metric-icon blue"><i class="pi pi-users"></i></div>
         <div class="metric-info">
           <span class="metric-value">{{ formatarNumero(totalUsuarios()) }}</span>
           <span class="metric-label">Total de Usuários</span>
         </div>
       </div>
       <div class="metric-card">
-        <div class="metric-icon orange">
-          <i class="pi pi-file-pdf"></i>
-        </div>
+        <div class="metric-icon orange"><i class="pi pi-file-pdf"></i></div>
         <div class="metric-info">
           <span class="metric-value">{{ formatarNumero(totalDocumentos()) }}</span>
           <span class="metric-label">PDFs Processados</span>
         </div>
       </div>
       <div class="metric-card">
-        <div class="metric-icon purple">
-          <i class="pi pi-bolt"></i>
-        </div>
+        <div class="metric-icon purple"><i class="pi pi-bolt"></i></div>
         <div class="metric-info">
           <span class="metric-value">{{ formatarNumero(totalGeracoes()) }}</span>
           <span class="metric-label">Conteúdos Gerados</span>
         </div>
       </div>
       <div class="metric-card">
-        <div class="metric-icon green">
-          <i class="pi pi-check-circle"></i>
-        </div>
+        <div class="metric-icon green"><i class="pi pi-check-circle"></i></div>
         <div class="metric-info">
           <span class="metric-value">{{ formatarNumero(ativos7dias()) }}</span>
           <span class="metric-label">Ativos (últimos 7d)</span>
@@ -78,13 +71,15 @@
     <!-- Gráficos -->
     <div class="content-grid">
 
-      <!-- Gráfico de linha — uploads por dia (30d) -->
+      <!-- Linha — uploads por dia (30d) -->
       <div class="card">
         <div class="card__header">
           <h3><i class="pi pi-chart-line"></i> Uploads por dia (30d)</h3>
         </div>
         @if (chartUploads()) {
-          <p-chart type="line" [data]="chartUploads()" [options]="opcoesLinha" height="260px"></p-chart>
+          <div class="chart-box">
+            <p-chart type="line" [data]="chartUploads()" [options]="opcoesLinha"></p-chart>
+          </div>
         } @else {
           <div class="chart-vazio">
             <i class="pi pi-chart-line"></i>
@@ -93,13 +88,15 @@
         }
       </div>
 
-      <!-- Gráfico donut — tipos de conteúdo -->
+      <!-- Donut — tipos de conteúdo (distribuição real) -->
       <div class="card">
         <div class="card__header">
           <h3><i class="pi pi-chart-pie"></i> Tipos de Conteúdo</h3>
         </div>
         @if (chartTipos()) {
-          <p-chart type="doughnut" [data]="chartTipos()" [options]="opcoesPizza" height="260px"></p-chart>
+          <div class="chart-box">
+            <p-chart type="doughnut" [data]="chartTipos()" [options]="opcoesPizza"></p-chart>
+          </div>
         } @else {
           <div class="chart-vazio">
             <i class="pi pi-chart-pie"></i>
@@ -110,14 +107,36 @@
 
     </div>
 
-    <!-- Tabela Atividade Recente -->
-    <div class="card card--full">
-      <div class="card__header">
-        <h3><i class="pi pi-list"></i> Atividade Recente</h3>
-        <span class="card__badge">10 últimas</span>
-      </div>
+  }
+
+  <!-- ── Atividade recente (skeleton independente) ──────────────────────── -->
+  <div class="card card--full">
+    <div class="card__header">
+      <h3><i class="pi pi-list"></i> Atividade Recente</h3>
+      <span class="card__badge">10 últimas</span>
+    </div>
+
+    @if (carregandoAtividades()) {
       <div class="activity-list">
-        @for (item of atividades; track item.id) {
+        @for (s of skeletonAtividades; track s) {
+          <div class="activity-item">
+            <app-skeleton shape="circle" width="40px" height="40px"></app-skeleton>
+            <div class="activity-info metric-info--skeleton">
+              <app-skeleton width="120px" height="14px" borderRadius="4px"></app-skeleton>
+              <app-skeleton width="180px" height="12px" borderRadius="4px"></app-skeleton>
+            </div>
+            <app-skeleton width="48px" height="12px" borderRadius="4px"></app-skeleton>
+          </div>
+        }
+      </div>
+    } @else if (atividades().length === 0) {
+      <div class="chart-vazio">
+        <i class="pi pi-inbox"></i>
+        <span>Nenhuma atividade recente.</span>
+      </div>
+    } @else {
+      <div class="activity-list">
+        @for (item of atividades(); track $index) {
           <div class="activity-item">
             <p-avatar
               [label]="item.initial"
@@ -129,13 +148,12 @@
               <span class="activity-desc">{{ item.action }}</span>
             </div>
             <span class="activity-time">
-              <i class="pi pi-clock"></i> {{ item.time }} atrás
+              <i class="pi pi-clock"></i> {{ item.time }}
             </span>
           </div>
         }
       </div>
-    </div>
-
-  }
+    }
+  </div>
 
 </div>

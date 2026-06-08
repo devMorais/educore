@@ -5,20 +5,28 @@ import { AvatarModule } from 'primeng/avatar';
 import { Auth } from '../../../core/services/auth';
 import { ApiService } from '../../../core/services/api';
 import { ToastService } from '../../../core/services/toast';
+import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
-// Estrutura de resposta do endpoint /api/admin/stats
+// Estrutura de resposta do endpoint GET /api/admin/stats
 interface AdminStats {
-  total_users:           number;
-  total_documents:       number;
-  total_generations:     number;
-  active_users_7days:    number;
-  uploads_per_day:       { date: string; count: number }[];
-  registrations_per_day: { date: string; count: number }[];
+  total_users:        number;
+  total_documents:    number;
+  total_generations:  number;
+  active_users_7days: number;
+  uploads_per_day:    { date: string; count: number }[];
+  by_type?:           { type: string; count: number }[];
 }
 
-// Estrutura de atividade recente
-interface Atividade {
-  id:      number;
+// Estrutura crua de atividade vinda de GET /api/admin/activity
+interface ActivityItem {
+  type:      string;
+  name:      string;
+  action:    string;
+  timestamp: string;
+}
+
+// Atividade já formatada para o template
+interface ActivityVM {
   initial: string;
   name:    string;
   action:  string;
@@ -29,7 +37,7 @@ interface Atividade {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [ChartModule, AvatarModule],
+  imports: [ChartModule, AvatarModule, Skeleton],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -42,8 +50,9 @@ export class Dashboard implements OnInit {
   // Nome do usuário logado
   userName = computed(() => this.auth.currentUser()?.name?.split(' ')[0] ?? 'Admin');
 
-  // Estado de carregamento
-  carregando = signal(true);
+  // Estados de carregamento independentes (KPIs/gráficos e atividade recente)
+  carregando           = signal(true);
+  carregandoAtividades = signal(true);
 
   // KPIs vindos da API
   totalUsuarios   = signal(0);
@@ -55,9 +64,17 @@ export class Dashboard implements OnInit {
   chartUploads = signal<any>(null);
   chartTipos   = signal<any>(null);
 
+  // Atividade recente (dados reais)
+  atividades = signal<ActivityVM[]>([]);
+
+  // Arrays auxiliares para os skeletons
+  readonly skeletonCards      = [1, 2, 3, 4];
+  readonly skeletonAtividades = [1, 2, 3, 4, 5];
+
   // Opções do gráfico de linha
   readonly opcoesLinha = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
       y: { beginAtZero: true, grid: { color: '#F3F4F6' } },
@@ -68,47 +85,58 @@ export class Dashboard implements OnInit {
   // Opções do gráfico donut
   readonly opcoesPizza = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } },
     },
   };
 
-  // Últimas 10 atividades recentes
-  readonly atividades: Atividade[] = [
-    { id: 1,  initial: 'A', name: 'Ana Silva',      action: 'Enviou um novo PDF',   time: '2min',  color: '#7C3AED' },
-    { id: 2,  initial: 'C', name: 'Carlos Mendes',  action: 'Gerou um quiz',        time: '15min', color: '#2563EB' },
-    { id: 3,  initial: 'M', name: 'Maria Costa',    action: 'Exportou slides',      time: '1h',    color: '#16A34A' },
-    { id: 4,  initial: 'J', name: 'João Pedro',     action: 'Criou uma conta',      time: '2h',    color: '#F97316' },
-    { id: 5,  initial: 'L', name: 'Lucia Ferreira', action: 'Enviou um novo PDF',   time: '3h',    color: '#DB2777' },
-    { id: 6,  initial: 'R', name: 'Rafael Souza',   action: 'Gerou flashcards',     time: '4h',    color: '#0891B2' },
-    { id: 7,  initial: 'P', name: 'Paula Rocha',    action: 'Gerou mapa mental',    time: '5h',    color: '#65A30D' },
-    { id: 8,  initial: 'T', name: 'Tiago Alves',    action: 'Acessou conteúdo PCD', time: '6h',    color: '#DC2626' },
-    { id: 9,  initial: 'F', name: 'Fernanda Lima',  action: 'Enviou um novo PDF',   time: '7h',    color: '#9333EA' },
-    { id: 10, initial: 'B', name: 'Bruno Castro',   action: 'Gerou resumo',         time: '8h',    color: '#EA580C' },
+  // Mapa de tipo de geração → rótulo PT-BR e cor (para o donut real)
+  private readonly tipoMeta: Record<string, { label: string; cor: string }> = {
+    quiz:       { label: 'Quiz',        cor: '#356df1' },
+    summary:    { label: 'Resumo',      cor: '#7c3aed' },
+    slides:     { label: 'Slides',      cor: '#16a34a' },
+    mindmap:    { label: 'Mapa Mental', cor: '#f97316' },
+    flashcards: { label: 'Flashcards',  cor: '#0891b2' },
+    pcd:        { label: 'Acessível',   cor: '#db2777' },
+    kahoot:     { label: 'Kahoot',      cor: '#ef4444' },
+    socrative:  { label: 'Socrative',   cor: '#9333ea' },
+    scorm:      { label: 'SCORM',       cor: '#65a30d' },
+  };
+
+  // Paleta de cores para os avatares das atividades
+  private readonly paletaAtividade = [
+    '#7C3AED', '#2563EB', '#16A34A', '#F97316',
+    '#DB2777', '#0891B2', '#9333EA', '#EA580C',
   ];
 
   ngOnInit() {
-    // Gráficos só funcionam no browser (SSR)
+    // Gráficos e signals só rodam no browser (SSR-safe)
     if (isPlatformBrowser(this.platformId)) {
       this.carregarStats();
+      this.carregarAtividades();
     }
   }
 
-  // Busca dados reais do endpoint GET /api/admin/stats
+  // Atualiza todos os dados do dashboard
+  atualizar() {
+    this.carregarStats();
+    this.carregarAtividades();
+  }
+
+  // Busca KPIs e gráficos reais de GET /api/admin/stats
   carregarStats() {
     this.carregando.set(true);
 
     this.api.get<AdminStats>('admin/stats').subscribe({
       next: (stats) => {
-        // Preenche os KPIs
-        this.totalUsuarios.set(stats.total_users);
-        this.totalDocumentos.set(stats.total_documents);
-        this.totalGeracoes.set(stats.total_generations);
-        this.ativos7dias.set(stats.active_users_7days);
+        this.totalUsuarios.set(stats.total_users ?? 0);
+        this.totalDocumentos.set(stats.total_documents ?? 0);
+        this.totalGeracoes.set(stats.total_generations ?? 0);
+        this.ativos7dias.set(stats.active_users_7days ?? 0);
 
-        // Monta os gráficos
-        this.chartUploads.set(this.montarChartLinha(stats.uploads_per_day));
-        this.chartTipos.set(this.montarChartDonut(stats.total_generations));
+        this.chartUploads.set(this.montarChartLinha(stats.uploads_per_day ?? []));
+        this.chartTipos.set(this.montarChartDonut(stats.by_type ?? []));
 
         this.carregando.set(false);
       },
@@ -119,8 +147,25 @@ export class Dashboard implements OnInit {
     });
   }
 
-  // Monta gráfico de linha com uploads por dia (30d)
+  // Busca a atividade recente real de GET /api/admin/activity
+  carregarAtividades() {
+    this.carregandoAtividades.set(true);
+
+    this.api.get<{ activities: ActivityItem[] }>('admin/activity').subscribe({
+      next: (res) => {
+        this.atividades.set((res.activities ?? []).map((a, i) => this.mapAtividade(a, i)));
+        this.carregandoAtividades.set(false);
+      },
+      error: () => {
+        this.atividades.set([]);
+        this.carregandoAtividades.set(false);
+      },
+    });
+  }
+
+  // Monta o gráfico de linha com uploads por dia (30d)
   private montarChartLinha(dados: { date: string; count: number }[]) {
+    if (!dados.length) return null;
     return {
       labels: dados.map(d => this.formatarData(d.date)),
       datasets: [{
@@ -136,20 +181,48 @@ export class Dashboard implements OnInit {
     };
   }
 
-  // Monta gráfico donut com distribuição estimada por tipo de conteúdo
-  private montarChartDonut(totalGeracoes: number) {
-    const proporcoes = [0.25, 0.20, 0.18, 0.15, 0.12, 0.10];
-    const totais = proporcoes.map(p => Math.round(totalGeracoes * p));
-
+  // Monta o gráfico donut com a distribuição REAL por tipo de conteúdo (by_type)
+  private montarChartDonut(dados: { type: string; count: number }[]) {
+    if (!dados.length) return null;
     return {
-      labels: ['Quiz', 'Resumo', 'Slides', 'Mapa Mental', 'Flashcards', 'PCD'],
+      labels: dados.map(d => this.tipoMeta[d.type]?.label ?? d.type),
       datasets: [{
-        data:            totais,
-        backgroundColor: ['#356df1', '#7c3aed', '#16a34a', '#f97316', '#0891b2', '#db2777'],
+        data:            dados.map(d => d.count),
+        backgroundColor: dados.map(d => this.tipoMeta[d.type]?.cor ?? '#9ca3af'),
         borderWidth:     2,
         borderColor:     '#fff',
       }],
     };
+  }
+
+  // Transforma a atividade crua em view-model para o template
+  private mapAtividade(a: ActivityItem, index: number): ActivityVM {
+    return {
+      initial: this.iniciais(a.name),
+      name:    a.name,
+      action:  a.action,
+      time:    this.tempoRelativo(a.timestamp),
+      color:   this.paletaAtividade[index % this.paletaAtividade.length],
+    };
+  }
+
+  // Primeira letra do nome para o avatar
+  private iniciais(nome: string): string {
+    return (nome || '?').trim().charAt(0).toUpperCase();
+  }
+
+  // Converte um timestamp ISO em tempo relativo ("há 2 min", "há 3 h", "há 1 d")
+  private tempoRelativo(iso: string): string {
+    const data = new Date(iso).getTime();
+    if (isNaN(data)) return '';
+    const diff = Math.max(0, Date.now() - data);
+    const min  = Math.floor(diff / 60000);
+    if (min < 1)  return 'agora mesmo';
+    if (min < 60) return `há ${min} min`;
+    const horas = Math.floor(min / 60);
+    if (horas < 24) return `há ${horas} h`;
+    const dias = Math.floor(horas / 24);
+    return `há ${dias} d`;
   }
 
   // Formata "2025-06-01" → "01/06"
@@ -158,8 +231,8 @@ export class Dashboard implements OnInit {
     return `${dia}/${mes}`;
   }
 
-  // Formata números com ponto separador (1340 → 1.340)
+  // Formata números com separador de milhar (1340 → 1.340)
   formatarNumero(n: number): string {
-    return n.toLocaleString('pt-BR');
+    return (n ?? 0).toLocaleString('pt-BR');
   }
 }

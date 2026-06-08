@@ -57,78 +57,6 @@
   }
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
-@keyframes shimmer {
-  0%   { background-position: -600px 0; }
-  100% { background-position:  600px 0; }
-}
-
-%skeleton-base {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 600px 100%;
-  animation: shimmer 1.4s infinite;
-  border-radius: 8px;
-}
-
-.skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.25rem;
-}
-
-.skeleton-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 1.5rem;
-  border: 1px solid #E5E7EB;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.skeleton-icon {
-  @extend %skeleton-base;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  flex-shrink: 0;
-}
-
-.skeleton-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.skeleton-value {
-  @extend %skeleton-base;
-  height: 28px;
-  width: 70%;
-}
-
-.skeleton-label {
-  @extend %skeleton-base;
-  height: 14px;
-  width: 90%;
-}
-
-.skeleton-charts {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-
-  @media (max-width: 900px) { grid-template-columns: 1fr; }
-}
-
-.skeleton-chart {
-  @extend %skeleton-base;
-  height: 320px;
-  border-radius: 16px;
-
-  &--full { height: 360px; }
-}
-
 // ── Cards KPI ─────────────────────────────────────────────────────────────────
 .metrics-grid {
   display: grid;
@@ -173,6 +101,12 @@
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+
+  // Quando o card está em estado de skeleton, dá um respiro maior entre as barras
+  &--skeleton {
+    flex: 1;
+    gap: 0.5rem;
+  }
 }
 
 .metric-value {
@@ -235,7 +169,13 @@
   }
 }
 
-// ── Gráfico vazio ─────────────────────────────────────────────────────────────
+// Container com altura fixa para os gráficos (chart.js responsivo)
+.chart-box {
+  position: relative;
+  height: 260px;
+}
+
+// ── Gráfico/estado vazio ──────────────────────────────────────────────────────
 .chart-vazio {
   height: 260px;
   display: flex;
