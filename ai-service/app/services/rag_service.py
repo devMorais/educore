@@ -3,6 +3,7 @@ import json
 import re
 import time
 import random
+import httpx
 from google import genai
 from google.genai import types
 from google.genai import errors as genai_errors
@@ -57,16 +58,22 @@ def _get_gemini_file_uri(document_id: int) -> str | None:
         conn.close()
 
 
-# Códigos HTTP transitórios do Gemini que valem nova tentativa
+# Códigos HTTP transitórios que valem nova tentativa
 # (503 = sobrecarga, 429 = limite de taxa, 500 = instabilidade interna)
 _CODIGOS_RETRY = {429, 500, 503}
-_MAX_TENTATIVAS = 4
+_MAX_TENTATIVAS = 3
 
 
+def _espera_backoff(tentativa: int) -> None:
+    """Backoff exponencial (1s, 2s, 4s…) com jitter, limitado a ~8s."""
+    time.sleep(min(2 ** (tentativa - 1), 8) + random.uniform(0, 0.5))
+
+
+# ─────────────────────────────────────────────── Gemini (SDK nativo)
 def _gerar_conteudo(contents):
     """
-    Chama o Gemini com retry e backoff exponencial + jitter em erros transitórios.
-    Em 503/429/500 espera (1s, 2s, 4s…) e tenta de novo; demais erros sobem na hora.
+    Chama o Gemini com retry e backoff em erros transitórios (503/429/500).
+    Aceita texto (str) ou Parts multimodais (PDF). Demais erros sobem na hora.
     """
     for tentativa in range(1, _MAX_TENTATIVAS + 1):
         try:
@@ -77,27 +84,98 @@ def _gerar_conteudo(contents):
             codigo = getattr(e, "code", None)
             if codigo not in _CODIGOS_RETRY or tentativa == _MAX_TENTATIVAS:
                 raise
-            espera = min(2 ** (tentativa - 1), 8) + random.uniform(0, 0.5)
             logger.warning(
                 f"Gemini retornou {codigo} (tentativa {tentativa}/{_MAX_TENTATIVAS}); "
-                f"aguardando {espera:.1f}s antes de tentar novamente."
+                f"tentando novamente após backoff."
             )
-            time.sleep(espera)
+            _espera_backoff(tentativa)
 
 
+def _gemini_texto(prompt: str) -> str:
+    """Gemini como provedor de TEXTO (1º da cadeia de fallback)."""
+    return (_gerar_conteudo(prompt).text or "").strip()
+
+
+# ──────────────────────────────────── provedores compatíveis com OpenAI
+def _chat_openai(base_url: str, api_key: str, model: str, prompt: str) -> str:
+    """
+    Chamada genérica a um endpoint /chat/completions (Groq, Cerebras,
+    OpenRouter, Mistral — todos compatíveis com a API da OpenAI), com retry.
+    """
+    url = f"{base_url.rstrip('/')}/chat/completions"
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.6,
+    }
+    for tentativa in range(1, _MAX_TENTATIVAS + 1):
+        resp = httpx.post(url, headers=headers, json=payload, timeout=90.0)
+        if resp.status_code in _CODIGOS_RETRY and tentativa < _MAX_TENTATIVAS:
+            _espera_backoff(tentativa)
+            continue
+        resp.raise_for_status()
+        return (resp.json()["choices"][0]["message"]["content"] or "").strip()
+    resp.raise_for_status()  # esgotou retries em erro transitório
+    return ""
+
+
+def _provedores_texto() -> list[tuple[str, callable]]:
+    """
+    Monta a ordem de tentativa de geração de TEXTO. O Gemini é sempre o 1º;
+    cada provedor extra só entra se a respectiva API key estiver configurada.
+    """
+    provedores: list[tuple[str, callable]] = [("Gemini", _gemini_texto)]
+    extras = [
+        ("Groq",       settings.groq_api_key,       settings.groq_base_url,       settings.groq_model),
+        ("Cerebras",   settings.cerebras_api_key,   settings.cerebras_base_url,   settings.cerebras_model),
+        ("OpenRouter", settings.openrouter_api_key, settings.openrouter_base_url, settings.openrouter_model),
+        ("Mistral",    settings.mistral_api_key,    settings.mistral_base_url,    settings.mistral_model),
+    ]
+    for nome, key, base, model in extras:
+        if key:
+            provedores.append((nome, _fazer_chamador(base, key, model)))
+    return provedores
+
+
+def _fazer_chamador(base: str, key: str, model: str):
+    """Fábrica de closure (evita late-binding no loop de provedores)."""
+    return lambda prompt: _chat_openai(base, key, model, prompt)
+
+
+def _gerar_texto(prompt: str) -> str:
+    """
+    Gera texto tentando os provedores em ordem; retorna o 1º com resposta válida.
+    Se todos falharem, levanta RuntimeError com o resumo dos erros.
+    """
+    erros = []
+    for nome, fn in _provedores_texto():
+        try:
+            texto = fn(prompt)
+            if texto:
+                if nome != "Gemini":
+                    logger.info(f"Geração concluída via provedor de fallback: {nome}")
+                return texto
+            erros.append(f"{nome}: resposta vazia")
+        except Exception as e:
+            logger.warning(f"Provedor {nome} indisponível: {e}")
+            erros.append(f"{nome}: {e}")
+    raise RuntimeError("Todos os provedores de IA falharam — " + " | ".join(erros))
+
+
+# ─────────────────────────────────────────────────── geração de conteúdo
 def _generate_with_file(file_uri: str, prompt: str) -> dict:
-    """Generate content by passing the full PDF to Gemini — no chunking needed."""
+    """Gera passando o PDF inteiro ao Gemini (caminho rápido, sem chunking)."""
     contents = gemini_file_service.build_content_parts(file_uri, prompt)
     response = _gerar_conteudo(contents)
     return _parse_json(response.text)
 
 
 def _generate_with_rag(chunks: list[dict], prompt_template: str) -> dict:
-    """Fallback: use RAG context chunks."""
+    """Usa o contexto RAG e a cadeia de provedores (Gemini → Groq → …)."""
     context = _build_context(chunks)
     full_prompt = prompt_template.replace("{CONTEXT}", context)
-    response = _gerar_conteudo(full_prompt)
-    return _parse_json(response.text)
+    return _parse_json(_gerar_texto(full_prompt))
 
 
 class RAGService:
@@ -242,10 +320,14 @@ Retorne APENAS JSON válido:
 }}"""
 
         file_uri = _get_gemini_file_uri(document_id)
+        result = None
         if file_uri:
             logger.info(f"Quiz via Gemini Files API: doc={document_id}")
-            result = _generate_with_file(file_uri, prompt)
-        else:
+            try:
+                result = _generate_with_file(file_uri, prompt)
+            except Exception as e:
+                logger.warning(f"Gemini (PDF direto) falhou ({e}); usando RAG + fallback")
+        if result is None:
             logger.info(f"Quiz via RAG: doc={document_id}")
             chunks = embed_service.search_similar_chunks(
                 query="conceitos principais, definições, teorias, fatos importantes, dados, exemplos, processos",
@@ -286,9 +368,13 @@ Retorne APENAS JSON válido:
 }"""
 
         file_uri = _get_gemini_file_uri(document_id)
+        result = None
         if file_uri:
-            result = _generate_with_file(file_uri, prompt)
-        else:
+            try:
+                result = _generate_with_file(file_uri, prompt)
+            except Exception as e:
+                logger.warning(f"Gemini (PDF direto) falhou ({e}); usando RAG + fallback")
+        if result is None:
             chunks = embed_service.search_similar_chunks(
                 query="ideias principais, argumentos centrais, conclusões, resumo, pontos-chave",
                 document_id=document_id,
@@ -369,9 +455,13 @@ Retorne APENAS JSON válido (sem markdown, sem texto extra):
 }}"""
 
         file_uri = _get_gemini_file_uri(document_id)
+        result = None
         if file_uri:
-            result = _generate_with_file(file_uri, prompt)
-        else:
+            try:
+                result = _generate_with_file(file_uri, prompt)
+            except Exception as e:
+                logger.warning(f"Gemini (PDF direto) falhou ({e}); usando RAG + fallback")
+        if result is None:
             chunks = embed_service.search_similar_chunks(
                 query="estrutura, tópicos principais, argumentos, evidências, dados, conclusões, exemplos",
                 document_id=document_id,
@@ -414,9 +504,13 @@ Retorne APENAS JSON válido:
 }}"""
 
         file_uri = _get_gemini_file_uri(document_id)
+        result = None
         if file_uri:
-            result = _generate_with_file(file_uri, prompt)
-        else:
+            try:
+                result = _generate_with_file(file_uri, prompt)
+            except Exception as e:
+                logger.warning(f"Gemini (PDF direto) falhou ({e}); usando RAG + fallback")
+        if result is None:
             chunks = embed_service.search_similar_chunks(
                 query="tópicos principais, subtópicos, conceitos, categorias, hierarquia",
                 document_id=document_id,
@@ -448,9 +542,13 @@ Retorne APENAS JSON válido:
 }}"""
 
         file_uri = _get_gemini_file_uri(document_id)
+        result = None
         if file_uri:
-            result = _generate_with_file(file_uri, prompt)
-        else:
+            try:
+                result = _generate_with_file(file_uri, prompt)
+            except Exception as e:
+                logger.warning(f"Gemini (PDF direto) falhou ({e}); usando RAG + fallback")
+        if result is None:
             chunks = embed_service.search_similar_chunks(
                 query="definições, conceitos-chave, terminologia, fatos, processos",
                 document_id=document_id,
@@ -531,9 +629,13 @@ Retorne APENAS JSON válido:
 }"""
 
         file_uri = _get_gemini_file_uri(document_id)
+        result = None
         if file_uri:
-            result = _generate_with_file(file_uri, prompt)
-        else:
+            try:
+                result = _generate_with_file(file_uri, prompt)
+            except Exception as e:
+                logger.warning(f"Gemini (PDF direto) falhou ({e}); usando RAG + fallback")
+        if result is None:
             chunks = embed_service.search_similar_chunks(
                 query="conteúdo principal, ideias centrais, informações essenciais",
                 document_id=document_id,

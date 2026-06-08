@@ -49,6 +49,25 @@ class Settings(BaseSettings):
     # Generation
     generation_model: str = "models/gemini-2.5-flash"
 
+    # ── Provedores de fallback (compatíveis com a API da OpenAI) ──
+    # Cada provedor só é ativado se a respectiva API key estiver no .env.
+    # Ordem de tentativa: Gemini → Groq → Cerebras → OpenRouter → Mistral.
+    groq_api_key: str | None = None
+    groq_model: str = "llama-3.3-70b-versatile"
+    groq_base_url: str = "https://api.groq.com/openai/v1"
+
+    cerebras_api_key: str | None = None
+    cerebras_model: str = "llama-3.3-70b"
+    cerebras_base_url: str = "https://api.cerebras.ai/v1"
+
+    openrouter_api_key: str | None = None
+    openrouter_model: str = "meta-llama/llama-3.3-70b-instruct:free"
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+
+    mistral_api_key: str | None = None
+    mistral_model: str = "mistral-small-latest"
+    mistral_base_url: str = "https://api.mistral.ai/v1"
+
     # Quiz
     default_quiz_questions: int = 30
     quiz_context_chunks: int = 20
