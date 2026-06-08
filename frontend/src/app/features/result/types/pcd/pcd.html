@@ -1,56 +1,237 @@
-<div class="result-page">
-  <div class="result-page__content">
+<div class="pcd-page">
 
-    <button class="result-back" (click)="goToUpload()">← Novo material</button>
+  <!-- Cabeçalho -->
+  <div class="pcd-header">
+    <button class="pcd-header__back" (click)="goToUpload()">
+      <i class="pi pi-arrow-left"></i> Novo material
+    </button>
 
-    @if (!data()) {
-      <div class="result-empty">
-        <span style="font-size:3rem; display:block; margin-bottom:1rem">📭</span>
-        <p>Nenhum conteúdo acessível para exibir. Gere a partir de um PDF.</p>
-        <button class="result-back" (click)="goToUpload()">Fazer upload</button>
-      </div>
-    } @else {
-      <div class="result-pcd">
+    @if (data()) {
+      <div class="pcd-header__info">
         <h1>{{ data()!.title }}</h1>
+      </div>
 
-        <div class="result-pcd__wcag">
-          <span>Nível de leitura: <strong>{{ data()!.wcag_metadata.reading_level }}</strong></span>
-          <span>Duração: <strong>{{ data()!.wcag_metadata.estimated_duration }}</strong></span>
-        </div>
-
-        <div class="result-pcd__tabs">
-          <button class="pcd-tab" [class.pcd-tab--active]="pcdTab() === 'simplified'" (click)="setPcdTab('simplified')">📖 Texto Simplificado</button>
-          <button class="pcd-tab" [class.pcd-tab--active]="pcdTab() === 'audio'" (click)="setPcdTab('audio')">🎙️ Áudio</button>
-          <button class="pcd-tab" [class.pcd-tab--active]="pcdTab() === 'vocabulary'" (click)="setPcdTab('vocabulary')">📚 Vocabulário</button>
-          <button class="pcd-tab" [class.pcd-tab--active]="pcdTab() === 'libras'" (click)="setPcdTab('libras')">🤟 LIBRAS</button>
-        </div>
-
-        <div class="result-pcd__panel">
-          @if (pcdTab() === 'simplified') {
-            <p class="result-pcd__text">{{ data()!.simplified_text }}</p>
-          }
-          @if (pcdTab() === 'audio') {
-            <button class="result-pcd__copy" (click)="copyText(data()!.audio_script)">📋 Copiar roteiro</button>
-            <pre class="result-pcd__script">{{ data()!.audio_script }}</pre>
-          }
-          @if (pcdTab() === 'vocabulary') {
-            <dl class="result-pcd__glossary">
-              @for (entry of data()!.key_vocabulary; track entry.term) {
-                <dt>{{ entry.term }}</dt>
-                <dd>{{ entry.definition }}</dd>
-              }
-            </dl>
-          }
-          @if (pcdTab() === 'libras') {
-            <ul class="result-pcd__libras">
-              @for (s of data()!.libras_suggestions; track s) {
-                <li>🤟 {{ s }}</li>
-              }
-            </ul>
-          }
-        </div>
+      <!-- Badge de acessibilidade -->
+      <div class="pcd-badge">
+        <i class="pi pi-eye"></i>
+        <span>Conteúdo Acessível</span>
+        <span class="pcd-badge__wcag">WCAG 2.1</span>
       </div>
     }
-
   </div>
+
+  <!-- Sem dados -->
+  @if (!data()) {
+    <div class="pcd-empty">
+      <i class="pi pi-inbox pcd-empty__icon"></i>
+      <p>Nenhum conteúdo acessível para exibir. Gere a partir de um PDF.</p>
+      <button class="pcd-header__back" (click)="goToUpload()">
+        <i class="pi pi-upload"></i> Fazer upload
+      </button>
+    </div>
+  } @else {
+
+    <div class="pcd-body">
+
+      <!-- Metadados WCAG -->
+      <div class="pcd-meta">
+        <div class="pcd-meta__item">
+          <i class="pi pi-book"></i>
+          <div>
+            <span class="pcd-meta__label">Nível de Leitura</span>
+            <strong>{{ data()!.wcag_metadata.reading_level }}</strong>
+          </div>
+        </div>
+        <div class="pcd-meta__item">
+          <i class="pi pi-clock"></i>
+          <div>
+            <span class="pcd-meta__label">Duração Estimada</span>
+            <strong>{{ data()!.wcag_metadata.estimated_duration }}</strong>
+          </div>
+        </div>
+        <div class="pcd-meta__item">
+          <i class="pi pi-chart-bar"></i>
+          <div>
+            <span class="pcd-meta__label">Complexidade</span>
+            <strong [style.color]="corComplexidade(data()!.wcag_metadata.complexity_score)">
+              {{ data()!.wcag_metadata.complexity_score }}/10
+            </strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Abas -->
+      <div class="pcd-tabs">
+        @for (aba of abas; track aba.id) {
+          <button
+            class="pcd-tab"
+            [class.pcd-tab--ativa]="pcdTab() === aba.id"
+            (click)="setPcdTab(aba.id)">
+            <i class="pi {{ aba.icon }}"></i>
+            {{ aba.label }}
+          </button>
+        }
+      </div>
+
+      <!-- Painel de conteúdo -->
+      <div class="pcd-painel">
+
+        <!-- Texto Simplificado -->
+        @if (pcdTab() === 'simplified') {
+          <div class="pcd-simplificado">
+            <div class="pcd-simplificado__header">
+              <span>
+                <i class="pi pi-file-edit"></i> Texto Simplificado
+              </span>
+              <button class="pcd-btn-copiar" (click)="copyText(data()!.simplified_text)">
+                <i class="pi pi-copy"></i> Copiar
+              </button>
+            </div>
+            <p class="pcd-simplificado__texto">{{ data()!.simplified_text }}</p>
+          </div>
+        }
+
+        <!-- Áudio -->
+        @if (pcdTab() === 'audio') {
+          <div class="pcd-audio">
+
+            <!-- Player -->
+            <div class="pcd-player">
+              <div class="pcd-player__icon">
+                <i class="pi"
+                  [class.pi-volume-up]="audioStatus() === 'parado'"
+                  [class.pi-play]="audioStatus() === 'pausado'"
+                  [class.pi-spin]="audioStatus() === 'reproduzindo'"
+                  [class.pi-spinner]="audioStatus() === 'reproduzindo'">
+                </i>
+              </div>
+
+              <div class="pcd-player__info">
+                @if (audioStatus() === 'parado')       { <span>Pronto para reproduzir</span> }
+                @if (audioStatus() === 'reproduzindo') { <span class="pcd-player__status--ativo">Reproduzindo...</span> }
+                @if (audioStatus() === 'pausado')      { <span class="pcd-player__status--pausado">Pausado</span> }
+              </div>
+
+              <!-- Controles -->
+              <div class="pcd-player__controles">
+                @if (audioStatus() === 'parado') {
+                  <button class="pcd-ctrl pcd-ctrl--play" (click)="reproduzir()">
+                    <i class="pi pi-play"></i> Reproduzir
+                  </button>
+                }
+                @if (audioStatus() === 'reproduzindo') {
+                  <button class="pcd-ctrl pcd-ctrl--pause" (click)="pausar()">
+                    <i class="pi pi-pause"></i> Pausar
+                  </button>
+                }
+                @if (audioStatus() === 'pausado') {
+                  <button class="pcd-ctrl pcd-ctrl--play" (click)="retomar()">
+                    <i class="pi pi-play"></i> Retomar
+                  </button>
+                }
+                @if (audioStatus() !== 'parado') {
+                  <button class="pcd-ctrl pcd-ctrl--stop" (click)="pararAudio()">
+                    <i class="pi pi-stop"></i> Parar
+                  </button>
+                }
+              </div>
+
+              <!-- Velocidade -->
+              <div class="pcd-velocidade">
+                <span class="pcd-velocidade__label">
+                  <i class="pi pi-sliders-h"></i> Velocidade:
+                </span>
+                <div class="pcd-velocidade__opcoes">
+                  @for (op of opcoesVelocidade; track op.valor) {
+                    <button
+                      class="pcd-vel-btn"
+                      [class.pcd-vel-btn--ativo]="velocidade() === op.valor"
+                      (click)="alterarVelocidade(op.valor)">
+                      {{ op.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Roteiro -->
+            <div class="pcd-roteiro">
+              <div class="pcd-roteiro__header">
+                <span><i class="pi pi-align-left"></i> Roteiro de Áudio</span>
+                <button class="pcd-btn-copiar" (click)="copyText(data()!.audio_script)">
+                  <i class="pi pi-copy"></i> Copiar roteiro
+                </button>
+              </div>
+              <pre class="pcd-roteiro__texto">{{ data()!.audio_script }}</pre>
+            </div>
+
+          </div>
+        }
+
+        <!-- Vocabulário -->
+        @if (pcdTab() === 'vocabulary') {
+          <div class="pcd-vocabulario">
+            <div class="pcd-vocabulario__header">
+              <i class="pi pi-book"></i>
+              <span>Vocabulário-Chave — {{ data()!.key_vocabulary.length }} termos</span>
+            </div>
+            <div class="pcd-vocabulario__lista">
+              @for (entry of data()!.key_vocabulary; track entry.term) {
+                <div class="pcd-termo">
+                  <div class="pcd-termo__palavra">
+                    <i class="pi pi-tag"></i>
+                    {{ entry.term }}
+                  </div>
+                  <p class="pcd-termo__definicao">{{ entry.definition }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- LIBRAS -->
+        @if (pcdTab() === 'libras') {
+          <div class="pcd-libras">
+            <div class="pcd-libras__header">
+              <i class="pi pi-hand-pointer"></i>
+              <span>Sugestões para LIBRAS</span>
+              <span class="pcd-libras__badge">{{ data()!.libras_suggestions.length }} sugestões</span>
+            </div>
+            <p class="pcd-libras__desc">
+              Estas sugestões ajudam intérpretes de LIBRAS a adaptar o conteúdo
+              para a Língua Brasileira de Sinais.
+            </p>
+            <ul class="pcd-libras__lista">
+              @for (s of data()!.libras_suggestions; track s) {
+                <li class="pcd-libras__item">
+                  <span class="pcd-libras__num">
+                    <i class="pi pi-hand-pointer"></i>
+                  </span>
+                  <span>{{ s }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+      </div>
+
+      <!-- Alternativas visuais -->
+      @if (data()?.visual_alternatives && data()!.visual_alternatives.length > 0) {
+        <div class="pcd-visuais">
+          <div class="pcd-visuais__header">
+            <i class="pi pi-image"></i>
+            <span>Alternativas Visuais</span>
+          </div>
+          <ul class="pcd-visuais__lista">
+            @for (v of data()!.visual_alternatives; track v) {
+              <li><i class="pi pi-check-circle"></i> {{ v }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+    </div>
+  }
+
 </div>
