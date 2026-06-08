@@ -1,20 +1,107 @@
 <nav class="navbar">
   <div class="navbar-container">
 
-    <a routerLink="/" class="navbar-brand">
+    <!-- Logo -->
+    <a routerLink="/" class="navbar-brand" (click)="fecharMenu()">
       <img src="images/logo.png" alt="EduCore" class="brand-logo-img">
     </a>
 
+    <!-- Links desktop -->
     <div class="navbar-links">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Início</a>
+      <a routerLink="/" routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: true}">Início</a>
       <a href="#features">Funcionalidades</a>
       <a href="#pricing">Planos</a>
     </div>
 
+    <!-- Ações desktop -->
     <div class="navbar-actions">
-      <a routerLink="/login" class="btn-ghost">Entrar</a>
-      <a routerLink="/cadastro" class="btn-primary">Começar grátis</a>
+      @if (isLoggedIn()) {
+        <!-- Usuário logado -->
+        <div class="navbar-user">
+          @if (currentUser()?.avatar) {
+            <img [src]="currentUser()!.avatar" class="user-avatar" [alt]="currentUser()!.name">
+          } @else {
+            <div class="user-avatar user-avatar--iniciais">{{ iniciais() }}</div>
+          }
+          <span class="user-name">{{ currentUser()?.name }}</span>
+        </div>
+        <a routerLink="/upload" class="btn-primary" (click)="fecharMenu()">Dashboard</a>
+        <button class="btn-ghost" (click)="logout()">Sair</button>
+      } @else {
+        <a routerLink="/login" class="btn-ghost">Entrar</a>
+        <a routerLink="/cadastro" class="btn-primary">Começar grátis</a>
+      }
+    </div>
+
+    <!-- Botão hambúrguer (mobile) -->
+    <button class="navbar-hamburger" (click)="toggleMenu()"
+      [class.aberto]="menuAberto()"
+      aria-label="Abrir menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+  </div>
+
+  <!-- Menu mobile deslizante -->
+  <div class="navbar-mobile" [class.navbar-mobile--aberto]="menuAberto()">
+
+    <!-- Usuário logado no mobile -->
+    @if (isLoggedIn()) {
+      <div class="mobile-user">
+        @if (currentUser()?.avatar) {
+          <img [src]="currentUser()!.avatar" class="user-avatar" [alt]="currentUser()!.name">
+        } @else {
+          <div class="user-avatar user-avatar--iniciais">{{ iniciais() }}</div>
+        }
+        <div>
+          <span class="user-name">{{ currentUser()?.name }}</span>
+          <span class="user-email">{{ currentUser()?.email }}</span>
+        </div>
+      </div>
+      <div class="mobile-divider"></div>
+    }
+
+    <!-- Links mobile -->
+    <div class="mobile-links">
+      <a routerLink="/" routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: true}"
+        (click)="fecharMenu()">
+        <i class="pi pi-home"></i> Início
+      </a>
+      <a href="#features" (click)="fecharMenu()">
+        <i class="pi pi-star"></i> Funcionalidades
+      </a>
+      <a href="#pricing" (click)="fecharMenu()">
+        <i class="pi pi-tag"></i> Planos
+      </a>
+
+      @if (isLoggedIn()) {
+        <a routerLink="/upload" (click)="fecharMenu()">
+          <i class="pi pi-th-large"></i> Dashboard
+        </a>
+        <div class="mobile-divider"></div>
+        <button class="mobile-logout" (click)="logout()">
+          <i class="pi pi-sign-out"></i> Sair
+        </button>
+      } @else {
+        <div class="mobile-divider"></div>
+        <a routerLink="/login" class="mobile-btn-ghost" (click)="fecharMenu()">
+          <i class="pi pi-sign-in"></i> Entrar
+        </a>
+        <a routerLink="/cadastro" class="mobile-btn-primary" (click)="fecharMenu()">
+          <i class="pi pi-user-plus"></i> Começar grátis
+        </a>
+      }
     </div>
 
   </div>
+
+  <!-- Overlay para fechar o menu -->
+  @if (menuAberto()) {
+    <div class="navbar-overlay" (click)="fecharMenu()"></div>
+  }
+
 </nav>
