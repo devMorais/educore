@@ -198,6 +198,12 @@ export class Upload implements OnInit, OnDestroy {
     return this.isCompleted() || this.processingProgress() >= 30;
   }
 
+  // US-023: rótulo amigável do tipo em geração, para o spinner global
+  generatingLabel(): string {
+    const btn = this.actionButtons.find(b => b.type === this.generatingType());
+    return btn?.label ?? 'conteúdo';
+  }
+
   onDragOver(event: DragEvent) {
     event.preventDefault();
     this.isDragging.set(true);

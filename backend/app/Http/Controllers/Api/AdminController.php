@@ -42,7 +42,59 @@ class AdminController extends Controller
             'active_users_7days'    => $activeUsers7Days,
             'uploads_per_day'       => $aiStats['uploads_per_day'] ?? [],
             'registrations_per_day' => $registrationsByDay,
+            // Distribuição real por tipo de conteúdo (alimenta o gráfico donut)
+            'by_type'               => $aiStats['by_type'] ?? [],
         ]);
+    }
+
+    /**
+     * Retorna a atividade recente real da plataforma (BS-009).
+     * Combina registros de novos usuários (Laravel) com uploads de PDFs
+     * recentes (AI Service), resolvendo os nomes dos usuários.
+     */
+    public function activity(): JsonResponse
+    {
+        $activities = [];
+
+        // Registros recentes de usuários (sempre disponível — base do Laravel)
+        $recentUsers = User::orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get(['name', 'created_at']);
+
+        foreach ($recentUsers as $user) {
+            $activities[] = [
+                'type'      => 'registration',
+                'name'      => $user->name,
+                'action'    => 'Criou uma conta',
+                'timestamp' => optional($user->created_at)->toIso8601String(),
+            ];
+        }
+
+        // Uploads recentes de PDFs (AI Service) com nomes resolvidos
+        $recentDocs = $this->fetchAiDocuments();
+        if (! empty($recentDocs)) {
+            $userIds = collect($recentDocs)->pluck('user_id')->filter()->unique();
+            $names   = User::whereIn('id', $userIds)->pluck('name', 'id');
+
+            foreach ($recentDocs as $doc) {
+                $activities[] = [
+                    'type'      => 'upload',
+                    'name'      => $names[$doc['user_id'] ?? null] ?? 'Usuário',
+                    'action'    => 'Enviou um novo PDF',
+                    'timestamp' => $doc['created_at'] ?? null,
+                ];
+            }
+        }
+
+        // Ordena por data (mais recentes primeiro) e limita às 10 últimas
+        $activities = collect($activities)
+            ->filter(fn ($a) => ! empty($a['timestamp']))
+            ->sortByDesc('timestamp')
+            ->take(10)
+            ->values()
+            ->all();
+
+        return response()->json(['activities' => $activities]);
     }
 
     /**
@@ -121,6 +173,24 @@ class AdminController extends Controller
                 ->get("{$baseUrl}/admin/stats");
 
             return $res->successful() ? $res->json() : [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Busca os documentos recentes do AI Service (falha silenciosamente).
+     */
+    private function fetchAiDocuments(): array
+    {
+        try {
+            $token   = request()->bearerToken();
+            $baseUrl = config('services.ai_service.url', env('AI_SERVICE_URL', 'http://localhost:8001'));
+            $res     = Http::withToken($token)
+                ->timeout(3)
+                ->get("{$baseUrl}/admin/documents", ['page' => 1, 'per_page' => 10]);
+
+            return $res->successful() ? ($res->json('data') ?? []) : [];
         } catch (\Throwable) {
             return [];
         }

@@ -1,5 +1,16 @@
 <div class="up-layout">
 
+  <!-- US-023: Spinner global exibido durante a geração de conteúdo pela IA -->
+  @if (generating()) {
+    <div class="up-gen-overlay" role="status" aria-live="polite">
+      <div class="up-gen-overlay__box">
+        <span class="up-gen-overlay__spinner"></span>
+        <h3>Gerando {{ generatingLabel() }}...</h3>
+        <p>Aguarde enquanto a IA prepara o seu material.</p>
+      </div>
+    </div>
+  }
+
   <!-- Overlay escuro que fecha o menu ao tocar fora (apenas mobile) -->
   @if (menuAberto()) {
     <div class="up-overlay" (click)="alternarMenu()"></div>

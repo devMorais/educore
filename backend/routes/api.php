@@ -40,6 +40,7 @@ Route::prefix('auth')->group(function () {
 // Rotas administrativas — apenas usuários com role=admin (BS-006 + BS-009)
 Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/stats',                       [AdminController::class, 'stats']);
+    Route::get('/activity',                    [AdminController::class, 'activity']);
     Route::get('/users',                       [AdminController::class, 'users']);
     Route::patch('/users/{id}/role',           [AdminController::class, 'updateRole']);
     Route::patch('/users/{id}/status',         [AdminController::class, 'updateStatus']);
