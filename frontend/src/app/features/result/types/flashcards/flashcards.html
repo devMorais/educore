@@ -1,39 +1,150 @@
-<div class="result-page">
-  <div class="result-page__content">
+<div class="fc-page">
 
-    <button class="result-back" (click)="goToUpload()">← Novo material</button>
+  <!-- Cabeçalho -->
+  <div class="fc-header">
+    <button class="fc-header__back" (click)="goToUpload()">
+      <i class="pi pi-arrow-left"></i> Novo material
+    </button>
 
-    @if (!data()) {
-      <div class="result-empty">
-        <span style="font-size:3rem; display:block; margin-bottom:1rem">📭</span>
-        <p>Nenhum flashcard para exibir. Gere a partir de um PDF.</p>
-        <button class="result-back" (click)="goToUpload()">Fazer upload</button>
-      </div>
-    } @else {
-      <div class="result-flashcards">
+    @if (data()) {
+      <div class="fc-header__info">
         <h1>{{ data()!.title }}</h1>
-        <p class="result-flashcards__counter">{{ cardIndex() + 1 }} / {{ data()!.total_cards }}</p>
+      </div>
 
-        <div class="flashcard" [class.flashcard--flipped]="cardFlipped()" (click)="flipCard()">
-          <div class="flashcard__inner">
-            <div class="flashcard__front">
-              <span class="flashcard__label">Pergunta</span>
-              <p>{{ currentCard()?.front }}</p>
-              <span class="flashcard__hint">Clique para ver a resposta</span>
+      <button class="fc-header__embaralhar" (click)="embaralhar()">
+        <i class="pi pi-sync"></i> Embaralhar
+      </button>
+    }
+  </div>
+
+  <!-- Sem dados -->
+  @if (!data()) {
+    <div class="fc-empty">
+      <i class="pi pi-inbox fc-empty__icon"></i>
+      <p>Nenhum flashcard para exibir. Gere a partir de um PDF.</p>
+      <button class="fc-header__back" (click)="goToUpload()">
+        <i class="pi pi-upload"></i> Fazer upload
+      </button>
+    </div>
+  } @else {
+
+    <div class="fc-body">
+
+      <!-- Barra de progresso -->
+      <div class="fc-progress">
+        <div class="fc-progress__info">
+          <span class="fc-progress__label">
+            <i class="pi pi-check-circle fc-progress__icon--sei"></i>
+            Já sei: <strong>{{ jaSeiSet().size }}</strong>
+          </span>
+          <span class="fc-progress__counter">
+            Card {{ cardIndex() + 1 }} de {{ total() }}
+          </span>
+          <span class="fc-progress__label">
+            Revisar: <strong>{{ revisarSet().size }}</strong>
+            <i class="pi pi-refresh fc-progress__icon--revisar"></i>
+          </span>
+        </div>
+        <div class="fc-progress__bar">
+          <div class="fc-progress__fill fc-progress__fill--sei"
+            [style.width.%]="(jaSeiSet().size / total()) * 100">
+          </div>
+          <div class="fc-progress__fill fc-progress__fill--revisar"
+            [style.width.%]="(revisarSet().size / total()) * 100">
+          </div>
+        </div>
+        <div class="fc-progress__pct">{{ progressPercent() }}% concluído</div>
+      </div>
+
+      <!-- Card com flip 3D -->
+      <div class="fc-card-wrapper">
+        <div class="fc-card"
+          [class.fc-card--flipped]="cardFlipped()"
+          [class.fc-card--ja-sei]="cardAtualJaSei()"
+          [class.fc-card--revisar]="cardAtualRevisar()"
+          (click)="flipCard()">
+
+          <div class="fc-card__inner">
+
+            <!-- Frente -->
+            <div class="fc-card__front">
+              <span class="fc-card__lado">
+                <i class="pi pi-question-circle"></i> Frente
+              </span>
+              <p class="fc-card__texto">{{ currentCard()?.front }}</p>
+              <span class="fc-card__dica">
+                <i class="pi pi-hand-pointer"></i> Clique para ver a resposta
+              </span>
             </div>
-            <div class="flashcard__back">
-              <span class="flashcard__label">Resposta</span>
-              <p>{{ currentCard()?.back }}</p>
+
+            <!-- Verso -->
+            <div class="fc-card__back">
+              <span class="fc-card__lado">
+                <i class="pi pi-lightbulb"></i> Verso
+              </span>
+              <p class="fc-card__texto fc-card__texto--resposta">{{ currentCard()?.back }}</p>
+              @if (currentCard()?.topic) {
+                <span class="fc-card__topic">
+                  <i class="pi pi-tag"></i> {{ currentCard()!.topic }}
+                </span>
+              }
             </div>
+
           </div>
         </div>
 
-        <div class="result-flashcards__nav">
-          <button class="flashcard-nav-btn" (click)="prevCard()">← Anterior</button>
-          <button class="flashcard-nav-btn" (click)="nextCard()">Próximo →</button>
-        </div>
+        <!-- Badge de status do card -->
+        @if (cardAtualJaSei()) {
+          <div class="fc-badge fc-badge--sei">
+            <i class="pi pi-check"></i> Já sei
+          </div>
+        }
+        @if (cardAtualRevisar()) {
+          <div class="fc-badge fc-badge--revisar">
+            <i class="pi pi-refresh"></i> Revisar
+          </div>
+        }
       </div>
-    }
 
-  </div>
+      <!-- Navegação -->
+      <div class="fc-nav">
+        <button class="fc-nav__btn" (click)="prevCard()">
+          <i class="pi pi-arrow-left"></i> Anterior
+        </button>
+
+        <!-- Ações de marcação (aparecem após virar) -->
+        @if (cardFlipped()) {
+          <div class="fc-acoes">
+            <button class="fc-acoes__btn fc-acoes__btn--revisar" (click)="marcarRevisar()">
+              <i class="pi pi-refresh"></i> Revisar depois
+            </button>
+            <button class="fc-acoes__btn fc-acoes__btn--sei" (click)="marcarJaSei()">
+              <i class="pi pi-check"></i> Já sei!
+            </button>
+          </div>
+        }
+
+        <button class="fc-nav__btn" (click)="nextCard()">
+          Próximo <i class="pi pi-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- Tela de conclusão -->
+      @if (progressPercent() === 100) {
+        <div class="fc-concluido">
+          <i class="pi pi-star-fill fc-concluido__icon"></i>
+          <h2>Estudo concluído!</h2>
+          <p>
+            <strong>{{ jaSeiSet().size }}</strong> já sei •
+            <strong>{{ revisarSet().size }}</strong> para revisar
+          </p>
+          <button class="fc-concluido__btn" (click)="reiniciar()">
+            <i class="pi pi-refresh"></i> Reiniciar
+          </button>
+        </div>
+      }
+
+    </div>
+  }
+
 </div>
