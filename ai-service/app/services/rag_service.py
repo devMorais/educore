@@ -32,6 +32,11 @@ def _build_context(chunks: list[dict]) -> str:
 
 def _get_gemini_file_uri(document_id: int) -> str | None:
     """Fetch the Gemini file URI for a document, if available and still active."""
+    # Em teste forçado para outro provedor, ignora o caminho do PDF-Gemini
+    forcado = settings.ai_force_provider
+    if forcado and forcado.lower() != "gemini":
+        return None
+
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -135,6 +140,16 @@ def _provedores_texto() -> list[tuple[str, callable]]:
     for nome, key, base, model in extras:
         if key:
             provedores.append((nome, _fazer_chamador(base, key, model)))
+
+    # Provedor forçado (teste/diagnóstico): usa só ele, se disponível
+    forcado = settings.ai_force_provider
+    if forcado:
+        filtrados = [p for p in provedores if p[0].lower() == forcado.lower()]
+        if filtrados:
+            logger.info(f"[TESTE] Provedor forçado ativo: {filtrados[0][0]}")
+            return filtrados
+        logger.warning(f"[TESTE] Provedor forçado '{forcado}' indisponível; usando a cadeia normal.")
+
     return provedores
 
 

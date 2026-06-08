@@ -68,6 +68,11 @@ class Settings(BaseSettings):
     mistral_model: str = "mistral-small-latest"
     mistral_base_url: str = "https://api.mistral.ai/v1"
 
+    # Força um provedor específico na geração (para teste/diagnóstico).
+    # Ex.: AI_FORCE_PROVIDER=Groq → usa só o Groq (ignora Gemini e os demais).
+    # Vazio = comportamento normal (cadeia completa Gemini → Groq → …).
+    ai_force_provider: str | None = None
+
     # Quiz
     default_quiz_questions: int = 30
     quiz_context_chunks: int = 20
