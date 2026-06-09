@@ -7,8 +7,10 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks,
 from fastapi.responses import FileResponse, Response
 from app.core.database import get_connection
 from app.core.auth import get_current_user, verify_token
+from app.core.config import settings
 from app.core.limiter import limiter, get_user_identifier
 from app.services.rag_service import rag_service
+from app.services.tts_service import tts_service
 from app.models.schemas import GenerationRequest, GenerationType
 
 logger = logging.getLogger(__name__)
@@ -275,6 +277,63 @@ async def generate_content(
                 detail="O modelo de IA está sobrecarregado no momento. Aguarde alguns segundos e tente novamente.",
             )
         raise HTTPException(status_code=500, detail=msg)
+
+
+# ──────────────────────────────────────────────────────── áudio (TTS / BS-016)
+@router.get("/{document_id}/audio")
+async def get_audio(
+    request: Request,
+    document_id: int,
+    current_user: dict = get_current_user,
+):
+    """
+    Retorna o MP3 (Text-to-Speech) do roteiro de áudio do conteúdo PCD.
+    O áudio é gerado a partir do `audio_script` da geração PCD e fica em cache.
+    Auth via Bearer — o front deve buscar como blob (HttpClient) e tocar via objectURL.
+    """
+    ownership_check(document_id, current_user["user_id"], status_code=403)
+
+    if not settings.tts_enabled:
+        raise HTTPException(status_code=404, detail="Áudio (TTS) desabilitado.")
+
+    # Recupera o audio_script da geração PCD mais recente do documento
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "SELECT content FROM generations WHERE document_id=%s AND type='pcd' "
+            "ORDER BY created_at DESC LIMIT 1",
+            (document_id,),
+        )
+        row = cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Gere o conteúdo PCD antes de ouvir o áudio.")
+
+    content = row[0]
+    if isinstance(content, str):
+        content = json.loads(content)
+    texto = (content.get("audio_script") or content.get("simplified_text") or "").strip()
+    if not texto:
+        raise HTTPException(status_code=404, detail="Sem texto disponível para gerar o áudio.")
+
+    try:
+        caminho = tts_service.get_or_synthesize(document_id, texto)
+    except Exception as e:
+        logger.error(f"TTS falhou [doc={document_id}]: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail="Não foi possível gerar o áudio agora. Use a leitura por voz do navegador.",
+        )
+
+    return FileResponse(
+        caminho,
+        media_type="audio/mpeg",
+        filename=f"educore_audio_{document_id}.mp3",
+    )
 
 
 # ──────────────────────────────────────────────────────── export PPTX
