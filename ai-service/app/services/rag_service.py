@@ -13,6 +13,7 @@ from app.services.pdf_service import pdf_service
 from app.services.chunk_service import chunk_service
 from app.services.embed_service import embed_service
 from app.services.gemini_file_service import gemini_file_service
+from app.services.libras_service import libras_service
 
 logger = logging.getLogger(__name__)
 client = genai.Client(api_key=settings.gemini_api_key)
@@ -682,6 +683,8 @@ Retorne APENAS JSON válido:
             )
             result = _generate_with_rag(chunks, f"CONTEÚDO:\n{{CONTEXT}}\n\n{prompt}")
 
+        # BS-015: vídeos LIBRAS dos pontos-chave (título, vocabulário, momentos)
+        result["libras_videos"] = libras_service.build_videos_from_pcd(result)
         result["document_id"] = document_id
         return result
 
