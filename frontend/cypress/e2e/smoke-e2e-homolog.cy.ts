@@ -94,8 +94,8 @@ const rodarReal = Boolean(Cypress.env('REAL_E2E'))
         expect(JSON.stringify(dados)).to.contain('question')
       })
 
-      // A tela de quiz deve renderizar (pergunta visível)
-      cy.get('body', { timeout: 20000 }).should('contain.text', '?')
+      // A tela de resultado do quiz deve renderizar (intro com botão de iniciar)
+      cy.get('body', { timeout: 20000 }).should('contain.text', 'Iniciar Quiz')
     })
   },
 )
