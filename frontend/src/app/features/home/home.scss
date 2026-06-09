@@ -708,3 +708,20 @@
 
   .modal-video__fechar { top: -48px; }
 }
+// ── Logo footer ────────────────────────────────────────────────
+.footer-home__logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+// ── Imagem dos passos ──────────────────────────────────────────
+.passo__icone {
+  img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    margin: 0 auto 1rem;
+    display: block;
+  }
+}
