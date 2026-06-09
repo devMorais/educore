@@ -64,8 +64,11 @@ class QuizQuestion(BaseModel):
     correct_answer: str
     explanation: str
     difficulty: Optional[str] = "medium"    # easy | medium | hard
-    type: Optional[str] = "multiple_choice" # multiple_choice | true_false | fill_blank
+    type: Optional[str] = "multiple_choice" # multiple_choice | true_false | fill_blank | ordering
     topic: Optional[str] = None
+    bloom_level: Optional[str] = None        # BS-018: lembrar|entender|aplicar|analisar|avaliar|criar
+    hint: Optional[str] = None               # BS-018: dica que orienta sem entregar a resposta
+    source_chunk: Optional[str] = None       # BS-018: trecho do documento que fundamenta a questão
 
 
 class QuizResponse(BaseModel):
