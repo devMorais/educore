@@ -649,22 +649,39 @@ Retorne APENAS JSON válido:
 
     # ──────────────────────────────────────────────────────── pcd
     def generate_pcd_content(self, document_id: int) -> dict:
-        prompt = """Crie material educacional ACESSÍVEL em 4 formatos para pessoas com deficiência (PCD) em português brasileiro.
+        prompt = """Você é especialista em ACESSIBILIDADE educacional. Crie material PCD em português brasileiro em CONFORMIDADE com as diretrizes WCAG 2.1 nível AA.
 
-FORMATO 1 — TEXTO SIMPLIFICADO: nível 5ª série, frases curtas (≤15 palavras), voz ativa, 8-10 parágrafos.
-FORMATO 2 — ROTEIRO DE ÁUDIO: tom conversacional, [PAUSA CURTA]/[PAUSA LONGA], [IMAGEM: descrição].
-FORMATO 3 — ALTERNATIVAS VISUAIS: 5-8 descrições textuais de possíveis imagens/gráficos.
-FORMATO 4 — VOCABULÁRIO-CHAVE: 12-15 termos com definições acessíveis.
-FORMATO 5 — SUGESTÕES LIBRAS: 5-7 momentos onde vídeo LIBRAS seria impactante.
+REGRAS DE LINGUAGEM (obrigatórias, WCAG 3.1):
+- Nível de leitura 5ª série (índice Flesch ~60-70).
+- Frases com NO MÁXIMO 15 palavras, na estrutura SVO (Sujeito-Verbo-Objeto), voz ativa.
+- Evite jargão; toda palavra incomum deve estar no vocabulário.
+- AUTOVERIFIQUE antes de responder: releia cada frase do simplified_text e do screen_reader_text; se alguma passar de 15 palavras, REESCREVA dividindo em frases menores.
+
+FORMATOS:
+1. TEXTO SIMPLIFICADO: 8-10 parágrafos seguindo as regras acima.
+2. SCREEN_READER_TEXT: versão em texto puro (sem marcações/símbolos) otimizada para leitores de tela.
+3. ROTEIRO DE ÁUDIO: tom conversacional com [PAUSA CURTA]/[PAUSA LONGA] e [IMAGEM: descrição].
+4. ALTERNATIVAS VISUAIS: 5-8 descrições de imagens/gráficos.
+5. DESCRIÇÕES DE IMAGENS (alt text rico, WCAG 1.1.1): 4-6 itens {context, description}.
+6. VOCABULÁRIO-CHAVE: 20-25 termos, cada um com definição acessível E um exemplo de uso.
+7. AUXÍLIOS DE LEITURA (reading_aids): 4-6 dicas práticas (ex.: "leia em partes", "use o áudio").
+8. RECURSOS DE ACESSIBILIDADE (accessibility_features): liste o que foi aplicado (ex.: "frases ≤15 palavras", "voz ativa", "vocabulário definido").
+9. MAPA COGNITIVO (cognitive_map): hierarquia pai-filho do conteúdo (concept + children) p/ acessibilidade cognitiva.
+10. SUGESTÕES LIBRAS: 5-7 momentos de maior impacto.
 
 Retorne APENAS JSON válido:
 {
-  "title": "título",
-  "simplified_text": "texto simplificado...",
-  "audio_script": "roteiro...",
+  "title": "título claro",
+  "simplified_text": "texto simplificado (frases ≤15 palavras)...",
+  "screen_reader_text": "texto puro para leitores de tela...",
+  "audio_script": "roteiro com [PAUSA CURTA]...",
   "visual_alternatives": ["descrição 1"],
-  "key_vocabulary": [{"term": "termo", "definition": "definição acessível"}],
-  "wcag_metadata": {"reading_level": "Fundamental II", "estimated_duration": "8 minutos", "complexity_score": 0.6},
+  "image_descriptions": [{"context": "qual imagem/seção", "description": "descrição rica (alt text)"}],
+  "key_vocabulary": [{"term": "termo", "definition": "definição acessível", "example": "frase de exemplo usando o termo"}],
+  "reading_aids": ["dica de leitura 1"],
+  "accessibility_features": ["frases ≤15 palavras", "voz ativa"],
+  "cognitive_map": {"concept": "tema central", "children": [{"concept": "subtema", "children": []}]},
+  "wcag_metadata": {"reading_level": "Fundamental II (5ª série)", "estimated_duration": "8 minutos", "complexity_score": 0.4, "wcag_level": "AA", "applicable_guidelines": ["1.1.1 Conteúdo não textual", "1.4.8 Apresentação visual", "3.1.3 Palavras incomuns", "3.1.5 Nível de leitura"]},
   "libras_suggestions": ["sugestão específica"]
 }"""
 

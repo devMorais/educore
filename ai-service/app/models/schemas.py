@@ -140,12 +140,30 @@ class FlashcardsResponse(BaseModel):
 class VocabularyEntry(BaseModel):
     term: str
     definition: str
+    example: Optional[str] = None          # BS-017: exemplo de uso do termo
 
 
 class WcagMetadata(BaseModel):
     reading_level: str
     estimated_duration: str
     complexity_score: float
+    wcag_level: str = "AA"                          # BS-017: nível de conformidade
+    applicable_guidelines: List[str] = []           # BS-017: diretrizes WCAG aplicáveis
+
+
+class ImageDescription(BaseModel):
+    """Descrição textual rica de imagem/gráfico (alt text — WCAG 1.1.1)."""
+    context: str
+    description: str
+
+
+class CognitiveMapNode(BaseModel):
+    """Nó pai-filho do mapa cognitivo do conteúdo (acessibilidade cognitiva)."""
+    concept: str
+    children: Optional[List["CognitiveMapNode"]] = []
+
+
+CognitiveMapNode.model_rebuild()
 
 
 class LibrasVideo(BaseModel):
@@ -168,7 +186,13 @@ class AccessibilityResponse(BaseModel):
     key_vocabulary: List[VocabularyEntry]
     wcag_metadata: WcagMetadata
     libras_suggestions: List[str]
-    libras_videos: List[LibrasVideo] = []   # BS-015
+    libras_videos: List[LibrasVideo] = []              # BS-015
+    # ── BS-017: conformidade WCAG 2.1 AA ──
+    screen_reader_text: Optional[str] = None           # versão plain text p/ leitores de tela
+    image_descriptions: List[ImageDescription] = []    # alt text rico (WCAG 1.1.1)
+    reading_aids: List[str] = []                        # auxílios de leitura
+    accessibility_features: List[str] = []             # recursos de acessibilidade aplicados
+    cognitive_map: Optional[CognitiveMapNode] = None    # mapa cognitivo pai-filho
 
 
 # ---- Platform Export ----
