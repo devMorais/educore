@@ -86,6 +86,21 @@ class Settings(BaseSettings):
     hand_talk_api_key: str | None = None
     hand_talk_plugin_url: str = "https://plugin.handtalk.me/web/latest/handtalk.min.js"
 
+    # ── Acessibilidade: Text-to-Speech do conteúdo PCD (BS-016) ──
+    # Provedor: "edge" (grátis, vozes NEURAIS) | "gtts" (grátis, estável) | "google_cloud" (pago).
+    # Escala de qualidade/fallback: google_cloud -> edge -> gtts.
+    tts_enabled: bool = True
+    tts_provider: str = "edge"
+    tts_lang: str = "pt-BR"
+    tts_max_chars: int = 5000           # limite por chunk (Google Cloud TTS)
+    tts_cache_dir: str | None = None    # None = usa o tempdir do SO (cross-platform)
+    # edge-tts (gratuito, neural) — vozes pt-BR: FranciscaNeural (f) / AntonioNeural (m)
+    edge_tts_voice: str = "pt-BR-FranciscaNeural"
+    # Google Cloud TTS (pago, opcional)
+    google_tts_api_key: str | None = None
+    google_tts_voice: str = "pt-BR-Wavenet-A"
+    google_tts_voice_fallback: str = "pt-BR-Standard-A"
+
     # Quiz
     default_quiz_questions: int = 30
     quiz_context_chunks: int = 20

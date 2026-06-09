@@ -16,3 +16,5 @@ PyMuPDF==1.24.14
 langchain-text-splitters==0.3.8
 google-api-python-client
 google-auth>=2.48.1
+gTTS==2.5.4
+edge-tts==7.2.8
