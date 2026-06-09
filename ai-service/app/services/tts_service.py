@@ -29,6 +29,25 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
+def _run_async(coro_factory):
+    """
+    Executa uma corrotina de forma síncrona — inclusive quando já existe um event
+    loop rodando (caso das rotas async do FastAPI). Nesse caso, roda numa thread
+    própria com seu próprio loop, evitando o erro 'event loop is already running'.
+    """
+    import asyncio
+    import concurrent.futures
+    try:
+        asyncio.get_running_loop()
+        em_loop = True
+    except RuntimeError:
+        em_loop = False
+    if em_loop:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+            return ex.submit(lambda: asyncio.run(coro_factory())).result()
+    return asyncio.run(coro_factory())
+
+
 def _limpar_roteiro(texto: str) -> str:
     """
     Prepara o roteiro para a fala: remove marcações que não devem ser lidas em
@@ -88,6 +107,29 @@ class _GTTSProvider(_TTSProvider):
         return buf.getvalue()
 
 
+class _EdgeProvider(_TTSProvider):
+    """edge-tts (gratuito) — vozes NEURAIS da Microsoft Edge (alta qualidade, sem key)."""
+    name = "edge"
+
+    def __init__(self, voice: str):
+        self.voice = voice
+
+    def synthesize(self, text: str, voice: str | None = None) -> bytes:
+        voz = voice or self.voice
+        return _run_async(lambda: self._edge_async(text, voz))
+
+    async def _edge_async(self, text: str, voz: str) -> bytes:
+        import edge_tts
+        audio = b""
+        comm = edge_tts.Communicate(text, voz)
+        async for chunk in comm.stream():
+            if chunk["type"] == "audio":
+                audio += chunk["data"]
+        if not audio:
+            raise RuntimeError("edge-tts não retornou áudio")
+        return audio
+
+
 class _GoogleCloudProvider(_TTSProvider):
     """Google Cloud TTS (pago) — vozes WaveNet/Neural2 de alta qualidade."""
     name = "google_cloud"
@@ -127,7 +169,8 @@ class TTSService:
     """Fachada usada pelo restante do app (instância: tts_service)."""
 
     def _provider(self) -> _TTSProvider:
-        escolhido = (settings.tts_provider or "gtts").strip().lower()
+        # Escala de qualidade: google_cloud (pago) → edge (neural grátis) → gtts (grátis estável)
+        escolhido = (settings.tts_provider or "edge").strip().lower()
         if escolhido == "google_cloud":
             if settings.google_tts_api_key:
                 return _GoogleCloudProvider(
@@ -139,9 +182,12 @@ class TTSService:
                 )
             logger.warning(
                 "TTS_PROVIDER=google_cloud, mas GOOGLE_TTS_API_KEY não foi definido; "
-                "usando gTTS (gratuito) como fallback."
+                "usando edge-tts (neural, gratuito) como fallback."
             )
-        return _GTTSProvider()
+            return _EdgeProvider(settings.edge_tts_voice)
+        if escolhido == "gtts":
+            return _GTTSProvider()
+        return _EdgeProvider(settings.edge_tts_voice)  # padrão: melhor qualidade grátis
 
     def synthesize(self, text: str, voice: str | None = None) -> bytes:
         """Gera o MP3 (bytes) do texto. Cai para o gTTS se o provedor falhar."""
