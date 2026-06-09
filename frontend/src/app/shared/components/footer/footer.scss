@@ -1,7 +1,8 @@
 .footer {
-  background: #1A1A2E;
-  color: #94A3B8;
-  margin-top: 80px;
+  background: rgba(0, 0, 0, 0.4);
+  border-top: 1px solid var(--surface-brd);
+  color: var(--texto-mute);
+  font-family: var(--fonte);
 }
 
 .footer-container {
@@ -17,17 +18,18 @@
 .footer-brand {
   max-width: 280px;
 
-  .brand-name {
-    font-size: 20px;
-    font-weight: 700;
-    color: #fff;
+  .footer-logo {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 16px;
     display: block;
-    margin-bottom: 12px;
   }
 
   p {
     font-size: 14px;
     line-height: 1.6;
+    color: var(--texto-mute);
   }
 }
 
@@ -43,27 +45,28 @@
   gap: 12px;
 
   h4 {
-    color: #fff;
+    color: var(--texto);
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 4px;
   }
 
   a {
-    color: #94A3B8;
+    color: var(--texto-mute);
     text-decoration: none;
     font-size: 14px;
     transition: color 0.2s;
 
-    &:hover {
-      color: var(--color-primary-light);
-    }
+    &:hover { color: var(--violeta-claro); }
   }
 }
 
 .footer-bottom {
-  border-top: 1px solid #2D2D44;
+  border-top: 1px solid var(--surface-brd);
   padding: 20px 24px;
   text-align: center;
   font-size: 13px;
+  color: var(--texto-dim);
+
+  strong { color: var(--texto-mute); }
 }

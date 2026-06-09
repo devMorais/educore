@@ -1,9 +1,10 @@
 <div class="home">
 
-  <!-- ── HERO ──────────────────────────────────────────────────────────── -->
+  <!-- ── HERO ──────────────────────────────────────────────── -->
   <section class="hero">
     <div class="hero__grid-bg"></div>
-    <div class="hero__glow"></div>
+    <div class="hero__orb hero__orb--1"></div>
+    <div class="hero__orb hero__orb--2"></div>
 
     <div class="hero__content animate">
       <div class="hero__badge">
@@ -22,40 +23,30 @@
       </p>
 
       <div class="hero__cta">
-        <a routerLink="/upload" class="btn-primary btn-primary--pulse">
-          <i class="pi pi-play-circle"></i>
+        <a routerLink="/cadastro" class="btn-primary btn-primary--pulse">
+          <i class="pi pi-rocket"></i>
           Começar Agora
         </a>
-        <a routerLink="/cadastro" class="btn-secondary">
-          <i class="pi pi-user-plus"></i>
-          Criar conta grátis
-        </a>
+        <button class="btn-demo" (click)="abrirVideo()">
+          <span class="btn-demo__play">
+            <i class="pi pi-play"></i>
+          </span>
+          Assistir demo
+        </button>
       </div>
     </div>
 
-    <!-- Browser mockup com vídeo -->
-    <div class="browser-mockup animate">
-      <div class="browser-mockup__bar">
-        <span class="browser-mockup__dot browser-mockup__dot--red"></span>
-        <span class="browser-mockup__dot browser-mockup__dot--yellow"></span>
-        <span class="browser-mockup__dot browser-mockup__dot--green"></span>
-        <div class="browser-mockup__url">
-          <i class="pi pi-lock"></i> educore.app
-        </div>
-      </div>
-      <div class="browser-mockup__screen">
-        <iframe
-          [src]="videoUrl"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
-          allowfullscreen>
-        </iframe>
-      </div>
+    <!-- Ilustração lado direito -->
+    <div class="hero__illustration animate">
+      <img src="assets/about_img.png" alt="Professor EduCore"
+        class="hero__illustration-img">
+      <img src="assets/shapes_3.png" alt="" class="hero__shape hero__shape--1">
+      <img src="assets/shapes_4.png" alt="" class="hero__shape hero__shape--2">
     </div>
   </section>
 
-  <!-- ── COMO FUNCIONA ─────────────────────────────────────────────────── -->
-  <section class="como-funciona">
+  <!-- ── COMO FUNCIONA ──────────────────────────────────────── -->
+  <section class="como-funciona" id="features">
     <div class="section-header animate">
       <span class="section-badge">Simples assim</span>
       <h2>Como funciona o EduCore</h2>
@@ -63,20 +54,26 @@
     </div>
 
     <div class="passos">
-      @for (passo of passos; track passo.numero) {
+      @for (passo of passos; track passo.numero; let last = $last) {
         <div class="passo animate">
           <div class="passo__numero">{{ passo.numero }}</div>
           <div class="passo__icone">
-            <i class="pi {{ passo.icone }}"></i>
+            <img [src]="passo.imagem" [alt]="passo.titulo"
+              onerror="this.style.display='none'">
           </div>
           <h3>{{ passo.titulo }}</h3>
           <p>{{ passo.desc }}</p>
         </div>
+        @if (!last) {
+          <div class="passo__conector">
+            <i class="pi pi-arrow-right"></i>
+          </div>
+        }
       }
     </div>
   </section>
 
-  <!-- ── CARDS DE CONTEÚDO ─────────────────────────────────────────────── -->
+  <!-- ── 6 CARDS DE CONTEÚDO ───────────────────────────────── -->
   <section class="content-section">
     <div class="section-header animate">
       <span class="section-badge">6 formatos</span>
@@ -87,19 +84,19 @@
     <div class="content-grid">
       @for (card of contentCards; track card.label) {
         <div class="content-card animate">
-          <div class="content-card__icon" [style.background]="card.color + '22'">
-            <i class="pi {{ card.icon }}" [style.color]="card.color"></i>
+          <div class="content-card__icon" [style.background]="card.cor + '22'">
+            <i class="pi {{ card.icon }}" [style.color]="card.cor"></i>
           </div>
           <h3>{{ card.label }}</h3>
           <p>{{ card.desc }}</p>
-          <div class="content-card__glow" [style.background]="card.color"></div>
+          <div class="content-card__glow" [style.background]="card.cor"></div>
         </div>
       }
     </div>
   </section>
 
-  <!-- ── ESTATÍSTICAS ──────────────────────────────────────────────────── -->
-  <section class="stats-section">
+  <!-- ── ESTATÍSTICAS ───────────────────────────────────────── -->
+  <section class="stats-section" id="pricing">
     <div class="stats-grid">
       @for (stat of estatisticas; track stat.label) {
         <div class="stat-card animate">
@@ -113,33 +110,62 @@
     </div>
   </section>
 
-  <!-- ── CTA FINAL ─────────────────────────────────────────────────────── -->
+  <!-- ── CTA FINAL ──────────────────────────────────────────── -->
   <section class="cta-section animate">
     <div class="cta-section__glow"></div>
-    <h2>Pronto para revolucionar suas aulas?</h2>
-    <p>Junte-se a mais de 1.200 professores que já usam o EduCore</p>
-    <a routerLink="/cadastro" class="btn-primary btn-primary--pulse">
-      <i class="pi pi-rocket"></i>
-      Começar gratuitamente
-    </a>
-  </section>
-
-  <!-- ── FOOTER ────────────────────────────────────────────────────────── -->
-  <footer class="footer-home">
-    <div class="footer-home__content">
-      <div class="footer-home__brand">
-        <i class="pi pi-bolt footer-home__logo-icon"></i>
-        <span>EduCore</span>
+    <div class="cta-section__content">
+      <div class="cta-section__text">
+        <h2>Pronto para revolucionar suas aulas?</h2>
+        <p>Junte-se a mais de 1.200 professores que já usam o EduCore</p>
+        <a routerLink="/cadastro" class="btn-primary btn-primary--pulse">
+          <i class="pi pi-rocket"></i>
+          Começar gratuitamente
+        </a>
       </div>
-      <p class="footer-home__copy">
-        © 2025 EduCore · Desenvolvido no
-        <strong>SENAC-DF</strong> · Todos os direitos reservados
-      </p>
-      <div class="footer-home__links">
-        <a routerLink="/login">Entrar</a>
-        <a routerLink="/cadastro">Cadastrar</a>
+      <div class="cta-section__illustration">
+        <img src="assets/faq_img_1.png" alt="Professora usando EduCore">
       </div>
     </div>
-  </footer>
+  </section>
 
+  
+ 
 </div>
+
+<!-- ── MODAL DO VÍDEO ─────────────────────────────────────────── -->
+@if (modalVideoAberto()) {
+  <div class="modal-video-overlay" (click)="fecharVideo()" role="dialog"
+    aria-modal="true" aria-label="Demo do EduCore">
+    <div class="modal-video" (click)="$event.stopPropagation()">
+
+      <button class="modal-video__fechar" (click)="fecharVideo()"
+        aria-label="Fechar vídeo">
+        <i class="pi pi-times"></i>
+      </button>
+
+      <div class="browser-mockup browser-mockup--modal">
+        <div class="browser-mockup__bar">
+          <span class="browser-mockup__dot browser-mockup__dot--red"
+            (click)="fecharVideo()"></span>
+          <span class="browser-mockup__dot browser-mockup__dot--yellow"></span>
+          <span class="browser-mockup__dot browser-mockup__dot--green"></span>
+          <div class="browser-mockup__url">
+            <i class="pi pi-lock"></i> educore.app — Demo
+          </div>
+        </div>
+        <div class="browser-mockup__screen">
+          @if (videoUrl()) {
+            <iframe
+              [src]="videoUrl()!"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
+              allowfullscreen
+              title="Demo EduCore">
+            </iframe>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+}

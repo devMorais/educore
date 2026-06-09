@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@import 'styles/tokens';
 @import 'primeicons/primeicons.css';
 
 @include mat.core();
@@ -10,25 +11,12 @@ $educore-theme: mat.define-theme((
     tertiary: mat.$orange-palette,
   ),
   typography: (
-    brand-family: 'Inter, sans-serif',
+    brand-family: 'Plus Jakarta Sans, sans-serif',
   ),
 ));
 
 :root {
   @include mat.all-component-themes($educore-theme);
-
-  --color-primary: #7C3AED;
-  --color-primary-dark: #5B21B6;
-  --color-primary-light: #EDE9FE;
-  --color-accent: #F97316;
-  --color-accent-light: #FFF7ED;
-  --color-bg: #FAFAFA;
-  --color-surface: #FFFFFF;
-  --color-text: #1A1A2E;
-  --color-text-muted: #64748B;
-  --color-border: #E2E8F0;
-  --radius: 12px;
-  --shadow: 0 4px 24px rgba(124, 58, 237, 0.08);
 }
 
 * {
@@ -36,26 +24,37 @@ $educore-theme: mat.define-theme((
   margin: 0;
   padding: 0;
 }
-
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  font-family: var(--fonte);
+}
 body {
-  font-family: 'Inter', sans-serif;
-  background: var(--color-bg);
-  color: var(--color-text);
+  font-family: var(--fonte);
+  background: var(--bg);
+  color: var(--texto);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--violeta-claro);
   text-decoration: none;
 }
 
-// Posicionamento do toast global abaixo do header (US-002/US-003)
+// Toast global abaixo do header
 .p-toast {
   margin-top: 70px !important;
   z-index: 9999 !important;
 }
 
-// Espaço para o header fixo não cobrir o conteúdo
+// Espaço para o header fixo
 main {
-  padding-top: 80px;
+  padding-top: 68px;
 }

@@ -1,13 +1,13 @@
-// ── Navbar base ───────────────────────────────────────────────────────────────
+// ── Navbar base ────────────────────────────────────────────────
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(139, 111, 232, 0.15);
   height: 68px;
 }
 
@@ -23,7 +23,7 @@
   z-index: 2;
 }
 
-// ── Logo ──────────────────────────────────────────────────────────────────────
+// ── Logo ───────────────────────────────────────────────────────
 .navbar-brand {
   display: flex;
   align-items: center;
@@ -32,12 +32,12 @@
 }
 
 .brand-logo-img {
-  height: 40px;
+  height: 44px;
   width: auto;
-  filter: hue-rotate(260deg) saturate(1.5);
+  object-fit: contain;
 }
 
-// ── Links desktop ─────────────────────────────────────────────────────────────
+// ── Links desktop ──────────────────────────────────────────────
 .navbar-links {
   display: flex;
   align-items: center;
@@ -45,19 +45,19 @@
 
   a {
     text-decoration: none;
-    color: var(--color-text-muted);
+    color: var(--texto-mute);
     font-size: 15px;
     font-weight: 500;
     transition: color 0.2s;
 
     &:hover,
     &.active {
-      color: var(--color-primary);
+      color: var(--violeta-claro);
     }
   }
 }
 
-// ── Ações desktop ─────────────────────────────────────────────────────────────
+// ── Ações desktop ──────────────────────────────────────────────
 .navbar-actions {
   display: flex;
   align-items: center;
@@ -65,44 +65,53 @@
 
   .btn-ghost {
     padding: 8px 20px;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     font-size: 15px;
     font-weight: 500;
-    color: var(--color-text);
+    color: var(--texto-mute);
     text-decoration: none;
     background: none;
     border: none;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
 
     &:hover {
-      background: var(--color-primary-light);
-      color: var(--color-primary);
+      background: var(--surface-hover);
+      color: var(--texto);
     }
   }
 
   .btn-primary {
     padding: 8px 20px;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     font-size: 15px;
     font-weight: 600;
-    background: var(--color-primary);
-    color: #fff;
+    background: var(--gradiente-marca);
+    color: var(--branco);
     text-decoration: none;
-    transition: background 0.2s, transform 0.1s;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
 
     &:hover {
-      background: var(--color-primary-dark);
+      opacity: 0.9;
       transform: translateY(-1px);
     }
   }
 }
 
-// ── Usuário logado (desktop) ──────────────────────────────────────────────────
+// ── Usuário logado ─────────────────────────────────────────────
 .navbar-user {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+
+  &:hover { background: var(--surface-hover); }
 }
 
 .user-avatar {
@@ -113,8 +122,8 @@
   flex-shrink: 0;
 
   &--iniciais {
-    background: linear-gradient(135deg, #7c3aed, #f97316);
-    color: #fff;
+    background: var(--gradiente-marca);
+    color: var(--branco);
     font-size: 0.75rem;
     font-weight: 700;
     display: flex;
@@ -123,18 +132,119 @@
   }
 }
 
+.user-chevron {
+  font-size: 0.7rem;
+  color: var(--texto-mute);
+  transition: transform 0.2s;
+
+  &.rotated { transform: rotate(180deg); }
+}
+
 .user-name {
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--texto);
 }
 
 .user-email {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--texto-mute);
 }
 
-// ── Hambúrguer ────────────────────────────────────────────────────────────────
+// ── Dropdown ───────────────────────────────────────────────────
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 240px;
+  background: var(--bg-3);
+  border: var(--borda);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), var(--glow-violeta);
+  overflow: hidden;
+  animation: dropdownIn 0.15s ease;
+  z-index: 100;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1rem;
+  }
+
+  &__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  &__name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--texto);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__email {
+    font-size: 0.75rem;
+    color: var(--texto-mute);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__divider {
+    height: 1px;
+    background: var(--surface-brd);
+    margin: 0;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--texto-mute);
+    text-decoration: none;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: var(--fonte);
+
+    i { font-size: 0.9rem; }
+
+    &:hover {
+      background: var(--surface-hover);
+      color: var(--texto);
+    }
+
+    &--danger {
+      color: var(--erro);
+      i { color: var(--erro); }
+      &:hover { background: var(--erro-bg); color: var(--erro); }
+    }
+  }
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Hambúrguer ─────────────────────────────────────────────────
 .navbar-hamburger {
   display: none;
   flex-direction: column;
@@ -147,22 +257,21 @@
   border: none;
   cursor: pointer;
   padding: 4px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   transition: background 0.2s;
 
-  &:hover { background: var(--color-primary-light); }
+  &:hover { background: var(--surface-hover); }
 
   span {
     display: block;
     width: 22px;
     height: 2px;
-    background: var(--color-text);
+    background: var(--texto-mute);
     border-radius: 2px;
     transition: transform 0.3s ease, opacity 0.3s ease;
     transform-origin: center;
   }
 
-  // Animação X ao abrir
   &.aberto {
     span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
     span:nth-child(2) { opacity: 0; transform: scaleX(0); }
@@ -170,15 +279,16 @@
   }
 }
 
-// ── Menu mobile ───────────────────────────────────────────────────────────────
+// ── Menu mobile ────────────────────────────────────────────────
 .navbar-mobile {
   position: fixed;
   top: 68px;
   left: 0;
   right: 0;
-  background: #fff;
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  background: rgba(15, 23, 42, 0.97);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(139, 111, 232, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   z-index: 999;
   overflow: hidden;
   max-height: 0;
@@ -192,40 +302,23 @@
   }
 }
 
-// ── Usuário no mobile ─────────────────────────────────────────────────────────
 .mobile-user {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 1.25rem 1.5rem 1rem;
 
-  .user-avatar {
-    width: 44px;
-    height: 44px;
-    font-size: 0.9rem;
-  }
-
-  .user-name {
-    display: block;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--color-text);
-  }
-
-  .user-email {
-    display: block;
-    font-size: 12px;
-    color: var(--color-text-muted);
-  }
+  .user-avatar { width: 44px; height: 44px; font-size: 0.9rem; }
+  .user-name { display: block; font-size: 15px; font-weight: 600; color: var(--texto); }
+  .user-email { display: block; font-size: 12px; color: var(--texto-mute); }
 }
 
 .mobile-divider {
   height: 1px;
-  background: var(--color-border);
+  background: var(--surface-brd);
   margin: 0.5rem 1.5rem;
 }
 
-// ── Links mobile ──────────────────────────────────────────────────────────────
 .mobile-links {
   display: flex;
   flex-direction: column;
@@ -238,17 +331,16 @@
     padding: 0.85rem 1.5rem;
     font-size: 15px;
     font-weight: 500;
-    color: var(--color-text);
+    color: var(--texto-mute);
     text-decoration: none;
     transition: background 0.15s, color 0.15s;
 
-    i { font-size: 1rem; color: var(--color-text-muted); }
+    i { font-size: 1rem; color: var(--texto-dim); }
 
-    &:hover,
-    &.active {
-      background: var(--color-primary-light);
-      color: var(--color-primary);
-      i { color: var(--color-primary); }
+    &:hover, &.active {
+      background: var(--surface-hover);
+      color: var(--violeta-claro);
+      i { color: var(--violeta-claro); }
     }
   }
 }
@@ -259,36 +351,34 @@
   cursor: pointer;
   width: 100%;
   text-align: left;
-  color: #dc2626 !important;
-
-  i { color: #dc2626 !important; }
-  &:hover { background: #fee2e2 !important; }
+  color: var(--erro) !important;
+  i { color: var(--erro) !important; }
+  &:hover { background: var(--erro-bg) !important; }
 }
 
 .mobile-btn-ghost {
   margin: 0.25rem 1.5rem;
   justify-content: center;
-  border: 1px solid var(--color-border) !important;
-  border-radius: 10px !important;
+  border: var(--borda) !important;
+  border-radius: var(--radius-sm) !important;
 }
 
 .mobile-btn-primary {
   margin: 0.25rem 1.5rem;
   justify-content: center;
-  background: var(--color-primary) !important;
-  color: #fff !important;
-  border-radius: 10px !important;
-
-  i { color: #fff !important; }
-  &:hover { background: var(--color-primary-dark) !important; }
+  background: var(--gradiente-marca) !important;
+  color: var(--branco) !important;
+  border-radius: var(--radius-sm) !important;
+  i { color: var(--branco) !important; }
+  &:hover { opacity: 0.9 !important; }
 }
 
-// ── Overlay ───────────────────────────────────────────────────────────────────
+// ── Overlay ────────────────────────────────────────────────────
 .navbar-overlay {
   position: fixed;
   inset: 0;
   top: 68px;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 998;
   animation: fadeIn 0.2s ease;
 }
@@ -298,18 +388,10 @@
   to   { opacity: 1; }
 }
 
-// ── Responsive ────────────────────────────────────────────────────────────────
+// ── Responsive ─────────────────────────────────────────────────
 @media (max-width: 768px) {
   .navbar-links,
-  .navbar-actions {
-    display: none;
-  }
-
-  .navbar-hamburger {
-    display: flex;
-  }
-
-  .navbar-mobile {
-    display: block;
-  }
+  .navbar-actions { display: none; }
+  .navbar-hamburger { display: flex; }
+  .navbar-mobile { display: block; }
 }

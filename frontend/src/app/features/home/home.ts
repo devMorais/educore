@@ -1,4 +1,7 @@
-import { Component, AfterViewInit, inject, OnDestroy } from '@angular/core';
+import {
+  Component, AfterViewInit, inject, OnDestroy, signal, PLATFORM_ID
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
@@ -10,54 +13,48 @@ import { CommonModule } from '@angular/common';
   styleUrl: './home.scss',
 })
 export class Home implements AfterViewInit, OnDestroy {
-  private sanitizer = inject(DomSanitizer);
+  private sanitizer  = inject(DomSanitizer);
+  private platformId = inject(PLATFORM_ID);
 
-  // URL do vídeo sanitizada para uso seguro no iframe
-  videoUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-    'https://www.youtube.com/embed/m5eiRpmtpbQ?autoplay=0&rel=0&modestbranding=1'
-  );
+  modalVideoAberto = signal(false);
+  videoUrl = signal<SafeResourceUrl | null>(null);
 
-  // Estatísticas para contadores dinâmicos
   readonly estatisticas = [
-    { label: 'PDFs Processados',  sufixo: '+', alvo: 5000,  atual: 0, icone: 'pi-file-pdf'    },
-    { label: 'Conteúdos Gerados', sufixo: '+', alvo: 18000, atual: 0, icone: 'pi-bolt'        },
-    { label: 'Precisão da IA',    sufixo: '%', alvo: 99,    atual: 0, icone: 'pi-check-circle' },
-    { label: 'Professores Ativos',sufixo: '+', alvo: 1200,  atual: 0, icone: 'pi-users'        },
+    { label: 'PDFs Processados',   sufixo: '+', alvo: 5000,  atual: 0, icone: 'pi-file-pdf'    },
+    { label: 'Conteúdos Gerados',  sufixo: '+', alvo: 18000, atual: 0, icone: 'pi-bolt'         },
+    { label: 'Precisão da IA',     sufixo: '%', alvo: 99,    atual: 0, icone: 'pi-check-circle' },
+    { label: 'Professores Ativos', sufixo: '+', alvo: 1200,  atual: 0, icone: 'pi-users'        },
   ];
 
-  // Cards dos 6 tipos de conteúdo gerado
   readonly contentCards = [
-    { icon: 'pi-question-circle', label: 'Quiz',          desc: '30 perguntas inteligentes geradas automaticamente',  color: '#6366f1', img: 'images/features_icon_1.png'  },
-    { icon: 'pi-file-edit',       label: 'Resumo',         desc: 'Síntese clara dos pontos-chave do conteúdo',         color: '#8b5cf6', img: 'images/features_icon_2.png'  },
-    { icon: 'pi-desktop',         label: 'Slides',         desc: 'Apresentação premium exportável para PowerPoint',    color: '#a855f7', img: 'images/features_icon_3.png'  },
-    { icon: 'pi-sitemap',         label: 'Mapa Mental',    desc: 'Visualização interativa das conexões do conteúdo',   color: '#7c3aed', img: 'images/features_icon_4.png'  },
-    { icon: 'pi-clone',           label: 'Flashcards',     desc: '20 cartões de estudo para memorização eficaz',       color: '#4f46e5', img: 'images/category_icon_1.png'  },
-    { icon: 'pi-eye',             label: 'Conteúdo PCD',   desc: 'Linguagem simplificada e acessível para todos',      color: '#7c3aed', img: 'images/category_icon_2.png'  },
+    { icon: 'pi-question-circle', label: 'Quiz',        desc: '30 perguntas inteligentes geradas automaticamente', cor: 'var(--azul)'      },
+    { icon: 'pi-file-edit',       label: 'Resumo',       desc: 'Síntese clara dos pontos-chave do conteúdo',        cor: 'var(--violeta)'   },
+    { icon: 'pi-desktop',         label: 'Slides',       desc: 'Apresentação premium exportável para PowerPoint',   cor: 'var(--roxo-claro)'},
+    { icon: 'pi-sitemap',         label: 'Mapa Mental',  desc: 'Visualização interativa das conexões do conteúdo',  cor: 'var(--laranja)'   },
+    { icon: 'pi-clone',           label: 'Flashcards',   desc: '20 cartões de estudo para memorização eficaz',      cor: 'var(--ambar)'     },
+    { icon: 'pi-eye',             label: 'Conteúdo PCD', desc: 'Linguagem simplificada e acessível para todos',     cor: 'var(--verde)'     },
   ];
 
-  // Passos do "Como funciona"
   readonly passos = [
-    { numero: '01', titulo: 'Upload do PDF',    desc: 'Envie qualquer material didático — apostilas, artigos ou livros em PDF.',           icone: 'pi-cloud-upload' },
-    { numero: '02', titulo: 'Gemini Processa',  desc: 'O Gemini 2.5-Flash analisa o conteúdo e gera materiais pedagógicos em segundos.',    icone: 'pi-bolt'         },
-    { numero: '03', titulo: 'Baixe e Aplique',  desc: 'Exporte para PowerPoint, Kahoot, SCORM e aplique direto com seus alunos.',           icone: 'pi-download'     },
+    { numero: '01', titulo: 'Upload do PDF',   desc: 'Envie qualquer material didático — apostilas, artigos ou livros em PDF.',          icone: 'pi-cloud-upload', imagem: 'assets/feature_icon_1.png' },
+    { numero: '02', titulo: 'Gemini Processa', desc: 'O Gemini 2.5-Flash analisa o conteúdo e gera materiais pedagógicos em segundos.', icone: 'pi-bolt',         imagem: 'assets/feature_icon_2.png' },
+    { numero: '03', titulo: 'Baixe e Aplique', desc: 'Exporte para PowerPoint, Kahoot, SCORM e aplique direto com seus alunos.',        icone: 'pi-download',     imagem: 'assets/feature_icon_3.png' },
   ];
 
   private observers: IntersectionObserver[] = [];
 
   ngAfterViewInit() {
-    // Observer para animações de entrada
+    if (!isPlatformBrowser(this.platformId)) return;
+
     const animObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
+        if (entry.isIntersecting) entry.target.classList.add('visible');
       });
     }, { threshold: 0.15 });
 
     document.querySelectorAll('.animate').forEach(el => animObserver.observe(el));
     this.observers.push(animObserver);
 
-    // Observer para contadores dinâmicos
     const statsObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -70,9 +67,28 @@ export class Home implements AfterViewInit, OnDestroy {
     const statsEl = document.querySelector('.stats-section');
     if (statsEl) statsObserver.observe(statsEl);
     this.observers.push(statsObserver);
+
+    document.addEventListener('keydown', this.onKeyDown);
   }
 
-  // Contador dinâmico com requestAnimationFrame
+  private onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') this.fecharVideo();
+  };
+
+  abrirVideo() {
+    this.videoUrl.set(
+      this.sanitizer.bypassSecurityTrustResourceUrl(
+        'https://www.youtube.com/embed/m5eiRpmtpbQ?autoplay=1&rel=0&modestbranding=1'
+      )
+    );
+    this.modalVideoAberto.set(true);
+  }
+
+  fecharVideo() {
+    this.videoUrl.set(null);
+    this.modalVideoAberto.set(false);
+  }
+
   private iniciarContadores() {
     this.estatisticas.forEach((stat, index) => {
       const duracao = 2000;
@@ -90,5 +106,8 @@ export class Home implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.observers.forEach(o => o.disconnect());
+    if (isPlatformBrowser(this.platformId)) {
+      document.removeEventListener('keydown', this.onKeyDown);
+    }
   }
 }
