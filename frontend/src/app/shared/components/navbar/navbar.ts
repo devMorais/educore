@@ -13,41 +13,37 @@ export class Navbar {
   private auth   = inject(Auth);
   private router = inject(Router);
 
-  // Estado do menu mobile
-  menuAberto = signal(false);
+  menuAberto     = signal(false);
+  dropdownAberto = signal(false);
 
-  // Dados do usuário logado
   isLoggedIn  = this.auth.isLoggedIn;
   currentUser = this.auth.currentUser;
 
-  // Iniciais do nome para avatar
   iniciais = computed(() => {
     const nome = this.currentUser()?.name ?? '';
     return nome.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
   });
 
-  // Abre/fecha o menu mobile
-  toggleMenu() {
-    this.menuAberto.update(v => !v);
-  }
+  toggleMenu() { this.menuAberto.update(v => !v); }
+  fecharMenu() { this.menuAberto.set(false); }
 
-  // Fecha o menu mobile
-  fecharMenu() {
-    this.menuAberto.set(false);
-  }
+  toggleDropdown() { this.dropdownAberto.update(v => !v); }
+  fecharDropdown() { this.dropdownAberto.set(false); }
 
-  // Fecha o menu ao clicar fora
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
+    if (!target.closest('.navbar-user')) {
+      this.dropdownAberto.set(false);
+    }
     if (!target.closest('.navbar-container')) {
       this.fecharMenu();
     }
   }
 
-  // Logout e fecha o menu
   logout() {
     this.fecharMenu();
+    this.fecharDropdown();
     this.auth.logout();
   }
 }

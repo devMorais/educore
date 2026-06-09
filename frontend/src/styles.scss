@@ -11,7 +11,7 @@ $educore-theme: mat.define-theme((
     tertiary: mat.$orange-palette,
   ),
   typography: (
-    brand-family: 'Inter, sans-serif',
+    brand-family: 'Plus Jakarta Sans, sans-serif',
   ),
 ));
 
@@ -26,14 +26,16 @@ $educore-theme: mat.define-theme((
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  background: var(--color-bg);
-  color: var(--color-text);
+  font-family: var(--fonte);
+  background: var(--bg);
+  color: var(--texto);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--violeta-claro);
   text-decoration: none;
 }
 
@@ -45,5 +47,5 @@ a {
 
 // Espaço para o header fixo
 main {
-  padding-top: 80px;
+  padding-top: 68px;
 }

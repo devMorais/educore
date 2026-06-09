@@ -1,12 +1,9 @@
 <nav class="navbar">
   <div class="navbar-container">
-
-    <!-- Logo -->
     <a routerLink="/" class="navbar-brand" (click)="fecharMenu()">
-      <img src="images/logo.png" alt="EduCore" class="brand-logo-img">
+      <img src="assets/LOGO_VIDEO.png" alt="EduCore" class="brand-logo-img">
     </a>
 
-    <!-- Links desktop -->
     <div class="navbar-links">
       <a routerLink="/" routerLinkActive="active"
         [routerLinkActiveOptions]="{exact: true}">Início</a>
@@ -14,27 +11,59 @@
       <a href="#pricing">Planos</a>
     </div>
 
-    <!-- Ações desktop -->
     <div class="navbar-actions">
       @if (isLoggedIn()) {
-        <!-- Usuário logado -->
-        <div class="navbar-user">
+        <!-- Avatar com dropdown -->
+        <div class="navbar-user" (click)="toggleDropdown()">
           @if (currentUser()?.avatar) {
             <img [src]="currentUser()!.avatar" class="user-avatar" [alt]="currentUser()!.name">
           } @else {
             <div class="user-avatar user-avatar--iniciais">{{ iniciais() }}</div>
           }
-          <span class="user-name">{{ currentUser()?.name }}</span>
+          <i class="pi pi-chevron-down user-chevron"
+            [class.rotated]="dropdownAberto()"></i>
+
+          <!-- Dropdown menu -->
+          @if (dropdownAberto()) {
+            <div class="user-dropdown" (click)="$event.stopPropagation()">
+              <div class="user-dropdown__header">
+                @if (currentUser()?.avatar) {
+                  <img [src]="currentUser()!.avatar" class="user-dropdown__avatar"
+                    [alt]="currentUser()!.name">
+                } @else {
+                  <div class="user-dropdown__avatar user-avatar--iniciais">{{ iniciais() }}</div>
+                }
+                <div>
+                  <p class="user-dropdown__name">{{ currentUser()?.name }}</p>
+                  <p class="user-dropdown__email">{{ currentUser()?.email }}</p>
+                </div>
+              </div>
+              <div class="user-dropdown__divider"></div>
+              <a routerLink="/upload" class="user-dropdown__item"
+                (click)="fecharDropdown()">
+                <i class="pi pi-th-large"></i>
+                Dashboard
+              </a>
+              <a routerLink="/perfil" class="user-dropdown__item"
+                (click)="fecharDropdown()">
+                <i class="pi pi-user"></i>
+                Meu Perfil
+              </a>
+              <div class="user-dropdown__divider"></div>
+              <button class="user-dropdown__item user-dropdown__item--danger"
+                (click)="logout()">
+                <i class="pi pi-sign-out"></i>
+                Sair
+              </button>
+            </div>
+          }
         </div>
-        <a routerLink="/upload" class="btn-primary" (click)="fecharMenu()">Dashboard</a>
-        <button class="btn-ghost" (click)="logout()">Sair</button>
       } @else {
         <a routerLink="/login" class="btn-ghost">Entrar</a>
         <a routerLink="/cadastro" class="btn-primary">Começar grátis</a>
       }
     </div>
 
-    <!-- Botão hambúrguer (mobile) -->
     <button class="navbar-hamburger" (click)="toggleMenu()"
       [class.aberto]="menuAberto()"
       aria-label="Abrir menu">
@@ -42,13 +71,10 @@
       <span></span>
       <span></span>
     </button>
-
   </div>
 
-  <!-- Menu mobile deslizante -->
+  <!-- Menu mobile -->
   <div class="navbar-mobile" [class.navbar-mobile--aberto]="menuAberto()">
-
-    <!-- Usuário logado no mobile -->
     @if (isLoggedIn()) {
       <div class="mobile-user">
         @if (currentUser()?.avatar) {
@@ -63,8 +89,6 @@
       </div>
       <div class="mobile-divider"></div>
     }
-
-    <!-- Links mobile -->
     <div class="mobile-links">
       <a routerLink="/" routerLinkActive="active"
         [routerLinkActiveOptions]="{exact: true}"
@@ -77,7 +101,6 @@
       <a href="#pricing" (click)="fecharMenu()">
         <i class="pi pi-tag"></i> Planos
       </a>
-
       @if (isLoggedIn()) {
         <a routerLink="/upload" (click)="fecharMenu()">
           <i class="pi pi-th-large"></i> Dashboard
@@ -96,12 +119,9 @@
         </a>
       }
     </div>
-
   </div>
 
-  <!-- Overlay para fechar o menu -->
   @if (menuAberto()) {
     <div class="navbar-overlay" (click)="fecharMenu()"></div>
   }
-
 </nav>

@@ -1,9 +1,12 @@
- // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // DESIGN TOKENS — EduCore (US-025)
 // REGRA: ZERO hex chumbado fora deste arquivo
 // ═══════════════════════════════════════════════════════════════
 
 :root {
+  // ── Fonte ──
+  --fonte: 'Plus Jakarta Sans', sans-serif;
+
   // ── Cores base da marca (extraídas da logo e ilustrações) ──
   --roxo:          #5B2D8E;
   --roxo-escuro:   #3B1A66;

@@ -1,0 +1,112 @@
+ // ── Dropdown do usuário ────────────────────────────────────────
+.navbar-user {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+
+  &:hover { background: var(--surface-hover); }
+}
+
+.user-chevron {
+  font-size: 0.7rem;
+  color: var(--texto-mute);
+  transition: transform 0.2s;
+
+  &.rotated { transform: rotate(180deg); }
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 240px;
+  background: var(--bg-3);
+  border: var(--borda);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), var(--glow-violeta);
+  overflow: hidden;
+  animation: dropdownIn 0.15s ease;
+  z-index: 100;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1rem;
+  }
+
+  &__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  &__name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--texto);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__email {
+    font-size: 0.75rem;
+    color: var(--texto-mute);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__divider {
+    height: 1px;
+    background: var(--surface-brd);
+    margin: 0;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--texto-mute);
+    text-decoration: none;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    i { font-size: 0.9rem; }
+
+    &:hover {
+      background: var(--surface-hover);
+      color: var(--texto);
+    }
+
+    &--danger {
+      color: #ef4444;
+      i { color: #ef4444; }
+      &:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    }
+  }
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
