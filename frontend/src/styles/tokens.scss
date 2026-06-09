@@ -1,0 +1,72 @@
+ // ═══════════════════════════════════════════════════════════════
+// DESIGN TOKENS — EduCore (US-025)
+// REGRA: ZERO hex chumbado fora deste arquivo
+// ═══════════════════════════════════════════════════════════════
+
+:root {
+  // ── Cores base da marca (extraídas da logo e ilustrações) ──
+  --roxo:          #5B2D8E;
+  --roxo-escuro:   #3B1A66;
+  --roxo-claro:    #7C3AED;
+  --violeta:       #8B6FE8;
+  --violeta-claro: #A78BFA;
+  --laranja:       #F47B20;
+  --laranja-claro: #FB923C;
+  --ambar:         #FBB034;
+  --azul:          #4F6EF7;
+  --azul-claro:    #818CF8;
+  --verde:         #10B981;
+
+  // ── Superfícies (estética Cloud — fundo escuro) ──
+  --bg:            #0F172A;
+  --bg-2:          #1E1B4B;
+  --bg-3:          #1E293B;
+  --surface:       rgba(255, 255, 255, 0.04);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --surface-brd:   rgba(255, 255, 255, 0.08);
+  --surface-brd-hover: rgba(139, 111, 232, 0.6);
+
+  // ── Texto ──
+  --texto:         #F8FAFC;
+  --texto-mute:    #94A3B8;
+  --texto-dim:     #64748B;
+
+  // ── Semânticos (use ESTES nos componentes) ──
+  --brand-primary:       var(--roxo);
+  --brand-primary-hover: var(--roxo-claro);
+  --brand-secondary:     var(--laranja);
+  --brand-accent:        var(--ambar);
+  --brand-glow:          var(--violeta);
+
+  // ── Gradientes da marca ──
+  --gradiente-marca:  linear-gradient(135deg, var(--roxo), var(--laranja));
+  --gradiente-heroi:  linear-gradient(135deg, var(--violeta-claro), var(--laranja));
+  --gradiente-bg:     radial-gradient(circle at 50% -20%, var(--roxo-escuro), var(--bg-2), var(--bg));
+
+  // ── Sombras e glows ──
+  --glow-brand:   0 0 40px rgba(91, 45, 142, 0.4);
+  --glow-violeta: 0 0 30px rgba(139, 111, 232, 0.3);
+  --glow-laranja: 0 0 30px rgba(244, 123, 32, 0.3);
+  --shadow-card:  0 4px 24px rgba(0, 0, 0, 0.3);
+
+  // ── Bordas e raios ──
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --borda:     1px solid var(--surface-brd);
+
+  // ── Compatibilidade com tokens antigos ──
+  --color-primary:       var(--roxo-claro);
+  --color-primary-dark:  var(--roxo-escuro);
+  --color-primary-light: rgba(124, 58, 237, 0.15);
+  --color-accent:        var(--laranja);
+  --color-accent-light:  rgba(244, 123, 32, 0.1);
+  --color-bg:            #FAFAFA;
+  --color-surface:       #FFFFFF;
+  --color-text:          #1A1A2E;
+  --color-text-muted:    #64748B;
+  --color-border:        #E2E8F0;
+  --radius:              12px;
+  --shadow:              0 4px 24px rgba(124, 58, 237, 0.08);
+}
