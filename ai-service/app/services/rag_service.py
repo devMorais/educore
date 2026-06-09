@@ -19,10 +19,27 @@ client = genai.Client(api_key=settings.gemini_api_key)
 
 
 def _parse_json(text: str) -> dict:
-    text = text.strip()
+    """
+    Extrai e parseia JSON da resposta do modelo, de forma robusta:
+    - remove blocos cercados por ```json ... ```
+    - se ainda houver prosa em volta (ex.: "Aqui está o quiz: {...}"), recorta
+      do primeiro { ou [ até o último } ou ] — alguns modelos (Llama/Gemma)
+      adicionam preâmbulo, o que quebraria um json.loads direto.
+    """
+    text = (text or "").strip()
+
     match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", text)
     if match:
-        text = match.group(1)
+        text = match.group(1).strip()
+
+    if text and text[0] not in "{[":
+        inicios = [i for i in (text.find("{"), text.find("[")) if i != -1]
+        if inicios:
+            ini = min(inicios)
+            fim = max(text.rfind("}"), text.rfind("]"))
+            if fim > ini:
+                text = text[ini:fim + 1]
+
     return json.loads(text)
 
 
@@ -63,9 +80,10 @@ def _get_gemini_file_uri(document_id: int) -> str | None:
         conn.close()
 
 
-# Códigos HTTP transitórios que valem nova tentativa
-# (503 = sobrecarga, 429 = limite de taxa, 500 = instabilidade interna)
-_CODIGOS_RETRY = {429, 500, 503}
+# Códigos HTTP que valem nova tentativa no MESMO provedor (instabilidade breve).
+# 429 (cota/limite) NÃO entra: é melhor cair rápido para o próximo provedor
+# do que esperar — a cadeia de fallback resolve.
+_CODIGOS_RETRY = {500, 503}
 _MAX_TENTATIVAS = 3
 
 
