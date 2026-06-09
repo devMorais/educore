@@ -131,6 +131,9 @@ def _chat_openai(base_url: str, api_key: str, model: str, prompt: str) -> str:
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.6,
+        # Teto alto de saída: quizzes/slides geram JSON longo (~5k tokens);
+        # sem isso o provedor trunca a resposta e o JSON fica inválido.
+        "max_tokens": 8192,
     }
     for tentativa in range(1, _MAX_TENTATIVAS + 1):
         resp = httpx.post(url, headers=headers, json=payload, timeout=90.0)
@@ -176,22 +179,25 @@ def _fazer_chamador(base: str, key: str, model: str):
     return lambda prompt: _chat_openai(base, key, model, prompt)
 
 
-def _gerar_texto(prompt: str) -> str:
+def _gerar_json(prompt: str) -> dict:
     """
-    Gera texto tentando os provedores em ordem; retorna o 1º com resposta válida.
-    Se todos falharem, levanta RuntimeError com o resumo dos erros.
+    Tenta os provedores em ordem e retorna o 1º que devolver um JSON VÁLIDO.
+    O parsing acontece DENTRO do loop: se um provedor truncar ou enviar JSON
+    inválido, cai para o próximo (em vez de estourar 500). Robustez para a demo.
     """
     erros = []
     for nome, fn in _provedores_texto():
         try:
             texto = fn(prompt)
-            if texto:
-                if nome != "Gemini":
-                    logger.info(f"Geração concluída via provedor de fallback: {nome}")
-                return texto
-            erros.append(f"{nome}: resposta vazia")
+            if not texto:
+                erros.append(f"{nome}: resposta vazia")
+                continue
+            dados = _parse_json(texto)  # valida o JSON ainda dentro do loop
+            if nome != "Gemini":
+                logger.info(f"Geração concluída via provedor de fallback: {nome}")
+            return dados
         except Exception as e:
-            logger.warning(f"Provedor {nome} indisponível: {e}")
+            logger.warning(f"Provedor {nome} falhou ({type(e).__name__}): {str(e)[:140]}")
             erros.append(f"{nome}: {e}")
     raise RuntimeError("Todos os provedores de IA falharam — " + " | ".join(erros))
 
@@ -208,7 +214,7 @@ def _generate_with_rag(chunks: list[dict], prompt_template: str) -> dict:
     """Usa o contexto RAG e a cadeia de provedores (Gemini → Groq → …)."""
     context = _build_context(chunks)
     full_prompt = prompt_template.replace("{CONTEXT}", context)
-    return _parse_json(_gerar_texto(full_prompt))
+    return _gerar_json(full_prompt)
 
 
 class RAGService:
