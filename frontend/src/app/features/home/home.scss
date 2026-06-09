@@ -127,28 +127,32 @@
   position: relative;
   min-height: 92vh;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding: 5rem 2rem 4rem;
-  gap: 3rem;
+  padding: 5rem 4rem 4rem;
+  gap: 4rem;
   overflow: hidden;
+  max-width: 1200px;
+  margin: 0 auto;
 
   &__grid-bg {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background-image:
       linear-gradient(rgba(139, 111, 232, 0.06) 1px, transparent 1px),
       linear-gradient(90deg, rgba(139, 111, 232, 0.06) 1px, transparent 1px);
     background-size: 48px 48px;
     pointer-events: none;
+    z-index: 0;
   }
 
   &__orb {
-    position: absolute;
+    position: fixed;
     border-radius: 50%;
     pointer-events: none;
     filter: blur(80px);
+    z-index: 0;
 
     &--1 {
       width: 600px;
@@ -172,8 +176,8 @@
   &__content {
     position: relative;
     z-index: 1;
-    text-align: center;
-    max-width: 720px;
+    flex: 1;
+    max-width: 580px;
   }
 
   &__badge {
@@ -217,16 +221,66 @@
   &__cta {
     display: flex;
     gap: 1rem;
-    justify-content: center;
     flex-wrap: wrap;
   }
+
+  // Ilustração lado direito
+  &__illustration {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 480px;
+  }
+
+  &__illustration-img {
+    width: 100%;
+    max-width: 420px;
+    animation: heroFloat 6s ease-in-out infinite;
+    filter: drop-shadow(0 20px 60px rgba(91, 45, 142, 0.4));
+  }
+
+  &__shape {
+    position: absolute;
+    opacity: 0.7;
+
+    &--1 {
+      width: 60px;
+      top: 10%;
+      left: -10px;
+      animation: orbFloat 5s ease-in-out infinite;
+    }
+
+    &--2 {
+      width: 50px;
+      bottom: 15%;
+      right: -10px;
+      animation: orbFloat 7s ease-in-out infinite reverse;
+    }
+  }
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    padding: 3rem 1.5rem;
+    min-height: auto;
+    text-align: center;
+
+    &__cta { justify-content: center; }
+    &__illustration { max-width: 300px; }
+  }
+}
+
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-16px); }
 }
 
 @keyframes orbFloat {
   0%, 100% { transform: translateY(0) scale(1); }
   50%       { transform: translateY(-30px) scale(1.05); }
 }
-
 // ── Browser Mockup ─────────────────────────────────────────────
 .browser-mockup {
   position: relative;
@@ -723,5 +777,43 @@
     object-fit: contain;
     margin: 0 auto 1rem;
     display: block;
+  }
+}
+// ── CTA com ilustração ─────────────────────────────────────────
+.cta-section {
+  &__content {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  &__text {
+    flex: 1;
+
+    h2, p { position: relative; }
+
+    .btn-primary { position: relative; }
+  }
+
+  &__illustration {
+    flex-shrink: 0;
+    width: 280px;
+
+    img {
+      width: 100%;
+      animation: heroFloat 6s ease-in-out infinite;
+      filter: drop-shadow(0 20px 40px rgba(91, 45, 142, 0.3));
+    }
+
+    @media (max-width: 768px) { width: 200px; }
   }
 }

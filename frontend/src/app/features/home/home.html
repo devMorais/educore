@@ -36,36 +36,17 @@
       </div>
     </div>
 
-    <!-- Browser mockup estático -->
-    <div class="browser-mockup animate">
-      <div class="browser-mockup__bar">
-        <span class="browser-mockup__dot browser-mockup__dot--red"></span>
-        <span class="browser-mockup__dot browser-mockup__dot--yellow"></span>
-        <span class="browser-mockup__dot browser-mockup__dot--green"></span>
-        <div class="browser-mockup__url">
-          <i class="pi pi-lock"></i> educore.app
-        </div>
-      </div>
-      <div class="browser-mockup__screen">
-        <div class="browser-mockup__preview" (click)="abrirVideo()">
-          <div class="browser-mockup__preview-overlay">
-            <div class="browser-mockup__play-btn">
-              <i class="pi pi-play"></i>
-            </div>
-            <p>Clique para assistir a demo</p>
-          </div>
-          <img
-            src="assets/about_img.png"
-            alt="Preview do EduCore"
-            loading="lazy"
-            onerror="this.style.display='none'">
-        </div>
-      </div>
+    <!-- Ilustração lado direito -->
+    <div class="hero__illustration animate">
+      <img src="assets/about_img.png" alt="Professor EduCore"
+        class="hero__illustration-img">
+      <img src="assets/shapes_3.png" alt="" class="hero__shape hero__shape--1">
+      <img src="assets/shapes_4.png" alt="" class="hero__shape hero__shape--2">
     </div>
   </section>
 
   <!-- ── COMO FUNCIONA ──────────────────────────────────────── -->
-  <section class="como-funciona">
+  <section class="como-funciona" id="features">
     <div class="section-header animate">
       <span class="section-badge">Simples assim</span>
       <h2>Como funciona o EduCore</h2>
@@ -115,7 +96,7 @@
   </section>
 
   <!-- ── ESTATÍSTICAS ───────────────────────────────────────── -->
-  <section class="stats-section">
+  <section class="stats-section" id="pricing">
     <div class="stats-grid">
       @for (stat of estatisticas; track stat.label) {
         <div class="stat-card animate">
@@ -132,31 +113,23 @@
   <!-- ── CTA FINAL ──────────────────────────────────────────── -->
   <section class="cta-section animate">
     <div class="cta-section__glow"></div>
-    <h2>Pronto para revolucionar suas aulas?</h2>
-    <p>Junte-se a mais de 1.200 professores que já usam o EduCore</p>
-    <a routerLink="/cadastro" class="btn-primary btn-primary--pulse">
-      <i class="pi pi-rocket"></i>
-      Começar gratuitamente
-    </a>
-  </section>
-
-  <!-- ── FOOTER ─────────────────────────────────────────────── -->
-  <footer class="footer-home">
-    <div class="footer-home__content">
-      <div class="footer-home__brand">
-        <img src="assets/LOGO_VIDEO.png" alt="EduCore" class="footer-home__logo">
+    <div class="cta-section__content">
+      <div class="cta-section__text">
+        <h2>Pronto para revolucionar suas aulas?</h2>
+        <p>Junte-se a mais de 1.200 professores que já usam o EduCore</p>
+        <a routerLink="/cadastro" class="btn-primary btn-primary--pulse">
+          <i class="pi pi-rocket"></i>
+          Começar gratuitamente
+        </a>
       </div>
-      <p class="footer-home__copy">
-        © 2025 EduCore · Desenvolvido no
-        <strong>SENAC-DF</strong> · Todos os direitos reservados
-      </p>
-      <div class="footer-home__links">
-        <a routerLink="/login">Entrar</a>
-        <a routerLink="/cadastro">Cadastrar</a>
+      <div class="cta-section__illustration">
+        <img src="assets/faq_img_1.png" alt="Professora usando EduCore">
       </div>
     </div>
-  </footer>
+  </section>
 
+  
+ 
 </div>
 
 <!-- ── MODAL DO VÍDEO ─────────────────────────────────────────── -->

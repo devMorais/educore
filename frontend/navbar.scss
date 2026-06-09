@@ -1,4 +1,104 @@
- // ── Dropdown do usuário ────────────────────────────────────────
+// ── Navbar base ────────────────────────────────────────────────
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(139, 111, 232, 0.15);
+  height: 68px;
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+// ── Logo ───────────────────────────────────────────────────────
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.brand-logo-img {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+}
+
+// ── Links desktop ──────────────────────────────────────────────
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+
+  a {
+    text-decoration: none;
+    color: var(--texto-mute);
+    font-size: 15px;
+    font-weight: 500;
+    transition: color 0.2s;
+
+    &:hover,
+    &.active { color: var(--violeta-claro); }
+  }
+}
+
+// ── Ações desktop ──────────────────────────────────────────────
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .btn-ghost {
+    padding: 8px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--texto-mute);
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--surface-hover);
+      color: var(--texto);
+    }
+  }
+
+  .btn-primary {
+    padding: 8px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    background: var(--gradiente-marca);
+    color: #fff;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+
+    &:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+// ── Usuário logado ─────────────────────────────────────────────
 .navbar-user {
   position: relative;
   display: flex;
@@ -12,6 +112,24 @@
   &:hover { background: var(--surface-hover); }
 }
 
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+
+  &--iniciais {
+    background: var(--gradiente-marca);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 .user-chevron {
   font-size: 0.7rem;
   color: var(--texto-mute);
@@ -20,6 +138,18 @@
   &.rotated { transform: rotate(180deg); }
 }
 
+.user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.user-email {
+  font-size: 12px;
+  color: var(--texto-mute);
+}
+
+// ── Dropdown ───────────────────────────────────────────────────
 .user-dropdown {
   position: absolute;
   top: calc(100% + 12px);
@@ -90,6 +220,7 @@
     text-align: left;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
+    font-family: var(--fonte);
 
     i { font-size: 0.9rem; }
 
@@ -109,4 +240,194 @@
 @keyframes dropdownIn {
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Hambúrguer ─────────────────────────────────────────────────
+.navbar-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+
+  &:hover { background: var(--surface-hover); }
+
+  span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--texto-mute);
+    border-radius: 2px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform-origin: center;
+  }
+
+  &.aberto {
+    span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  }
+}
+
+// ── Menu mobile ────────────────────────────────────────────────
+.navbar-mobile {
+  position: fixed;
+  top: 68px;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.97);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(139, 111, 232, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.35s ease, opacity 0.3s ease;
+  opacity: 0;
+  display: none;
+
+  &--aberto {
+    max-height: 600px;
+    opacity: 1;
+  }
+}
+
+.mobile-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1.25rem 1.5rem 1rem;
+
+  .user-avatar { width: 44px; height: 44px; font-size: 0.9rem; }
+  .user-name { display: block; font-size: 15px; font-weight: 600; color: var(--texto); }
+  .user-email { display: block; font-size: 12px; color: var(--texto-mute); }
+}
+
+.mobile-divider {
+  height: 1px;
+  background: var(--surface-brd);
+  margin: 0.5rem 1.5rem;
+}
+
+.mobile-links {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0 1.25rem;
+
+  a, button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.5rem;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--texto-mute);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+
+    i { font-size: 1rem; color: var(--texto-dim); }
+
+    &:hover, &.active {
+      background: var(--surface-hover);
+      color: var(--violeta-claro);
+      i { color: var(--violeta-claro); }
+    }
+  }
+}
+
+.mobile-logout {
+  background: none !important;
+  border: none !important;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  color: #ef4444 !important;
+  i { color: #ef4444 !important; }
+  &:hover { background: rgba(239, 68, 68, 0.1) !important; }
+}
+
+.mobile-btn-ghost {
+  margin: 0.25rem 1.5rem;
+  justify-content: center;
+  border: var(--borda) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.mobile-btn-primary {
+  margin: 0.25rem 1.5rem;
+  justify-content: center;
+  background: var(--gradiente-marca) !important;
+  color: #fff !important;
+  border-radius: var(--radius-sm) !important;
+  i { color: #fff !important; }
+  &:hover { opacity: 0.9 !important; }
+}
+
+// ── Overlay ────────────────────────────────────────────────────
+.navbar-overlay {
+  position: fixed;
+  inset: 0;
+  top: 68px;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ── Responsive ─────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .navbar-links,
+  .navbar-actions { display: none; }
+  .navbar-hamburger { display: flex; }
+  .navbar-mobile { display: block; }
+}
+
+// ── Botões scroll suave ────────────────────────────────────────
+:host ::ng-deep .nav-link-btn {
+  background: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  font-family: var(--fonte);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--texto) !important;
+  padding: 0;
+  transition: color 0.2s;
+
+  &:hover { color: var(--violeta-claro) !important; }
+}
+
+:host ::ng-deep .mobile-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.5rem;
+  width: 100%;
+  text-align: left;
+  color: var(--texto-mute) !important;
+  background: none !important;
+  border: none !important;
+  outline: none !important;
+
+  i { font-size: 1rem; color: var(--texto-dim); }
+
+  &:hover {
+    background: var(--surface-hover) !important;
+    color: var(--violeta-claro) !important;
+    i { color: var(--violeta-claro); }
+  }
 }

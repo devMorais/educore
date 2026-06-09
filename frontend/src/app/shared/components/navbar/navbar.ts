@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, HostListener } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Auth } from '../../../core/services/auth';
 
@@ -11,7 +11,6 @@ import { Auth } from '../../../core/services/auth';
 })
 export class Navbar {
   private auth   = inject(Auth);
-  private router = inject(Router);
 
   menuAberto     = signal(false);
   dropdownAberto = signal(false);
@@ -24,21 +23,25 @@ export class Navbar {
     return nome.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
   });
 
-  toggleMenu() { this.menuAberto.update(v => !v); }
-  fecharMenu() { this.menuAberto.set(false); }
+  toggleMenu()    { this.menuAberto.update(v => !v); }
+  fecharMenu()    { this.menuAberto.set(false); }
+  toggleDropdown(){ this.dropdownAberto.update(v => !v); }
+  fecharDropdown(){ this.dropdownAberto.set(false); }
 
-  toggleDropdown() { this.dropdownAberto.update(v => !v); }
-  fecharDropdown() { this.dropdownAberto.set(false); }
+  // Scroll suave para seção
+  scrollTo(id: string) {
+    this.fecharMenu();
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    if (!target.closest('.navbar-user')) {
-      this.dropdownAberto.set(false);
-    }
-    if (!target.closest('.navbar-container')) {
-      this.fecharMenu();
-    }
+    if (!target.closest('.navbar-user')) this.dropdownAberto.set(false);
+    if (!target.closest('.navbar-container')) this.fecharMenu();
   }
 
   logout() {

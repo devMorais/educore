@@ -7,23 +7,20 @@
     <div class="navbar-links">
       <a routerLink="/" routerLinkActive="active"
         [routerLinkActiveOptions]="{exact: true}">Início</a>
-      <a href="#features">Funcionalidades</a>
-      <a href="#pricing">Planos</a>
+      <button class="nav-link-btn" (click)="scrollTo('features')">Funcionalidades</button>
+      <button class="nav-link-btn" (click)="scrollTo('pricing')">Planos</button>
     </div>
 
     <div class="navbar-actions">
       @if (isLoggedIn()) {
-        <!-- Avatar com dropdown -->
         <div class="navbar-user" (click)="toggleDropdown()">
           @if (currentUser()?.avatar) {
             <img [src]="currentUser()!.avatar" class="user-avatar" [alt]="currentUser()!.name">
           } @else {
             <div class="user-avatar user-avatar--iniciais">{{ iniciais() }}</div>
           }
-          <i class="pi pi-chevron-down user-chevron"
-            [class.rotated]="dropdownAberto()"></i>
+          <i class="pi pi-chevron-down user-chevron" [class.rotated]="dropdownAberto()"></i>
 
-          <!-- Dropdown menu -->
           @if (dropdownAberto()) {
             <div class="user-dropdown" (click)="$event.stopPropagation()">
               <div class="user-dropdown__header">
@@ -39,21 +36,15 @@
                 </div>
               </div>
               <div class="user-dropdown__divider"></div>
-              <a routerLink="/upload" class="user-dropdown__item"
-                (click)="fecharDropdown()">
-                <i class="pi pi-th-large"></i>
-                Dashboard
+              <a routerLink="/upload" class="user-dropdown__item" (click)="fecharDropdown()">
+                <i class="pi pi-th-large"></i> Dashboard
               </a>
-              <a routerLink="/perfil" class="user-dropdown__item"
-                (click)="fecharDropdown()">
-                <i class="pi pi-user"></i>
-                Meu Perfil
+              <a routerLink="/perfil" class="user-dropdown__item" (click)="fecharDropdown()">
+                <i class="pi pi-user"></i> Meu Perfil
               </a>
               <div class="user-dropdown__divider"></div>
-              <button class="user-dropdown__item user-dropdown__item--danger"
-                (click)="logout()">
-                <i class="pi pi-sign-out"></i>
-                Sair
+              <button class="user-dropdown__item user-dropdown__item--danger" (click)="logout()">
+                <i class="pi pi-sign-out"></i> Sair
               </button>
             </div>
           }
@@ -65,15 +56,11 @@
     </div>
 
     <button class="navbar-hamburger" (click)="toggleMenu()"
-      [class.aberto]="menuAberto()"
-      aria-label="Abrir menu">
-      <span></span>
-      <span></span>
-      <span></span>
+      [class.aberto]="menuAberto()" aria-label="Abrir menu">
+      <span></span><span></span><span></span>
     </button>
   </div>
 
-  <!-- Menu mobile -->
   <div class="navbar-mobile" [class.navbar-mobile--aberto]="menuAberto()">
     @if (isLoggedIn()) {
       <div class="mobile-user">
@@ -91,16 +78,15 @@
     }
     <div class="mobile-links">
       <a routerLink="/" routerLinkActive="active"
-        [routerLinkActiveOptions]="{exact: true}"
-        (click)="fecharMenu()">
+        [routerLinkActiveOptions]="{exact: true}" (click)="fecharMenu()">
         <i class="pi pi-home"></i> Início
       </a>
-      <a href="#features" (click)="fecharMenu()">
+      <button class="nav-link-btn mobile-nav-btn" (click)="scrollTo('features')">
         <i class="pi pi-star"></i> Funcionalidades
-      </a>
-      <a href="#pricing" (click)="fecharMenu()">
+      </button>
+      <button class="nav-link-btn mobile-nav-btn" (click)="scrollTo('pricing')">
         <i class="pi pi-tag"></i> Planos
-      </a>
+      </button>
       @if (isLoggedIn()) {
         <a routerLink="/upload" (click)="fecharMenu()">
           <i class="pi pi-th-large"></i> Dashboard
