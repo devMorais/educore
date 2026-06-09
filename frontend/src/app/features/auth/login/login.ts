@@ -3,10 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { Auth } from '../../../core/services/auth';
 import { ToastService } from '../../../core/services/toast';
+import { Logo } from '../../../shared/components/logo/logo';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, Logo],
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })

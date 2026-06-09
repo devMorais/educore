@@ -34,6 +34,17 @@
   --texto-mute:    #94A3B8;
   --texto-dim:     #64748B;
 
+  // ── Neutros e estados ──
+  --branco:        #FFFFFF;
+  --preto:         #000000;
+  --erro:          #EF4444;
+  --erro-bg:       rgba(239, 68, 68, 0.1);
+
+  // ── Pontos do browser-mockup (semáforo do SO) ──
+  --mockup-red:    #EF4444;
+  --mockup-yellow: #F59E0B;
+  --mockup-green:  #22C55E;
+
   // ── Semânticos (use ESTES nos componentes) ──
   --brand-primary:       var(--roxo);
   --brand-primary-hover: var(--roxo-claro);

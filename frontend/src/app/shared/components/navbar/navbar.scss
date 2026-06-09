@@ -87,7 +87,7 @@
     font-size: 15px;
     font-weight: 600;
     background: var(--gradiente-marca);
-    color: #fff;
+    color: var(--branco);
     text-decoration: none;
     border: none;
     cursor: pointer;
@@ -123,7 +123,7 @@
 
   &--iniciais {
     background: var(--gradiente-marca);
-    color: #fff;
+    color: var(--branco);
     font-size: 0.75rem;
     font-weight: 700;
     display: flex;
@@ -232,9 +232,9 @@
     }
 
     &--danger {
-      color: #ef4444;
-      i { color: #ef4444; }
-      &:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+      color: var(--erro);
+      i { color: var(--erro); }
+      &:hover { background: var(--erro-bg); color: var(--erro); }
     }
   }
 }
@@ -351,9 +351,9 @@
   cursor: pointer;
   width: 100%;
   text-align: left;
-  color: #ef4444 !important;
-  i { color: #ef4444 !important; }
-  &:hover { background: rgba(239, 68, 68, 0.1) !important; }
+  color: var(--erro) !important;
+  i { color: var(--erro) !important; }
+  &:hover { background: var(--erro-bg) !important; }
 }
 
 .mobile-btn-ghost {
@@ -367,9 +367,9 @@
   margin: 0.25rem 1.5rem;
   justify-content: center;
   background: var(--gradiente-marca) !important;
-  color: #fff !important;
+  color: var(--branco) !important;
   border-radius: var(--radius-sm) !important;
-  i { color: #fff !important; }
+  i { color: var(--branco) !important; }
   &:hover { opacity: 0.9 !important; }
 }
 
