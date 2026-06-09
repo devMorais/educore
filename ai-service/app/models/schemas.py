@@ -148,6 +148,17 @@ class WcagMetadata(BaseModel):
     complexity_score: float
 
 
+class LibrasVideo(BaseModel):
+    """Vídeo LIBRAS de um ponto-chave (BS-015). O avatar é renderizado no front
+    a partir de `text`, usando a config de embed do provedor."""
+    term: str                       # rótulo do ponto-chave (ex.: "Título", termo)
+    text: str                       # texto em PT-BR a ser sinalizado em LIBRAS
+    provider: str                   # "vlibras" | "handtalk"
+    embed_type: str                 # "widget" | "sdk"
+    config: Dict[str, Any] = {}     # dados para o front montar o avatar
+    source: Optional[str] = None    # "title" | "vocabulary" | "moment"
+
+
 class AccessibilityResponse(BaseModel):
     document_id: int
     title: str
@@ -157,6 +168,7 @@ class AccessibilityResponse(BaseModel):
     key_vocabulary: List[VocabularyEntry]
     wcag_metadata: WcagMetadata
     libras_suggestions: List[str]
+    libras_videos: List[LibrasVideo] = []   # BS-015
 
 
 # ---- Platform Export ----

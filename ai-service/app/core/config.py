@@ -73,6 +73,19 @@ class Settings(BaseSettings):
     # Vazio = comportamento normal (cadeia completa Gemini → Groq → …).
     ai_force_provider: str | None = None
 
+    # ── Acessibilidade: vídeos LIBRAS no conteúdo PCD (BS-015) ──
+    # Provedor: "vlibras" (gratuito, oficial gov.br) | "handtalk" (pago).
+    # O avatar é renderizado no FRONT; o backend cura os textos + config de embed.
+    libras_enabled: bool = True
+    libras_provider: str = "vlibras"
+    libras_max_chars: int = 1000  # limite por trecho (Hand Talk aceita até 1000)
+    # VLibras (gratuito) — widget JS com o avatar Ícaro
+    vlibras_app_url: str = "https://vlibras.gov.br/app"
+    vlibras_plugin_url: str = "https://vlibras.gov.br/app/vlibras-plugin.js"
+    # Hand Talk (pago, opcional) — SDK web com o avatar Hugo. Token público de site.
+    hand_talk_api_key: str | None = None
+    hand_talk_plugin_url: str = "https://plugin.handtalk.me/web/latest/handtalk.min.js"
+
     # Quiz
     default_quiz_questions: int = 30
     quiz_context_chunks: int = 20
