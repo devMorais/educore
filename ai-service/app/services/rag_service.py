@@ -323,38 +323,49 @@ class RAGService:
     # ──────────────────────────────────────────────────────── quiz
     def generate_quiz(self, document_id: int, num_questions: int = None) -> dict:
         n = num_questions or settings.default_quiz_questions
-        easy = max(1, int(n * 0.33))
-        medium = max(1, int(n * 0.40))
-        hard = n - easy - medium
+        # Distribuição por Taxonomia de Bloom (ordem cognitiva): 30% baixa / 50% média / 20% alta
+        bloom_baixa = max(1, round(n * 0.30))
+        bloom_media = max(1, round(n * 0.50))
+        bloom_alta = max(1, n - bloom_baixa - bloom_media)
 
-        prompt = f"""Você é um professor especialista criando uma avaliação educacional de alto nível em português brasileiro.
+        prompt = f"""Você é um professor especialista criando uma avaliação pedagógica de alto nível em português brasileiro, fundamentada na TAXONOMIA DE BLOOM.
 
-TAREFA: Crie exatamente {n} questões divididas:
-- {easy} FÁCEIS (conceitos diretos) — type: "multiple_choice"
-- {medium} MÉDIAS (aplicação de conceitos) — type: "multiple_choice"
-- {int(hard * 0.75)} DIFÍCEIS (análise, síntese) — type: "multiple_choice"
-- {hard - int(hard * 0.75)} VERDADEIRO/FALSO — type: "true_false"
+TAREFA: Crie exatamente {n} questões.
+
+DISTRIBUIÇÃO POR NÍVEL DE BLOOM (campo bloom_level):
+- {bloom_baixa} de ORDEM BAIXA — "lembrar" ou "entender"
+- {bloom_media} de ORDEM MÉDIA — "aplicar" ou "analisar"
+- {bloom_alta} de ORDEM ALTA — "avaliar" ou "criar"
+
+VARIEDADE DE TIPOS (campo type) — use TODOS, com pelo menos 2-3 de cada tipo não-múltipla:
+- "multiple_choice" (maioria): 4 alternativas únicas, 1 correta, sem "todas/nenhuma das anteriores".
+- "true_false": options = ["Verdadeiro","Falso"]; a explanation DEVE justificar a resposta.
+- "fill_blank": a pergunta traz uma lacuna "_____"; options = 4 candidatos; correct_answer = a palavra/expressão correta.
+- "ordering": options = itens fora de ordem; correct_answer = a sequência correta unida por " > " (ex.: "Item A > Item C > Item B").
 
 REGRAS:
-1. Para multiple_choice: 4 alternativas únicas, apenas 1 correta, sem "todas acima" ou "nenhuma"
-2. Para true_false: options deve ser ["Verdadeiro", "Falso"]
-3. Cada questão avalia um tópico diferente
-4. explanation: 2-3 frases pedagógicas
-5. Não repita perguntas semelhantes
-6. topic identifica o tema específico
+1. correct_answer DEVE ser exatamente um item de options (em "ordering", a ordenação correta desses itens).
+2. Avalie COMPREENSÃO e raciocínio — NÃO crie questões que dependam de decorar datas, nomes próprios ou números isolados.
+3. Cada questão aborda um tópico diferente (campo topic).
+4. hint: dica curta que orienta sem entregar a resposta.
+5. source_chunk: trecho curto do CONTEÚDO que fundamenta a questão.
+6. explanation: 2-3 frases pedagógicas. Não repita perguntas semelhantes.
 
 Retorne APENAS JSON válido:
 {{
   "title": "título descritivo do quiz",
   "questions": [
     {{
-      "question": "texto da pergunta",
+      "question": "texto da pergunta (use _____ em fill_blank)",
       "type": "multiple_choice",
       "options": ["A) opção 1", "B) opção 2", "C) opção 3", "D) opção 4"],
-      "correct_answer": "A) opção correta",
+      "correct_answer": "A) opção 1",
       "explanation": "explicação pedagógica detalhada",
       "difficulty": "easy",
-      "topic": "nome do tópico"
+      "bloom_level": "entender",
+      "topic": "nome do tópico",
+      "hint": "dica curta",
+      "source_chunk": "trecho do documento que embasa a questão"
     }}
   ]
 }}"""
@@ -381,6 +392,11 @@ Retorne APENAS JSON válido:
             )
             rag_prompt = f"CONTEÚDO DO DOCUMENTO:\n{{CONTEXT}}\n\nCONHECIMENTO ADICIONAL:\n{_build_context(kb_chunks)}\n\n{prompt}"
             result = _generate_with_rag(chunks, rag_prompt)
+
+        # BS-018: valida que correct_answer está entre as options (exceto 'ordering')
+        for q in result.get("questions", []):
+            if q.get("type") != "ordering" and q.get("correct_answer") not in (q.get("options") or []):
+                logger.warning(f"Quiz: correct_answer fora de options — '{str(q.get('question',''))[:50]}'")
 
         result["document_id"] = document_id
         result["total_questions"] = len(result.get("questions", []))
