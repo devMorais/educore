@@ -4,23 +4,24 @@ import { Auth } from '../services/auth';
 
 /**
  * Guard de Role para a Área Admin (US-001)
- *
- * Verifica se o usuário autenticado possui o papel 'admin'.
- * Caso não possua, redireciona para /login com o parâmetro
- * redirect=/admin para retornar após autenticação correta.
+ * Atualizado na US-026: redireciona para /403 se logado sem permissão
  */
 export const adminGuard: CanActivateFn = () => {
   const auth = inject(Auth);
   const router = inject(Router);
 
-  // Obtém o usuário atualmente autenticado pelo signal
   const usuario = auth.currentUser();
 
-  // Verifica se o usuário possui o papel de administrador
+  // Possui papel admin — acesso liberado
   if (usuario?.role === 'admin') {
     return true;
   }
 
-  // Redireciona para /login com parâmetro de retorno para /admin
+  // Logado mas sem permissão de admin → 403
+  if (auth.isLoggedIn()) {
+    return router.parseUrl('/403');
+  }
+
+  // Não logado → login com redirect
   return router.parseUrl('/login?redirect=/admin');
 };

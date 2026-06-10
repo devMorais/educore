@@ -1,0 +1,21 @@
+ // ── Página 403 — Acesso Negado (US-026) ──────────────────────────────────────
+// Reutiliza a base do not-found.scss e sobrescreve as cores para vermelho
+@use '../not-found/not-found.scss';
+
+// Sobrescreve código 403 para vermelho
+.error-page__codigo--403 {
+  background: linear-gradient(135deg, #e53e3e, #fc8181);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// Botão principal 403 — vermelho
+.error-page__btn--403 {
+  background: linear-gradient(135deg, #e53e3e, #fc8181);
+  box-shadow: 0 4px 20px rgba(229, 62, 62, 0.35);
+
+  &:hover {
+    box-shadow: 0 8px 28px rgba(229, 62, 62, 0.5);
+  }
+}

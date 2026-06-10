@@ -1,0 +1,122 @@
+ // ── Página de Erro — base compartilhada (US-026) ──────────────────────────────
+.error-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: #0f172a;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+
+  &.visivel {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  &__ilustracao {
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 2rem;
+
+    svg {
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 0 30px rgba(99, 130, 255, 0.2));
+    }
+  }
+
+  &__conteudo {
+    text-align: center;
+    max-width: 480px;
+  }
+
+  &__codigo {
+    display: block;
+    font-size: 5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #6382ff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  &__titulo {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin: 0 0 1rem;
+  }
+
+  &__desc {
+    color: #94a3b8;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0 0 2rem;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.9rem 2rem;
+    background: linear-gradient(135deg, #6382ff, #a78bfa);
+    color: #ffffff;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(99, 130, 255, 0.35);
+
+    i { font-size: 1rem; }
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(99, 130, 255, 0.5);
+    }
+  }
+
+  &__btn--secundario {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.9rem 2rem;
+    background: transparent;
+    color: #6382ff;
+    border: 1.5px solid #6382ff;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+
+    i { font-size: 1rem; }
+
+    &:hover {
+      background: rgba(99, 130, 255, 0.1);
+      transform: translateY(-3px);
+    }
+  }
+
+  &__acoes {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+// ── Responsivo ────────────────────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .error-page {
+    &__codigo  { font-size: 3.5rem; }
+    &__titulo  { font-size: 1.4rem; }
+    &__ilustracao { max-width: 260px; }
+  }
+}

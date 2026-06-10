@@ -22,6 +22,9 @@ import { Professors } from './features/admin/professors/professors';
 import { Students } from './features/admin/students/students';
 import { Chat } from './features/admin/chat/chat';
 import { Forum } from './features/admin/forum/forum';
+// US-026: Páginas de erro
+import { NotFound } from './features/errors/not-found/not-found';
+import { Forbidden } from './features/errors/forbidden/forbidden';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -34,13 +37,13 @@ export const routes: Routes = [
     path: 'resultado',
     canActivate: [authGuard],
     children: [
-      { path: 'quiz', component: Quiz },
-      { path: 'summary', component: Summary },
-      { path: 'slides', component: Slides },
-      { path: 'mindmap', component: Mindmap },
+      { path: 'quiz',       component: Quiz },
+      { path: 'summary',    component: Summary },
+      { path: 'slides',     component: Slides },
+      { path: 'mindmap',    component: Mindmap },
       { path: 'flashcards', component: Flashcards },
-      { path: 'pcd', component: Pcd },
-      { path: '', component: Result },
+      { path: 'pcd',        component: Pcd },
+      { path: '',           component: Result },
     ],
   },
   {
@@ -48,13 +51,17 @@ export const routes: Routes = [
     component: Layout,
     canActivate: [authGuard, adminGuard],
     children: [
-      { path: '', component: Dashboard },
-      { path: 'usuarios', component: Users },
+      { path: '',          component: Dashboard },
+      { path: 'usuarios',  component: Users },
       { path: 'professores', component: Professors },
-      { path: 'alunos', component: Students },
-      { path: 'chat', component: Chat },
-      { path: 'forum', component: Forum },
+      { path: 'alunos',    component: Students },
+      { path: 'chat',      component: Chat },
+      { path: 'forum',     component: Forum },
     ],
   },
-  { path: '**', redirectTo: '' },
+  // US-026: Rotas de erro
+  { path: '403', component: Forbidden },
+  { path: '404', component: NotFound },
+  // Wildcard — qualquer rota não encontrada → 404
+  { path: '**', redirectTo: '404' },
 ];
