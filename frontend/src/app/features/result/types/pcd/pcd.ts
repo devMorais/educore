@@ -1,12 +1,13 @@
 import {
   Component, computed, inject, signal,
-  PLATFORM_ID, OnDestroy
+  PLATFORM_ID, OnDestroy, OnInit, ElementRef, ViewChildren, QueryList
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { ResultStore } from '../../../../core/services/result-store';
 import { ToastService } from '../../../../core/services/toast';
-import type { AccessibilityResult } from '../../../../core/models/content.models';
+import { LibrasLoaderService } from '../../../../core/services/libras-loader';
+import type { AccessibilityResult, LibrasVideo } from '../../../../core/models/content.models';
 
 // Abas disponíveis
 type PcdTab = 'simplified' | 'audio' | 'vocabulary' | 'libras';
@@ -14,17 +15,25 @@ type PcdTab = 'simplified' | 'audio' | 'vocabulary' | 'libras';
 // Status da reprodução de áudio
 type AudioStatus = 'parado' | 'reproduzindo' | 'pausado';
 
+// Agrupamento de cards LIBRAS por source
+interface LibrasGrupo {
+  label: string;
+  icon: string;
+  items: LibrasVideo[];
+}
+
 @Component({
   selector: 'app-pcd',
   imports: [],
   templateUrl: './pcd.html',
   styleUrl: './pcd.scss',
 })
-export class Pcd implements OnDestroy {
-  private store      = inject(ResultStore);
-  private router     = inject(Router);
-  private toast      = inject(ToastService);
-  private platformId = inject(PLATFORM_ID);
+export class Pcd implements OnInit, OnDestroy {
+  private store        = inject(ResultStore);
+  private router       = inject(Router);
+  private toast        = inject(ToastService);
+  private platformId   = inject(PLATFORM_ID);
+  readonly librasLoader = inject(LibrasLoaderService);
 
   data = computed(() => this.store.data()?.result as AccessibilityResult | undefined);
 
@@ -32,8 +41,11 @@ export class Pcd implements OnDestroy {
   pcdTab = signal<PcdTab>('simplified');
 
   // Estado do áudio
-  audioStatus   = signal<AudioStatus>('parado');
-  velocidade    = signal<number>(1);
+  audioStatus = signal<AudioStatus>('parado');
+  velocidade  = signal<number>(1);
+
+  // Estado de carregamento do script LIBRAS
+  librasCarregando = signal(false);
 
   // Instância do SpeechSynthesis
   private utterance: SpeechSynthesisUtterance | null = null;
@@ -54,10 +66,55 @@ export class Pcd implements OnDestroy {
     { id: 'libras',     label: 'LIBRAS',              icon: 'pi-hand-pointer' },
   ];
 
+  // Computed: agrupa libras_videos por source
+  librasGrupos = computed<LibrasGrupo[]>(() => {
+    const videos = this.data()?.libras_videos ?? [];
+    if (!videos.length) return [];
+
+    const mapaLabels: Record<string, { label: string; icon: string }> = {
+      title:      { label: 'Título',      icon: 'pi-bookmark'   },
+      vocabulary: { label: 'Vocabulário', icon: 'pi-book'        },
+      moment:     { label: 'Momentos',    icon: 'pi-star'        },
+    };
+
+    const grupos: Record<string, LibrasVideo[]> = {};
+    for (const v of videos) {
+      const key = v.source ?? 'moment';
+      if (!grupos[key]) grupos[key] = [];
+      grupos[key].push(v);
+    }
+
+    return Object.entries(grupos).map(([key, items]) => ({
+      label: mapaLabels[key]?.label ?? key,
+      icon:  mapaLabels[key]?.icon  ?? 'pi-star',
+      items,
+    }));
+  });
+
+  ngOnInit() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Carrega o provedor LIBRAS se houver libras_videos
+    const videos = this.data()?.libras_videos;
+    if (videos?.length) {
+      this.librasCarregando.set(true);
+      // Aguarda um tick para o DOM estar pronto
+      setTimeout(() => {
+        this.librasLoader.carregarProvedor(videos);
+        this.librasCarregando.set(false);
+      }, 500);
+    }
+  }
+
   // Muda a aba ativa e para o áudio se estiver tocando
   setPcdTab(tab: PcdTab) {
     this.pcdTab.set(tab);
     if (tab !== 'audio') this.pararAudio();
+  }
+
+  // Dispara a tradução LIBRAS de um item
+  traduzir(item: LibrasVideo, textoEl: HTMLElement) {
+    this.librasLoader.traduzir(item.text, textoEl);
   }
 
   // Reproduz o texto via Web Speech API
@@ -71,10 +128,8 @@ export class Pcd implements OnDestroy {
     const texto = this.data()?.audio_script ?? this.data()?.simplified_text ?? '';
     if (!texto) return;
 
-    // Para qualquer fala anterior
     window.speechSynthesis.cancel();
 
-    // Cria nova utterance
     this.utterance = new SpeechSynthesisUtterance(texto);
     this.utterance.lang  = 'pt-BR';
     this.utterance.rate  = this.velocidade();
@@ -88,21 +143,18 @@ export class Pcd implements OnDestroy {
     this.audioStatus.set('reproduzindo');
   }
 
-  // Pausa a reprodução
   pausar() {
     if (!isPlatformBrowser(this.platformId)) return;
     window.speechSynthesis.pause();
     this.audioStatus.set('pausado');
   }
 
-  // Retoma a reprodução pausada
   retomar() {
     if (!isPlatformBrowser(this.platformId)) return;
     window.speechSynthesis.resume();
     this.audioStatus.set('reproduzindo');
   }
 
-  // Para completamente a reprodução
   pararAudio() {
     if (!isPlatformBrowser(this.platformId)) return;
     window.speechSynthesis.cancel();
@@ -110,15 +162,11 @@ export class Pcd implements OnDestroy {
     this.utterance = null;
   }
 
-  // Altera a velocidade e reinicia se estiver reproduzindo
   alterarVelocidade(vel: number) {
     this.velocidade.set(vel);
-    if (this.audioStatus() === 'reproduzindo') {
-      this.reproduzir();
-    }
+    if (this.audioStatus() === 'reproduzindo') this.reproduzir();
   }
 
-  // Copia texto para a área de transferência
   copyText(text: string) {
     if (isPlatformBrowser(this.platformId)) {
       navigator.clipboard.writeText(text).then(() => {
@@ -127,16 +175,15 @@ export class Pcd implements OnDestroy {
     }
   }
 
-  // Retorna a cor do score de complexidade WCAG
   corComplexidade(score: number): string {
-    if (score <= 3)  return '#22c55e'; // fácil
-    if (score <= 6)  return '#f59e0b'; // médio
-    return '#ef4444';                   // difícil
+    if (score <= 3) return 'var(--verde)';
+    if (score <= 6) return 'var(--ambar)';
+    return 'var(--erro)';
   }
 
-  // Limpa o áudio ao destruir o componente
   ngOnDestroy() {
     this.pararAudio();
+    this.librasLoader.limpar();
   }
 
   goToUpload() {
