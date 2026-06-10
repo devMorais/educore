@@ -32,4 +32,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json(['message' => $e->getMessage(), 'errors' => $e->errors()], 422);
             }
         });
+        // BS-021: 429 padronizado com Retry-After e tempo de espera (rede de
+        // segurança para throttles que não tenham resposta própria).
+        $exceptions->render(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, $request) {
+            if ($request->is('api/*')) {
+                $retry = (int) ($e->getHeaders()['Retry-After'] ?? 60);
+
+                return response()->json([
+                    'message'           => 'Limite de requisições excedido. Aguarde antes de tentar novamente.',
+                    'retry_after'       => $retry,
+                    'retry_after_human' => $retry >= 60 ? (int) ceil($retry / 60) . ' min' : $retry . 's',
+                ], 429, $e->getHeaders());
+            }
+        });
     })->create();
