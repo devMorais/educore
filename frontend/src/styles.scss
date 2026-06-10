@@ -1,5 +1,5 @@
 @use '@angular/material' as mat;
-@import 'styles/tokens';
+@use 'styles/tokens' as *;
 @import 'primeicons/primeicons.css';
 
 @include mat.core();
@@ -11,7 +11,7 @@ $educore-theme: mat.define-theme((
     tertiary: mat.$orange-palette,
   ),
   typography: (
-    brand-family: 'Plus Jakarta Sans, sans-serif',
+    brand-family: 'Inter, sans-serif',
   ),
 ));
 
@@ -41,6 +41,12 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+// Títulos com a fonte de display (Space Grotesk)
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--fonte-titulo);
+  letter-spacing: -0.02em;
 }
 
 a {

@@ -55,6 +55,18 @@
       color: var(--violeta-claro);
     }
   }
+
+  // Botões que agem como links (Funcionalidades / Planos)
+  .nav-link-btn {
+    cursor: pointer;
+    color: var(--texto-mute);
+    font-size: 15px;
+    font-weight: 500;
+    font-family: var(--fonte);
+    transition: color 0.2s;
+
+    &:hover { color: var(--violeta-claro); }
+  }
 }
 
 // ── Ações desktop ──────────────────────────────────────────────

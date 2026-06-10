@@ -58,8 +58,7 @@
         <div class="passo animate">
           <div class="passo__numero">{{ passo.numero }}</div>
           <div class="passo__icone">
-            <img [src]="passo.imagem" [alt]="passo.titulo"
-              onerror="this.style.display='none'">
+            <i class="pi {{ passo.icone }}"></i>
           </div>
           <h3>{{ passo.titulo }}</h3>
           <p>{{ passo.desc }}</p>

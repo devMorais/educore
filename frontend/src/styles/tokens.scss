@@ -4,8 +4,9 @@
 // ═══════════════════════════════════════════════════════════════
 
 :root {
-  // ── Fonte ──
-  --fonte: 'Plus Jakarta Sans', sans-serif;
+  // ── Tipografia ──
+  --fonte:        'Inter', sans-serif;
+  --fonte-titulo: 'Space Grotesk', 'Inter', sans-serif;
 
   // ── Cores base da marca (extraídas da logo e ilustrações) ──
   --roxo:          #5B2D8E;
@@ -28,6 +29,15 @@
   --surface-hover: rgba(255, 255, 255, 0.08);
   --surface-brd:   rgba(255, 255, 255, 0.08);
   --surface-brd-hover: rgba(139, 111, 232, 0.6);
+
+  // ── Superfícies claras (seções alternadas) ──
+  --bg-claro:          #F5F3FB;
+  --bg-claro-2:        #ECE9F8;
+  --surface-claro:     #FFFFFF;
+  --surface-claro-brd: rgba(91, 45, 142, 0.12);
+  --texto-escuro:      #1E1B2E;
+  --texto-escuro-mute: #5B5775;
+  --shadow-claro:      0 8px 30px rgba(91, 45, 142, 0.10);
 
   // ── Texto ──
   --texto:         #F8FAFC;
@@ -56,6 +66,11 @@
   --gradiente-marca:  linear-gradient(135deg, var(--roxo), var(--laranja));
   --gradiente-heroi:  linear-gradient(135deg, var(--violeta-claro), var(--laranja));
   --gradiente-bg:     radial-gradient(circle at 50% -20%, var(--roxo-escuro), var(--bg-2), var(--bg));
+  --mesh-hero:
+    radial-gradient(62% 60% at 50% -5%, rgba(244, 123, 32, 0.06), transparent 70%),
+    radial-gradient(52% 58% at 84% 82%, rgba(251, 176, 52, 0.06), transparent 64%),
+    radial-gradient(45% 55% at 12% 28%, rgba(244, 123, 32, 0.04), transparent 72%),
+    radial-gradient(40% 50% at 92% 10%, rgba(139, 111, 232, 0.03), transparent 72%);
 
   // ── Sombras e glows ──
   --glow-brand:   0 0 40px rgba(91, 45, 142, 0.4);

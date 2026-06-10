@@ -36,9 +36,9 @@ export class Home implements AfterViewInit, OnDestroy {
   ];
 
   readonly passos = [
-    { numero: '01', titulo: 'Upload do PDF',   desc: 'Envie qualquer material didático — apostilas, artigos ou livros em PDF.',          icone: 'pi-cloud-upload', imagem: 'assets/feature_icon_1.png' },
-    { numero: '02', titulo: 'Gemini Processa', desc: 'O Gemini 2.5-Flash analisa o conteúdo e gera materiais pedagógicos em segundos.', icone: 'pi-bolt',         imagem: 'assets/feature_icon_2.png' },
-    { numero: '03', titulo: 'Baixe e Aplique', desc: 'Exporte para PowerPoint, Kahoot, SCORM e aplique direto com seus alunos.',        icone: 'pi-download',     imagem: 'assets/feature_icon_3.png' },
+    { numero: '01', titulo: 'Upload do PDF',   desc: 'Envie qualquer material didático — apostilas, artigos ou livros em PDF.',          icone: 'pi-cloud-upload' },
+    { numero: '02', titulo: 'Gemini Processa', desc: 'O Gemini 2.5-Flash analisa o conteúdo e gera materiais pedagógicos em segundos.', icone: 'pi-bolt'         },
+    { numero: '03', titulo: 'Baixe e Aplique', desc: 'Exporte para PowerPoint, Kahoot, SCORM e aplique direto com seus alunos.',        icone: 'pi-download'     },
   ];
 
   private observers: IntersectionObserver[] = [];

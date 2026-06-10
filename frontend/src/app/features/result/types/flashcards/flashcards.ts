@@ -27,7 +27,7 @@ export class Flashcards {
   revisarSet   = signal<Set<number>>(new Set());
 
   // Card atual baseado na ordem
-  currentCard = computed(() => this.cardsOrdem()[this.cardIndex()] ?? null);
+  currentCard = computed<Flashcard | null>(() => this.cardsOrdem()[this.cardIndex()] ?? null);
 
   // Total de cards
   total = computed(() => this.cardsOrdem().length);
