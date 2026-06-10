@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List, Any, Dict
 from datetime import datetime
 from enum import Enum
@@ -55,6 +55,10 @@ class GenerationRequest(BaseModel):
     type: GenerationType
     options: Optional[Dict[str, Any]] = {}
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"document_id": 12, "type": "quiz", "options": {}}
+    })
+
 
 # ---- Quiz ----
 
@@ -76,6 +80,25 @@ class QuizResponse(BaseModel):
     title: str
     questions: List[QuizQuestion]
     total_questions: int
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "document_id": 12,
+            "title": "Quiz — Fotossíntese",
+            "total_questions": 1,
+            "questions": [{
+                "question": "Qual organela realiza a fotossíntese?",
+                "type": "multiple_choice",
+                "options": ["A) Mitocôndria", "B) Cloroplasto", "C) Núcleo", "D) Ribossomo"],
+                "correct_answer": "B) Cloroplasto",
+                "explanation": "A fotossíntese ocorre nos cloroplastos, ricos em clorofila.",
+                "difficulty": "easy",
+                "bloom_level": "entender",
+                "topic": "Organelas",
+                "hint": "Pense na cor verde das plantas."
+            }]
+        }
+    })
 
 
 # ---- Summary ----
@@ -214,8 +237,65 @@ class HealthResponse(BaseModel):
     service: str
     version: str
     database: str
+    features: List[str] = []
 
 
 class ErrorResponse(BaseModel):
     error: str
     detail: Optional[str] = None
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# BS-020 — modelos de resposta dos endpoints REST (documentação OpenAPI)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class MensagemErro(BaseModel):
+    """Formato padrão de erro do FastAPI/HTTPException (corpo `{ "detail": ... }`)."""
+    detail: str
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"detail": "Documento não encontrado"}
+    })
+
+
+class UploadResponse(BaseModel):
+    """Resposta do upload de PDF. `deduplicated=true` quando o PDF já havia sido
+    processado antes (retorno imediato, sem reprocessar)."""
+    status: str                       # "processing" (novo) | "completed" (dedup)
+    document_id: int
+    filename: str
+    message: str
+    deduplicated: Optional[bool] = None
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "status": "processing",
+            "document_id": 12,
+            "filename": "apostila-biologia.pdf",
+            "message": "PDF recebido. Será processado em segundos.",
+        }
+    })
+
+
+class DocumentListItem(BaseModel):
+    id: int
+    filename: str
+    status: DocumentStatus
+    progress_percent: int = 0
+    created_at: datetime
+
+
+class GenerationListItem(BaseModel):
+    id: int
+    type: str            # quiz|summary|slides|mindmap|flashcards|pcd|html_presentation
+    created_at: str
+
+
+class ExporterInfo(BaseModel):
+    platform: str
+    version: str
+    format: str
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"platform": "Kahoot", "version": "1.0", "format": "json"}
+    })

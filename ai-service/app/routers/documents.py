@@ -9,17 +9,31 @@ from app.core.database import get_connection
 from app.core.auth import get_current_user, verify_token
 from app.core.config import settings
 from app.core.limiter import limiter, get_user_identifier
+from typing import List
 from app.services.rag_service import rag_service
 from app.services.tts_service import tts_service
-from app.models.schemas import GenerationRequest, GenerationType
+from app.models.schemas import (
+    GenerationRequest, GenerationType,
+    UploadResponse, DocumentStatusResponse, DocumentListItem,
+    GenerationListItem, ExporterInfo, MensagemErro,
+)
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/documents", tags=["documents"])
+# Sem tag no router: cada endpoint declara a sua (agrupamento limpo no Swagger)
+router = APIRouter(prefix="/documents")
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024  # 100 MB
+
+# ── BS-020: respostas de erro reutilizáveis no OpenAPI ──
+_E401 = {401: {"model": MensagemErro, "description": "Token ausente, inválido ou expirado"}}
+_E403 = {403: {"model": MensagemErro, "description": "Sem permissão sobre o recurso"}}
+_E404 = {404: {"model": MensagemErro, "description": "Documento/recurso não encontrado"}}
+_E422 = {422: {"description": "Erro de validação dos dados enviados"}}
+_E429 = {429: {"model": MensagemErro, "description": "Limite de requisições excedido (rate limit)"}}
+_E503 = {503: {"model": MensagemErro, "description": "Modelo de IA sobrecarregado — tente novamente"}}
 
 
 # ──────────────────────────────────────────────────────── helper: ownership
@@ -50,7 +64,24 @@ def ownership_check(document_id: int, user_id: int, status_code: int = 404) -> N
 
 
 # ──────────────────────────────────────────────────────── upload
-@router.post("/upload")
+@router.post(
+    "/upload",
+    tags=["Documentos"],
+    summary="Enviar um PDF para processamento",
+    description=(
+        "Recebe um PDF (até **100 MB**), inicia o processamento assíncrono "
+        "(Gemini Files API + RAG) e devolve o `document_id`. Se o mesmo PDF já "
+        "tiver sido processado por este usuário, retorna o existente "
+        "(`deduplicated=true`) sem reprocessar. Limite: **10 uploads/hora**."
+    ),
+    response_model=UploadResponse,
+    response_model_exclude_none=True,
+    responses={
+        **_E401, **_E422, **_E429,
+        400: {"model": MensagemErro, "description": "Arquivo não é PDF"},
+        413: {"model": MensagemErro, "description": "Arquivo maior que 100 MB"},
+    },
+)
 @limiter.limit("10/hour", key_func=get_user_identifier)
 async def upload_document(
     request: Request,
@@ -135,7 +166,15 @@ async def upload_document(
 
 
 # ──────────────────────────────────────────────────────── status
-@router.get("/{document_id}/status")
+@router.get(
+    "/{document_id}/status",
+    tags=["Documentos"],
+    summary="Status de processamento do documento",
+    description="Use em polling para acompanhar o progresso (0–100%) até `status=completed`.",
+    response_model=DocumentStatusResponse,
+    response_model_exclude_none=True,
+    responses={**_E401, **_E404},
+)
 async def get_document_status(
     document_id: int,
     current_user: dict = get_current_user,
@@ -170,7 +209,14 @@ async def get_document_status(
 
 
 # ──────────────────────────────────────────────────────── list cached generations
-@router.get("/{document_id}/generations")
+@router.get(
+    "/{document_id}/generations",
+    tags=["Geração de Conteúdo"],
+    summary="Listar gerações em cache do documento",
+    description="Retorna os conteúdos já gerados (tipo + data), do mais recente ao mais antigo.",
+    response_model=List[GenerationListItem],
+    responses={**_E401, **_E404},
+)
 async def list_generations(
     document_id: int,
     current_user: dict = get_current_user,
@@ -191,7 +237,18 @@ async def list_generations(
 
 
 # ──────────────────────────────────────────────────────── get cached generation
-@router.get("/{document_id}/generations/{gen_type}")
+@router.get(
+    "/{document_id}/generations/{gen_type}",
+    tags=["Geração de Conteúdo"],
+    summary="Recuperar uma geração específica do cache",
+    description=(
+        "Retorna o JSON da geração em cache (`quiz`, `summary`, `slides`, `mindmap`, "
+        "`flashcards`, `pcd`). O formato varia conforme o tipo — ver os schemas "
+        "correspondentes na seção **Schemas**."
+    ),
+    response_model=dict,
+    responses={**_E401, **_E404},
+)
 async def get_cached_generation(
     document_id: int,
     gen_type: str,
@@ -216,7 +273,24 @@ async def get_cached_generation(
 
 
 # ──────────────────────────────────────────────────────── generate
-@router.post("/{document_id}/generate")
+@router.post(
+    "/{document_id}/generate",
+    tags=["Geração de Conteúdo"],
+    summary="Gerar conteúdo a partir do documento",
+    description=(
+        "Gera um dos 6 tipos de conteúdo (campo `type`): `quiz`, `summary`, "
+        "`slides`, `mindmap`, `flashcards`, `pcd`. O resultado fica em cache "
+        "(próximas chamadas do mesmo tipo retornam o cache). O **formato da "
+        "resposta varia conforme o `type`** — ver `QuizResponse`, `SummaryResponse`, "
+        "`SlidesResponse`, `MindMapResponse`, `FlashcardsResponse` e "
+        "`AccessibilityResponse` na seção **Schemas**. Limite: **30/min**."
+    ),
+    response_model=dict,
+    responses={
+        **_E401, **_E403, **_E404, **_E422, **_E429, **_E503,
+        400: {"model": MensagemErro, "description": "Documento não processado ou tipo inválido"},
+    },
+)
 @limiter.limit("30/minute", key_func=get_user_identifier)
 async def generate_content(
     request: Request,
@@ -280,7 +354,20 @@ async def generate_content(
 
 
 # ──────────────────────────────────────────────────────── áudio (TTS / BS-016)
-@router.get("/{document_id}/audio")
+@router.get(
+    "/{document_id}/audio",
+    tags=["Acessibilidade"],
+    summary="Áudio (TTS) do conteúdo acessível",
+    description=(
+        "Retorna um **MP3** com a narração do roteiro de áudio da geração PCD "
+        "(em cache). Gere o conteúdo `pcd` antes. O front deve buscar como blob."
+    ),
+    response_class=FileResponse,
+    responses={
+        **_E401, **_E403, **_E404, **_E503,
+        200: {"content": {"audio/mpeg": {}}, "description": "Arquivo MP3 do áudio"},
+    },
+)
 async def get_audio(
     request: Request,
     document_id: int,
@@ -337,7 +424,19 @@ async def get_audio(
 
 
 # ──────────────────────────────────────────────────────── export PPTX
-@router.post("/{document_id}/export-pptx")
+@router.post(
+    "/{document_id}/export-pptx",
+    tags=["Exportação"],
+    summary="Exportar slides para PowerPoint (.pptx)",
+    description="Gera (ou reaproveita do cache) os slides e devolve um arquivo **.pptx** para download.",
+    response_class=FileResponse,
+    responses={
+        **_E401, **_E404,
+        400: {"model": MensagemErro, "description": "Documento não processado"},
+        200: {"content": {"application/vnd.openxmlformats-officedocument.presentationml.presentation": {}},
+              "description": "Arquivo .pptx"},
+    },
+)
 async def export_pptx(
     document_id: int,
     current_user: dict = get_current_user,
@@ -363,7 +462,17 @@ async def export_pptx(
 
 
 # ──────────────────────────────────────────────────────── view HTML (Reveal.js) — nova guia
-@router.get("/{document_id}/html-view")
+@router.get(
+    "/{document_id}/html-view",
+    tags=["Exportação"],
+    summary="Visualizar a apresentação (HTML/Reveal.js)",
+    description=(
+        "Serve a apresentação como HTML para abrir em nova guia. **Autentica via "
+        "query param** `?token=<bearer>` (permite `window.open()` sem headers)."
+    ),
+    response_class=Response,
+    responses={**_E401, **_E404, 200: {"content": {"text/html": {}}, "description": "HTML da apresentação"}},
+)
 async def view_html(
     document_id: int,
     token: str,
@@ -386,7 +495,14 @@ async def view_html(
 
 
 # ──────────────────────────────────────────────────────── export HTML (Reveal.js) — download
-@router.post("/{document_id}/export-html")
+@router.post(
+    "/{document_id}/export-html",
+    tags=["Exportação"],
+    summary="Baixar a apresentação (HTML/Reveal.js)",
+    description="Gera a apresentação e devolve um arquivo **.html** autocontido para download.",
+    response_class=Response,
+    responses={**_E401, **_E404, 200: {"content": {"text/html": {}}, "description": "Arquivo .html"}},
+)
 async def export_html(
     document_id: int,
     current_user: dict = get_current_user,
@@ -410,7 +526,14 @@ async def export_html(
 
 
 # ──────────────────────────────────────────────────────── export Kahoot
-@router.get("/{document_id}/export-kahoot")
+@router.get(
+    "/{document_id}/export-kahoot",
+    tags=["Exportação"],
+    summary="Exportar quiz para o Kahoot (JSON)",
+    description="Gera o quiz e devolve um JSON no formato de importação do Kahoot.",
+    response_class=Response,
+    responses={**_E401, **_E404, 200: {"content": {"application/json": {}}, "description": "JSON do Kahoot"}},
+)
 async def export_kahoot(
     document_id: int,
     current_user: dict = get_current_user,
@@ -430,7 +553,14 @@ async def export_kahoot(
 
 
 # ──────────────────────────────────────────────────────── export Socrative
-@router.get("/{document_id}/export-socrative")
+@router.get(
+    "/{document_id}/export-socrative",
+    tags=["Exportação"],
+    summary="Exportar quiz para o Socrative (JSON)",
+    description="Gera o quiz e devolve um JSON no formato de importação do Socrative.",
+    response_class=Response,
+    responses={**_E401, **_E404, 200: {"content": {"application/json": {}}, "description": "JSON do Socrative"}},
+)
 async def export_socrative(
     document_id: int,
     current_user: dict = get_current_user,
@@ -450,7 +580,14 @@ async def export_socrative(
 
 
 # ──────────────────────────────────────────────────────── export SCORM
-@router.get("/{document_id}/export-scorm")
+@router.get(
+    "/{document_id}/export-scorm",
+    tags=["Exportação"],
+    summary="Exportar quiz como pacote SCORM (.zip)",
+    description="Gera o quiz e devolve um pacote **SCORM** (.zip) para importar em LMS (Moodle, etc.).",
+    response_class=Response,
+    responses={**_E401, **_E404, 200: {"content": {"application/zip": {}}, "description": "Pacote SCORM .zip"}},
+)
 async def export_scorm(
     document_id: int,
     current_user: dict = get_current_user,
@@ -470,7 +607,14 @@ async def export_scorm(
 
 
 # ──────────────────────────────────────────────────────── exporters info
-@router.get("/exporters/platforms")
+@router.get(
+    "/exporters/platforms",
+    tags=["Exportação"],
+    summary="Listar plataformas de exportação disponíveis",
+    description="Retorna as plataformas suportadas (Kahoot, Socrative, SCORM…) e seus formatos.",
+    response_model=List[ExporterInfo],
+    responses={**_E401},
+)
 async def list_exporters(current_user: dict = get_current_user):
     from app.exporters import EXPORTERS
 
@@ -478,7 +622,14 @@ async def list_exporters(current_user: dict = get_current_user):
 
 
 # ──────────────────────────────────────────────────────── list
-@router.get("/")
+@router.get(
+    "/",
+    tags=["Documentos"],
+    summary="Listar meus documentos",
+    description="Retorna os 50 documentos mais recentes do usuário autenticado.",
+    response_model=List[DocumentListItem],
+    responses={**_E401},
+)
 async def list_documents(current_user: dict = get_current_user):
     conn = get_connection()
     cursor = conn.cursor()
@@ -510,7 +661,20 @@ async def list_documents(current_user: dict = get_current_user):
 
 
 # ──────────────────────────────────────────────────────── delete (BS-005)
-@router.delete("/{document_id}", status_code=204)
+@router.delete(
+    "/{document_id}",
+    status_code=204,
+    tags=["Documentos"],
+    summary="Excluir um documento",
+    description=(
+        "Remove o documento, seus chunks, gerações em cache e o arquivo no Gemini "
+        "Files API. Retorna **204 No Content** em caso de sucesso."
+    ),
+    responses={
+        **_E401, **_E404,
+        204: {"description": "Documento excluído com sucesso (sem corpo)"},
+    },
+)
 async def delete_document(
     document_id: int,
     current_user: dict = get_current_user,
