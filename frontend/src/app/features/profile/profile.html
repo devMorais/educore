@@ -1,0 +1,107 @@
+ <!-- Página de Perfil do Usuário (US-027) -->
+<div class="profile-page" [class.visivel]="visivel()">
+
+  <div class="profile-page__container">
+
+    <!-- Cabeçalho -->
+    <div class="profile-page__header">
+      <a routerLink="/upload" class="profile-page__voltar">
+        <i class="pi pi-arrow-left"></i>
+        Voltar
+      </a>
+      <h1>Meu Perfil</h1>
+      <p>Gerencie suas informações pessoais</p>
+    </div>
+
+    <!-- Card principal -->
+    <div class="profile-card">
+
+      <!-- Seção Avatar -->
+      <div class="profile-card__avatar-section">
+        <div class="profile-card__avatar-wrap" (click)="onAvatarClick(avatarInput)">
+          @if (avatarPreview()) {
+            <img [src]="avatarPreview()!" alt="Avatar" class="profile-card__avatar-img" />
+          } @else {
+            <div class="profile-card__avatar-iniciais">
+              {{ iniciais() }}
+            </div>
+          }
+          <div class="profile-card__avatar-overlay">
+            <i class="pi pi-camera"></i>
+            <span>Alterar foto</span>
+          </div>
+        </div>
+        <input #avatarInput type="file" accept="image/*" hidden
+          (change)="onAvatarSelected($event)" />
+        <p class="profile-card__avatar-hint">
+          <i class="pi pi-info-circle"></i>
+          JPG, PNG ou GIF • Máximo 2MB
+        </p>
+      </div>
+
+      <!-- Formulário -->
+      <div class="profile-card__form">
+
+        <!-- Nome -->
+        <div class="profile-field">
+          <label class="profile-field__label" for="nome">
+            <i class="pi pi-user"></i> Nome completo
+          </label>
+          <input
+            id="nome"
+            type="text"
+            class="profile-field__input"
+            [(ngModel)]="nome"
+            [ngModel]="nome()"
+            (ngModelChange)="nome.set($event)"
+            placeholder="Seu nome completo"
+            maxlength="100" />
+        </div>
+
+        <!-- Email (somente leitura) -->
+        <div class="profile-field">
+          <label class="profile-field__label" for="email">
+            <i class="pi pi-envelope"></i> E-mail
+          </label>
+          <input
+            id="email"
+            type="email"
+            class="profile-field__input profile-field__input--readonly"
+            [value]="emailDisplay()"
+            readonly />
+          <small class="profile-field__hint">
+            O e-mail não pode ser alterado.
+          </small>
+        </div>
+
+        <!-- Role -->
+        @if (auth.currentUser()?.role) {
+          <div class="profile-field">
+            <label class="profile-field__label">
+              <i class="pi pi-shield"></i> Função
+            </label>
+            <div class="profile-role-badge">
+              <i class="pi pi-check-circle"></i>
+              {{ auth.currentUser()!.role }}
+            </div>
+          </div>
+        }
+
+        <!-- Botão Salvar -->
+        <button class="profile-btn-salvar"
+          (click)="salvar()"
+          [disabled]="salvando()">
+          @if (salvando()) {
+            <span class="profile-spinner"></span>
+            Salvando...
+          } @else {
+            <i class="pi pi-check"></i>
+            Salvar alterações
+          }
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+</div>
