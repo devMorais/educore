@@ -151,7 +151,11 @@ async def get_document_status(
             SELECT id, status,
                    COALESCE(progress_percent, 0),
                    COALESCE(pages_processed, 0),
-                   COALESCE(total_pages, 0)
+                   COALESCE(total_pages, 0),
+                   gemini_file_expires_at,
+                   (gemini_file_uri IS NOT NULL
+                    AND gemini_file_expires_at IS NOT NULL
+                    AND gemini_file_expires_at > NOW()) AS gemini_active
             FROM documents WHERE id = %s
             """,
             (document_id,),
@@ -163,6 +167,9 @@ async def get_document_status(
             "progress_percent": doc[2],
             "pages_processed": doc[3],
             "total_pages": doc[4],
+            # BS-019: validade da URI do Gemini (PDF completo) — None se nunca enviado/expirado
+            "gemini_file_expires_at": doc[5].isoformat() if doc[5] else None,
+            "gemini_active": bool(doc[6]),
         }
     finally:
         cursor.close()

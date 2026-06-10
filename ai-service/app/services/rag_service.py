@@ -1,5 +1,6 @@
 import logging
 import json
+import os
 import re
 import time
 import random
@@ -49,7 +50,17 @@ def _build_context(chunks: list[dict]) -> str:
 
 
 def _get_gemini_file_uri(document_id: int) -> str | None:
-    """Fetch the Gemini file URI for a document, if available and still active."""
+    """
+    Retorna a URI do Gemini para o documento, renovando-a sob demanda (BS-019).
+
+    Estratégia LAZY (sem custo para documentos "frios"):
+      • Sem URI registrada            → None (cai no RAG).
+      • URI com folga (> buffer)       → retorna direto, SEM bater na API do Gemini
+                                         (checagem por timestamp local = caminho rápido).
+      • URI perto de expirar/expirada  → tenta reupload do PDF local:
+            – sucesso          → grava nova uri/expires_at e retorna a nova URI;
+            – PDF ausente/erro  → loga WARNING e retorna None (fallback RAG).
+    """
     # Em teste forçado para outro provedor, ignora o caminho do PDF-Gemini
     forcado = settings.ai_force_provider
     if forcado and forcado.lower() != "gemini":
@@ -58,27 +69,149 @@ def _get_gemini_file_uri(document_id: int) -> str | None:
     conn = get_connection()
     cursor = conn.cursor()
     try:
+        # A comparação de expiração é feita no Postgres (NOW()), evitando
+        # qualquer ambiguidade de timezone no lado do Python.
         cursor.execute(
-            "SELECT gemini_file_uri FROM documents WHERE id = %s",
-            (document_id,),
+            """
+            SELECT gemini_file_uri,
+                   (gemini_file_expires_at IS NOT NULL
+                    AND gemini_file_expires_at > NOW() + make_interval(hours => %s)) AS fresca,
+                   file_path,
+                   original_name
+            FROM documents WHERE id = %s
+            """,
+            (settings.gemini_uri_renew_buffer_hours, document_id),
         )
         row = cursor.fetchone()
         if not row or not row[0]:
             return None
-        uri = row[0]
-        # Quick availability check (cached implicitly by Google for 48h)
-        if gemini_file_service.is_available(uri):
-            return uri
-        # URI expired — clear it so next call falls back to RAG
+        uri, fresca, file_path, original_name = row
+        if fresca:
+            return uri  # caminho quente: zero round-trip à API do Gemini
+
+        logger.info(f"[BS-019] URI do doc={document_id} perto de expirar/expirada — renovando")
+        return _renovar_uri(document_id, file_path, original_name, cursor, conn)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def _renovar_uri(document_id: int, file_path: str | None,
+                 original_name: str | None, cursor, conn) -> str | None:
+    """
+    Reenvia o PDF local ao Gemini Files API e atualiza uri/expires_at (BS-019).
+    Retorna a nova URI, ou None se o PDF não estiver em disco / o upload falhar
+    (nesses casos a geração segue pelo RAG).
+
+    Nota de concorrência: duas gerações simultâneas do MESMO documento expirado
+    podem disparar dois reuploads; é idempotente o suficiente (a última escrita
+    vence e a URI antiga expira sozinha em ~48h). Para esta escala, evitamos o
+    custo de um lock distribuído. Em volume maior, serializar com
+    `pg_advisory_xact_lock(document_id)` resolveria.
+    """
+    if not file_path or not os.path.exists(file_path):
+        logger.warning(
+            f"[BS-019][AUDIT] doc={document_id} renovacao=FALHOU motivo=pdf_ausente "
+            f"path={file_path!r} -> fallback RAG"
+        )
+        # Limpa a URI vencida para não retentar (e pagar latência) a cada geração.
         cursor.execute(
             "UPDATE documents SET gemini_file_uri = NULL WHERE id = %s",
             (document_id,),
         )
         conn.commit()
         return None
+
+    try:
+        up = gemini_file_service.upload_sync(file_path, original_name or "document.pdf")
+        cursor.execute(
+            "UPDATE documents SET gemini_file_uri = %s, gemini_file_expires_at = %s, "
+            "updated_at = NOW() WHERE id = %s",
+            (up.uri, up.expires_at, document_id),
+        )
+        conn.commit()
+        logger.info(
+            f"[BS-019][AUDIT] doc={document_id} renovacao=OK "
+            f"nova_uri={up.uri} expira_em={up.expires_at.isoformat()}"
+        )
+        return up.uri
+    except Exception as e:
+        logger.warning(
+            f"[BS-019][AUDIT] doc={document_id} renovacao=ERRO "
+            f"{type(e).__name__}: {str(e)[:140]} -> fallback RAG"
+        )
+        return None
+
+
+async def check_expired_uris() -> dict:
+    """
+    Varredura periódica (BS-019): renova proativamente URIs perto de expirar.
+
+    Conservadora de propósito:
+      • só docs com `gemini_file_uri` setada e a < `proactive_hours` do limite;
+      • teto de docs por execução (protege a cota/storage do Gemini Files API);
+      • pula docs cujo PDF não está mais em disco (host efêmero, ex. Railway),
+        deixando-os para o fallback RAG — sem poluir com erros.
+    Retorna um resumo para auditoria/observabilidade.
+    """
+    proativo = settings.gemini_uri_proactive_hours
+    teto = settings.gemini_uri_sweep_max_docs
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            SELECT id, file_path, original_name
+            FROM documents
+            WHERE gemini_file_uri IS NOT NULL
+              AND gemini_file_expires_at IS NOT NULL
+              AND gemini_file_expires_at < NOW() + make_interval(hours => %s)
+            ORDER BY gemini_file_expires_at ASC
+            LIMIT %s
+            """,
+            (proativo, teto),
+        )
+        candidatos = cursor.fetchall()
     finally:
         cursor.close()
         conn.close()
+
+    renovados = ausentes = erros = 0
+    for doc_id, file_path, original_name in candidatos:
+        if not file_path or not os.path.exists(file_path):
+            ausentes += 1
+            logger.warning(f"[BS-019][SWEEP] doc={doc_id} pdf_ausente -> mantém p/ fallback RAG")
+            continue
+        c = get_connection()
+        cur = c.cursor()
+        try:
+            up = await gemini_file_service.upload(file_path, original_name or "document.pdf")
+            cur.execute(
+                "UPDATE documents SET gemini_file_uri = %s, gemini_file_expires_at = %s, "
+                "updated_at = NOW() WHERE id = %s",
+                (up.uri, up.expires_at, doc_id),
+            )
+            c.commit()
+            renovados += 1
+            logger.info(
+                f"[BS-019][SWEEP][AUDIT] doc={doc_id} renovacao=OK expira_em={up.expires_at.isoformat()}"
+            )
+        except Exception as e:
+            erros += 1
+            logger.warning(f"[BS-019][SWEEP] doc={doc_id} erro {type(e).__name__}: {str(e)[:120]}")
+        finally:
+            cur.close()
+            c.close()
+
+    resumo = {
+        "candidatos": len(candidatos),
+        "renovados": renovados,
+        "pdf_ausente": ausentes,
+        "erros": erros,
+    }
+    logger.info(f"[BS-019][SWEEP] resumo={resumo}")
+    return resumo
 
 
 # Códigos HTTP que valem nova tentativa no MESMO provedor (instabilidade breve).
@@ -241,13 +374,16 @@ class RAGService:
             # ── Phase 1: Gemini Files API (unlocks generation immediately) ──
             logger.info(f"[Phase 1] Enviando para Gemini Files API: {filename}")
             try:
-                file_uri = await gemini_file_service.upload(file_path, filename)
+                up = await gemini_file_service.upload(file_path, filename)
                 cursor.execute(
-                    "UPDATE documents SET gemini_file_uri=%s, progress_percent=30 WHERE id=%s",
-                    (file_uri, document_id),
+                    "UPDATE documents SET gemini_file_uri=%s, gemini_file_expires_at=%s, "
+                    "progress_percent=30 WHERE id=%s",
+                    (up.uri, up.expires_at, document_id),
                 )
                 conn.commit()
-                logger.info(f"[Phase 1] Gemini file_uri salvo: {file_uri}")
+                logger.info(
+                    f"[Phase 1] Gemini file_uri salvo: {up.uri} (expira {up.expires_at.isoformat()})"
+                )
             except Exception as e:
                 logger.warning(f"[Phase 1] Gemini upload falhou ({e}) — continuando sem file_uri")
 
