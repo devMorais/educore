@@ -1,6 +1,18 @@
+<!-- Banner Modo Demo -->
+@if (demoService.isDemo()) {
+  <div class="demo-banner">
+    <i class="pi pi-eye"></i>
+    <span><strong>MODO DEMO</strong> — Dados de exemplo carregados. Nenhum PDF real foi processado.</span>
+    <button class="demo-banner__sair" (click)="demoService.exit()">
+      <i class="pi pi-times"></i>
+      Sair do Modo Demo
+    </button>
+  </div>
+}
+
 <div class="home">
 
-  <!-- ── HERO ──────────────────────────────────────────────── -->
+  <!-- HERO -->
   <section class="hero">
     <div class="hero__grid-bg"></div>
     <div class="hero__orb hero__orb--1"></div>
@@ -33,6 +45,13 @@
           </span>
           Assistir demo
         </button>
+        <!-- Botão Modo Demo -->
+        @if (!demoService.isDemo()) {
+          <button class="btn-modo-demo" (click)="demoService.enter()">
+            <i class="pi pi-desktop"></i>
+            Modo Demo
+          </button>
+        }
       </div>
     </div>
 
@@ -45,7 +64,7 @@
     </div>
   </section>
 
-  <!-- ── COMO FUNCIONA ──────────────────────────────────────── -->
+  <!-- COMO FUNCIONA -->
   <section class="como-funciona" id="features">
     <div class="section-header animate">
       <span class="section-badge">Simples assim</span>
@@ -72,7 +91,7 @@
     </div>
   </section>
 
-  <!-- ── 6 CARDS DE CONTEÚDO ───────────────────────────────── -->
+  <!-- 6 CARDS DE CONTEÚDO -->
   <section class="content-section">
     <div class="section-header animate">
       <span class="section-badge">6 formatos</span>
@@ -94,7 +113,7 @@
     </div>
   </section>
 
-  <!-- ── ESTATÍSTICAS ───────────────────────────────────────── -->
+  <!-- ESTATÍSTICAS -->
   <section class="stats-section" id="pricing">
     <div class="stats-grid">
       @for (stat of estatisticas; track stat.label) {
@@ -109,7 +128,7 @@
     </div>
   </section>
 
-  <!-- ── CTA FINAL ──────────────────────────────────────────── -->
+  <!-- CTA FINAL -->
   <section class="cta-section animate">
     <div class="cta-section__glow"></div>
     <div class="cta-section__content">
@@ -127,11 +146,9 @@
     </div>
   </section>
 
-  
- 
 </div>
 
-<!-- ── MODAL DO VÍDEO ─────────────────────────────────────────── -->
+<!-- MODAL DO VÍDEO -->
 @if (modalVideoAberto()) {
   <div class="modal-video-overlay" (click)="fecharVideo()" role="dialog"
     aria-modal="true" aria-label="Demo do EduCore">

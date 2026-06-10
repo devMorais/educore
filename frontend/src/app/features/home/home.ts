@@ -2,9 +2,10 @@ import {
   Component, AfterViewInit, inject, OnDestroy, signal, PLATFORM_ID
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
+import { DemoService } from '../../core/services/demo';
 
 @Component({
   selector: 'app-home',
@@ -13,8 +14,10 @@ import { CommonModule } from '@angular/common';
   styleUrl: './home.scss',
 })
 export class Home implements AfterViewInit, OnDestroy {
-  private sanitizer  = inject(DomSanitizer);
-  private platformId = inject(PLATFORM_ID);
+  private sanitizer   = inject(DomSanitizer);
+  private platformId  = inject(PLATFORM_ID);
+  private route       = inject(ActivatedRoute);
+  readonly demoService = inject(DemoService);
 
   modalVideoAberto = signal(false);
   videoUrl = signal<SafeResourceUrl | null>(null);
@@ -27,16 +30,16 @@ export class Home implements AfterViewInit, OnDestroy {
   ];
 
   readonly contentCards = [
-    { icon: 'pi-question-circle', label: 'Quiz',        desc: '30 perguntas inteligentes geradas automaticamente', cor: 'var(--azul)'      },
-    { icon: 'pi-file-edit',       label: 'Resumo',       desc: 'Síntese clara dos pontos-chave do conteúdo',        cor: 'var(--violeta)'   },
-    { icon: 'pi-desktop',         label: 'Slides',       desc: 'Apresentação premium exportável para PowerPoint',   cor: 'var(--roxo-claro)'},
-    { icon: 'pi-sitemap',         label: 'Mapa Mental',  desc: 'Visualização interativa das conexões do conteúdo',  cor: 'var(--laranja)'   },
-    { icon: 'pi-clone',           label: 'Flashcards',   desc: '20 cartões de estudo para memorização eficaz',      cor: 'var(--ambar)'     },
-    { icon: 'pi-eye',             label: 'Conteúdo PCD', desc: 'Linguagem simplificada e acessível para todos',     cor: 'var(--verde)'     },
+    { icon: 'pi-question-circle', label: 'Quiz',         desc: '30 perguntas inteligentes geradas automaticamente', cor: 'var(--azul)'       },
+    { icon: 'pi-file-edit',       label: 'Resumo',        desc: 'Síntese clara dos pontos-chave do conteúdo',        cor: 'var(--violeta)'    },
+    { icon: 'pi-desktop',         label: 'Slides',        desc: 'Apresentação premium exportável para PowerPoint',   cor: 'var(--roxo-claro)' },
+    { icon: 'pi-sitemap',         label: 'Mapa Mental',   desc: 'Visualização interativa das conexões do conteúdo',  cor: 'var(--laranja)'    },
+    { icon: 'pi-clone',           label: 'Flashcards',    desc: '20 cartões de estudo para memorização eficaz',      cor: 'var(--ambar)'      },
+    { icon: 'pi-eye',             label: 'Conteúdo PCD',  desc: 'Linguagem simplificada e acessível para todos',     cor: 'var(--verde)'      },
   ];
 
   readonly passos = [
-    { numero: '01', titulo: 'Upload do PDF',   desc: 'Envie qualquer material didático — apostilas, artigos ou livros em PDF.',          icone: 'pi-cloud-upload' },
+    { numero: '01', titulo: 'Upload do PDF',   desc: 'Envie qualquer material didático — apostilas, artigos ou livros em PDF.',         icone: 'pi-cloud-upload' },
     { numero: '02', titulo: 'Gemini Processa', desc: 'O Gemini 2.5-Flash analisa o conteúdo e gera materiais pedagógicos em segundos.', icone: 'pi-bolt'         },
     { numero: '03', titulo: 'Baixe e Aplique', desc: 'Exporte para PowerPoint, Kahoot, SCORM e aplique direto com seus alunos.',        icone: 'pi-download'     },
   ];
@@ -45,6 +48,13 @@ export class Home implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     if (!isPlatformBrowser(this.platformId)) return;
+
+    // Ativa modo demo via query param ?demo=true
+    this.route.queryParams.subscribe(params => {
+      if (params['demo'] === 'true') {
+        this.demoService.enter();
+      }
+    });
 
     const animObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {

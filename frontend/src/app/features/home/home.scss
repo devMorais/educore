@@ -889,3 +889,85 @@
     @media (max-width: 768px) { width: 200px; }
   }
 }
+// — Banner Modo Demo (US-025) ————————————————————————————————————————————
+.demo-banner {
+  position: fixed;
+  top: 68px;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1.5rem;
+  background: linear-gradient(90deg, rgba(244, 123, 32, 0.15), rgba(91, 45, 142, 0.15));
+  border-bottom: 1px solid rgba(244, 123, 32, 0.4);
+  backdrop-filter: blur(12px);
+  font-size: 0.875rem;
+  color: var(--texto);
+  flex-wrap: wrap;
+
+  i {
+    color: var(--ambar);
+    font-size: 1rem;
+  }
+
+  span {
+    color: var(--texto-mute);
+
+    strong {
+      color: var(--ambar);
+      letter-spacing: 0.05em;
+    }
+  }
+
+  &__sair {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: 0.5rem;
+    padding: 0.3rem 0.85rem;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: 50px;
+    color: var(--erro);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    i { color: var(--erro); font-size: 0.75rem; }
+
+    &:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.6);
+    }
+  }
+}
+
+// — Botão Modo Demo no hero (US-025) ————————————————————————————————————
+.btn-modo-demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.75rem;
+  background: rgba(244, 123, 32, 0.12);
+  color: var(--ambar);
+  border: 1px solid rgba(244, 123, 32, 0.35);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(12px);
+
+  i { font-size: 1rem; }
+
+  &:hover {
+    background: rgba(244, 123, 32, 0.22);
+    border-color: rgba(244, 123, 32, 0.6);
+    box-shadow: 0 4px 20px rgba(244, 123, 32, 0.25);
+    transform: translateY(-2px);
+  }
+}

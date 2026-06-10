@@ -8,7 +8,7 @@
 
 // ── Overlay escuro (mobile) ───────────────────────────────────────────────────
 .up-overlay {
-  display: none; // só aparece no mobile via media query
+  display: none;
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.45);
@@ -196,9 +196,9 @@
   }
 }
 
-// ── Botão de menu (mobile, discreto, dentro do fluxo) ─────────────────────────
+// ── Botão de menu (mobile) ────────────────────────────────────────────────────
 .up-menu-btn {
-  display: none; // escondido no desktop
+  display: none;
   align-items: center;
   gap: 0.4rem;
   margin-bottom: 1.25rem;
@@ -217,7 +217,7 @@
   &:hover { background: #f7fafc; border-color: #cbd5e0; }
 }
 
-// US-010: botão "Enviar novo PDF" com contorno discreto
+// ── Botão "Enviar novo PDF" ───────────────────────────────────────────────────
 .up-btn-new {
   display: inline-flex;
   align-items: center;
@@ -360,7 +360,7 @@
   &:hover { color: #4a6cf7; }
 }
 
-// ── Spinner inline no botão ───────────────────────────────────────────────────
+// ── Spinner inline ────────────────────────────────────────────────────────────
 .up-spinner {
   width: 16px;
   height: 16px;
@@ -376,7 +376,7 @@
   to { transform: rotate(360deg); }
 }
 
-// ── Spinner global de geração (US-023) ──────────────────────────────────────────
+// ── Spinner global de geração (US-023) ────────────────────────────────────────
 .up-gen-overlay {
   position: fixed;
   inset: 0;
@@ -465,7 +465,6 @@
   }
 
   h3 { font-size: 1.2rem; font-weight: 600; color: #2d3748; margin-bottom: 0.5rem; }
-
   p  { color: #718096; font-size: 0.9rem; }
 
   &__fase {
@@ -498,7 +497,7 @@
   }
 }
 
-// ── Erro com botão Tentar Novamente ───────────────────────────────────────────
+// ── Erro ──────────────────────────────────────────────────────────────────────
 .up-error {
   padding: 2rem 0;
 
@@ -546,7 +545,7 @@
   &--mt { margin-top: 1.5rem; max-width: 680px; }
 }
 
-// ── US-009: Documentos Recentes ───────────────────────────────────────────────
+// ── Documentos Recentes ───────────────────────────────────────────────────────
 .up-recent {
   margin-top: 2.5rem;
   max-width: 680px;
@@ -582,7 +581,7 @@
   }
 }
 
-// ── US-009: Card de documento ─────────────────────────────────────────────────
+// ── Card de documento ─────────────────────────────────────────────────────────
 .up-doc-card {
   display: flex;
   align-items: center;
@@ -604,16 +603,8 @@
     }
   }
 
-  &__icon {
-    font-size: 1.8rem;
-    color: #e53e3e;
-    flex-shrink: 0;
-  }
-
-  &__info {
-    flex: 1;
-    min-width: 0;
-  }
+  &__icon { font-size: 1.8rem; color: #e53e3e; flex-shrink: 0; }
+  &__info { flex: 1; min-width: 0; }
 
   &__name {
     display: block;
@@ -675,7 +666,7 @@
   }
 }
 
-// ── US-009: Badge de status ───────────────────────────────────────────────────
+// ── Badge de status ───────────────────────────────────────────────────────────
 .up-badge {
   display: inline-flex;
   align-items: center;
@@ -689,29 +680,13 @@
 
   i { font-size: 0.72rem; }
 
-  &.is-done {
-    background: #f0fff4;
-    color: #2f855a;
-    border: 1px solid #c6f6d5;
-  }
-
-  &.is-processing {
-    background: #ebf8ff;
-    color: #2b6cb0;
-    border: 1px solid #bee3f8;
-  }
-
-  &.is-failed {
-    background: #fff5f5;
-    color: #c53030;
-    border: 1px solid #fed7d7;
-  }
+  &.is-done       { background: #f0fff4; color: #2f855a; border: 1px solid #c6f6d5; }
+  &.is-processing { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+  &.is-failed     { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
 }
 
-// ── US-009: Loading skeleton ──────────────────────────────────────────────────
-.up-doc-card--skeleton {
-  pointer-events: none;
-}
+// ── Loading skeleton ──────────────────────────────────────────────────────────
+.up-doc-card--skeleton { pointer-events: none; }
 
 .sk {
   background: linear-gradient(90deg, #edf2f7 25%, #e2e8f0 37%, #edf2f7 63%);
@@ -719,8 +694,8 @@
   animation: skeleton 1.4s ease infinite;
   border-radius: 6px;
 
-  &--icon { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; }
-  &--line { height: 12px; width: 70%; margin-bottom: 0.5rem; }
+  &--icon  { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; }
+  &--line  { height: 12px; width: 70%; margin-bottom: 0.5rem; }
   &--short { width: 40%; margin-bottom: 0; }
   &--badge { width: 80px; height: 22px; border-radius: 50px; flex-shrink: 0; }
 }
@@ -780,12 +755,8 @@
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    letter-spacing: 0.01em;
 
-    i {
-      font-size: 0.8rem;
-      color: #38a169;
-    }
+    i { font-size: 0.8rem; color: #38a169; }
   }
 
   &__spinner {
@@ -815,7 +786,6 @@
     background: rgba(255,255,255,0.5);
   }
 
-  // Cores
   &--blue   { background: linear-gradient(135deg, #356df1, #5a8cf8); }
   &--green  { background: linear-gradient(135deg, #38a169, #4ecb74); }
   &--purple { background: linear-gradient(135deg, #6b46c1, #9f7aea); }
@@ -828,20 +798,13 @@
 }
 
 // ── Responsive ────────────────────────────────────────────────────────────────
-@media (max-width: 1024px) {
-  .up-grid { grid-template-columns: repeat(3, 1fr); }
-}
-
 @media (max-width: 768px) {
-  // Mostra o botão de menu e o overlay no mobile
-  .up-menu-btn { display: inline-flex; }
-  .up-overlay { display: block; }
+  .up-menu-btn  { display: inline-flex; }
+  .up-overlay   { display: block; }
 
-  // Sidebar vira painel deslizante fixo à esquerda
   .up-sidebar {
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     z-index: 1050;
     height: 100vh;
     transform: translateX(-100%);
@@ -850,18 +813,73 @@
     &.is-open { transform: translateX(0); }
   }
 
-  .up-main { padding: 1.5rem 1rem; }
-  .up-grid { grid-template-columns: repeat(2, 1fr); }
+  .up-main        { padding: 1.5rem 1rem; }
+  .up-grid        { grid-template-columns: repeat(2, 1fr); }
   .up-main__header { flex-direction: column; align-items: flex-start; }
 
   .up-doc-card {
     flex-wrap: wrap;
-
     &__retry { margin-left: auto; }
   }
 }
 
 @media (max-width: 480px) {
-  .up-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .up-grid   { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
   .up-action { padding: 1.1rem 0.75rem 1rem; }
+}
+
+// ── Banner Modo Demo (US-025) ─────────────────────────────────────────────────
+.demo-banner {
+  position: fixed;
+  top: 68px;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1.5rem;
+  background: linear-gradient(90deg, rgba(244, 123, 32, 0.12), rgba(91, 45, 142, 0.12));
+  border-bottom: 2px solid rgba(244, 123, 32, 0.45);
+  backdrop-filter: blur(12px);
+  font-size: 0.875rem;
+  color: #2d3748;
+  flex-wrap: wrap;
+
+  i { color: #dd6b20; font-size: 1rem; }
+
+  span {
+    color: #4a5568;
+
+    strong {
+      color: #dd6b20;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  &__sair {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: 0.5rem;
+    padding: 0.35rem 0.9rem;
+    background: rgba(229, 62, 62, 0.1);
+    border: 1.5px solid rgba(229, 62, 62, 0.4);
+    border-radius: 50px;
+    color: #c53030;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    i { color: #c53030; font-size: 0.75rem; }
+
+    &:hover {
+      background: rgba(229, 62, 62, 0.2);
+      border-color: rgba(229, 62, 62, 0.7);
+      transform: translateY(-1px);
+    }
+  }
 }

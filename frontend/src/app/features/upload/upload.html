@@ -1,6 +1,17 @@
+<!-- Banner Modo Demo (US-025) -->
+@if (demoService.isDemo()) {
+  <div class="demo-banner">
+    <i class="pi pi-eye"></i>
+    <span><strong>MODO DEMO</strong> — Dados de exemplo carregados. Nenhum PDF real foi processado.</span>
+    <button class="demo-banner__sair" (click)="demoService.exit()">
+      <i class="pi pi-times"></i>
+      Sair do Modo Demo
+    </button>
+  </div>
+}
+
 <div class="up-layout">
 
-  <!-- US-023: Spinner global exibido durante a geração de conteúdo pela IA -->
   @if (generating()) {
     <div class="up-gen-overlay" role="status" aria-live="polite">
       <div class="up-gen-overlay__box">
@@ -11,12 +22,10 @@
     </div>
   }
 
-  <!-- Overlay escuro que fecha o menu ao tocar fora (apenas mobile) -->
   @if (menuAberto()) {
     <div class="up-overlay" (click)="alternarMenu()"></div>
   }
 
-  <!-- SIDEBAR -->
   <aside class="up-sidebar" [class.is-open]="menuAberto()">
     <a routerLink="/" class="up-sidebar__logo">
       <span class="brand-name">
@@ -55,10 +64,8 @@
     </div>
   </aside>
 
-  <!-- MAIN -->
   <main class="up-main">
 
-    <!-- Botão de menu (visível apenas no mobile, dentro do fluxo da página) -->
     <button class="up-menu-btn" (click)="alternarMenu()" aria-label="Abrir menu">
       <i class="pi pi-bars"></i> Menu
     </button>
@@ -84,8 +91,7 @@
       }
     </div>
 
-    <!-- DROPZONE -->
-    @if (!uploadedDocumentId()) {
+    @if (!uploadedDocumentId() && !demoService.isDemo()) {
       <div class="up-card">
         <div class="up-dropzone"
              [class.is-dragging]="isDragging()"
@@ -105,7 +111,6 @@
               <i class="pi pi-file-pdf"></i> PDF • Máximo 100 MB
             </span>
           } @else {
-            <!-- Arquivo selecionado -->
             <div class="up-dropzone__selected">
               <i class="pi pi-file-pdf up-dropzone__pdf-icon"></i>
               <div>
@@ -139,13 +144,11 @@
         }
       </div>
 
-      <!-- US-009: SEÇÃO DOCUMENTOS RECENTES -->
       <div class="up-recent">
         <h2 class="up-recent__title">
           <i class="pi pi-history"></i> Documentos Recentes
         </h2>
 
-        <!-- Loading skeleton enquanto a lista carrega -->
         @if (loadingDocs()) {
           <div class="up-recent__list">
             @for (s of [1,2,3]; track s) {
@@ -160,28 +163,22 @@
             }
           </div>
         } @else if (recentDocuments().length === 0) {
-          <!-- Estado vazio -->
           <div class="up-recent__empty">
             <i class="pi pi-inbox"></i>
             <p>Você ainda não enviou nenhum PDF.</p>
           </div>
         } @else {
-          <!-- Lista de documentos -->
           <div class="up-recent__list">
             @for (doc of recentDocuments(); track doc.id) {
               <div class="up-doc-card"
                    [class.is-clickable]="doc.status === 'completed'"
                    (click)="selectDocument(doc)">
-
                 <i class="pi pi-file-pdf up-doc-card__icon"></i>
-
                 <div class="up-doc-card__info">
                   <strong class="up-doc-card__name">{{ doc.filename }}</strong>
                   <small class="up-doc-card__date">
                     <i class="pi pi-calendar"></i> {{ formatDate(doc.created_at) }}
                   </small>
-
-                  <!-- Tipos já gerados (apenas para concluídos) -->
                   @if (doc.status === 'completed' && tiposGerados(doc.id).length > 0) {
                     <div class="up-doc-card__gens">
                       @for (tipo of tiposGerados(doc.id); track tipo) {
@@ -192,8 +189,6 @@
                     </div>
                   }
                 </div>
-
-                <!-- Badge de status -->
                 <span class="up-badge {{ statusClass(doc.status) }}">
                   @if (statusClass(doc.status) === 'is-processing') {
                     <i class="pi pi-spin pi-spinner"></i>
@@ -204,8 +199,6 @@
                   }
                   {{ statusLabel(doc.status) }}
                 </span>
-
-                <!-- Botão Reenviar (apenas para falhados) -->
                 @if (doc.status === 'failed') {
                   <button class="up-doc-card__retry" (click)="reenviar(doc, $event)">
                     <i class="pi pi-refresh"></i> Reenviar
@@ -218,16 +211,12 @@
       </div>
     }
 
-    <!-- PROCESSANDO -->
     @if (uploadedDocumentId() && !isCompleted()) {
       <div class="up-card up-card--center">
         <div class="up-processing">
           <i class="pi pi-spin pi-spinner up-processing__icon"></i>
           <h3>Processando com IA...</h3>
-
-          <!-- Mensagem da fase atual -->
           <p class="up-processing__fase">{{ mensagemFase() }}</p>
-
           @if (processingProgress() > 0) {
             <p class="up-processing__pct">{{ processingProgress() }}% concluído</p>
             <div class="up-progress" style="margin-top:0.75rem">
@@ -238,8 +227,6 @@
               <div class="up-progress__fill up-progress__fill--anim"></div>
             </div>
           }
-
-          <!-- Aviso quando botões já estão disponíveis (>= 30%) -->
           @if (botoesDisponiveis() && !isCompleted()) {
             <p class="up-processing__hint">
               <i class="pi pi-info-circle"></i>
@@ -250,7 +237,6 @@
       </div>
     }
 
-    <!-- ERRO COM BOTÃO TENTAR NOVAMENTE -->
     @if (errorMessage() && !uploadedDocumentId() && !selectedFile()) {
       <div class="up-card up-card--center">
         <div class="up-error">
@@ -265,7 +251,6 @@
       </div>
     }
 
-    <!-- AÇÕES: aparecem quando concluído OU quando o progresso libera (>= 30%) -->
     @if (isCompleted() || (uploadedDocumentId() && botoesDisponiveis())) {
       <div class="up-grid">
         @for (btn of actionButtons; track btn.type) {
