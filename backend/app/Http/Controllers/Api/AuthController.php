@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -26,6 +28,14 @@ class AuthController extends Controller
             'role'     => User::count() === 0 ? 'admin' : 'student',
         ]);
 
+        // BS-023: envia o email de verificação. Graceful degradation — uma falha
+        // no envio NÃO bloqueia o cadastro (a conta é criada e usável mesmo assim).
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            Log::warning('Falha ao enviar email de verificação no registro: ' . $e->getMessage());
+        }
+
         $token     = $user->createToken('web-session-' . now()->format('YmdHis'));
         $expiresAt = $token->accessToken->expires_at?->toIso8601String()
             ?? now()->addMinutes(config('sanctum.expiration', 1440))->toIso8601String();
@@ -36,6 +46,62 @@ class AuthController extends Controller
             'token_type'   => 'Bearer',
             'expires_at'   => $expiresAt,
         ], 201);
+    }
+
+    /**
+     * Verifica o email via link assinado (BS-023).
+     * GET /api/auth/email/verify/{id}/{hash} — protegido pelo middleware `signed`
+     * (valida assinatura + expiração). Acessível SEM login (link vem do email).
+     */
+    public function verifyEmail(Request $request, string $id, string $hash): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (! $user) {
+            return response()->json(['message' => 'Usuário não encontrado.'], 404);
+        }
+
+        // O hash do link é o sha1 do email do usuário (defesa adicional à assinatura)
+        if (! hash_equals($hash, sha1($user->getEmailForVerification()))) {
+            return response()->json(['message' => 'Link de verificação inválido.'], 403);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email já verificado.', 'user' => $user]);
+        }
+
+        $user->markEmailAsVerified();
+        event(new Verified($user));
+
+        return response()->json([
+            'message' => 'Email verificado com sucesso!',
+            'user'    => $user,
+        ]);
+    }
+
+    /**
+     * Reenvia o email de verificação para o usuário autenticado (BS-023).
+     * POST /api/auth/email/resend
+     */
+    public function resendVerification(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Seu email já está verificado.']);
+        }
+
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            Log::warning('Reenvio de email de verificação falhou: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Não foi possível reenviar agora. Tente novamente mais tarde.',
+            ], 503);
+        }
+
+        return response()->json(['message' => 'Email de verificação reenviado.']);
     }
 
     public function login(LoginRequest $request): JsonResponse

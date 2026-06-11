@@ -21,6 +21,15 @@ Route::prefix('auth')->group(function () {
     Route::get('/google',          [AuthController::class, 'redirectToGoogle']);
     Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
 
+    // ── BS-023: verificação de email ──
+    // Link do email (assinado) — acessível SEM login; `signed` valida assinatura + expiração.
+    Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+    // Reenvio do email — requer usuário autenticado.
+    Route::post('/email/resend', [AuthController::class, 'resendVerification'])
+        ->middleware(['auth:sanctum', 'throttle:6,1']);
+
     Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me',      [AuthController::class, 'me']);
