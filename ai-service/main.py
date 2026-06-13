@@ -8,7 +8,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.core.config import settings
 from app.core.database import init_db
 from app.core.limiter import limiter
-from app.routers import documents, admin
+from app.routers import documents, admin, health
 
 logging.basicConfig(
     level=logging.INFO,
@@ -51,14 +51,4 @@ if settings.rate_limit_enabled:
 
 app.include_router(documents.router)
 app.include_router(admin.router)
-
-
-@app.get("/health")
-async def health():
-    return {
-        "status": "ok",
-        "service": "EduCore AI Service",
-        "version": "1.1.0",
-        "database": "PostgreSQL + pgvector",
-        "features": ["documents", "admin"]
-    }
+app.include_router(health.router)  # BS-024: GET /health detalhado
