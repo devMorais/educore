@@ -99,7 +99,14 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        // BS-025: cacheado 30s por user_id (chave versionada). Invalidado quando o
+        // papel/status do usuário muda (AdminController). X-Cache: HIT|MISS.
+        $user = $request->user();
+        $key  = "auth.me.v1.{$user->id}";
+        $hit  = Cache::has($key);
+        $data = Cache::remember($key, 30, fn () => $user);
+
+        return response()->json($data)->header('X-Cache', $hit ? 'HIT' : 'MISS');
     }
 
     /**

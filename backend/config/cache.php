@@ -15,7 +15,11 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    // BS-025: store de cache.
+    //   Produção: CACHE_STORE=redis (+ REDIS_URL) — rápido, compartilhado, ideal p/ picos.
+    //   Dev:      CACHE_STORE=file (ou database) — funciona sem Redis (fallback).
+    // Aceita também o nome legado CACHE_DRIVER por compatibilidade.
+    'default' => env('CACHE_STORE', env('CACHE_DRIVER', 'database')),
 
     /*
     |--------------------------------------------------------------------------
