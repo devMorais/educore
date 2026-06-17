@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     # Rate Limiting — habilitar/desabilitar (BS-003)
     rate_limit_enabled: bool = True
 
+    # ── Rate limiting granular por usuário (alinhado à política do Laravel — BS-021) ──
+    # Chave por usuário (token Bearer); env-overridable. Mantenha estes valores
+    # ALINHADOS ao backend/config/ratelimit.php do Laravel (fonte canônica).
+    rate_upload_per_hour: int = 10        # upload de PDF
+    rate_generations_per_hour: int = 20   # geração (quiz/resumo/slides/mapa/flashcards/pcd)
+    rate_export_per_hour: int = 50        # export (PPTX/HTML/Kahoot/Socrative/SCORM)
+
     # Server
     port: int = 8001
     debug: bool = True

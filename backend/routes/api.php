@@ -13,27 +13,27 @@ Route::get('/health', function () {
 });
 
 Route::prefix('auth')->group(function () {
-    Route::middleware('throttle:10,1')->group(function () {
-        Route::post('/register', [AuthController::class, 'register']);
-        Route::post('/login',    [AuthController::class, 'login']);
-    });
+    // Rate limiting granular por endpoint (BS-021) — limiters nomeados em AppServiceProvider.
+    // Cadastro/login são limitados por IP (usuário ainda não autenticado).
+    Route::middleware('throttle:register')->post('/register', [AuthController::class, 'register']);
+    Route::middleware('throttle:login')->post('/login', [AuthController::class, 'login']);
 
     Route::get('/google',          [AuthController::class, 'redirectToGoogle']);
     Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
 
-    Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/me',      [AuthController::class, 'me']);
-    });
+    // Rotas autenticadas — limitadas por USUÁRIO (não por IP)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware('throttle:auth-logout')->post('/logout', [AuthController::class, 'logout']);
+        Route::middleware('throttle:auth-me')->get('/me', [AuthController::class, 'me']);
 
-    // Throttle maior para suportar verificações frequentes do AI Service (BS-004)
-    Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
-        Route::get('/verify', [AuthController::class, 'verify']);
-    });
+        // Throttle maior — chamado com frequência pelo AI Service (BS-004)
+        Route::middleware('throttle:auth-verify')->get('/verify', [AuthController::class, 'verify']);
 
-    // Refresh de token (BS-007)
-    Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
-        Route::post('/refresh', [AuthController::class, 'refresh']);
+        // Refresh de token (BS-007)
+        Route::middleware('throttle:auth-refresh')->post('/refresh', [AuthController::class, 'refresh']);
+
+        // Status do rate limit do usuário (BS-021)
+        Route::middleware('throttle:auth-me')->get('/rate-limit-status', [AuthController::class, 'rateLimitStatus']);
     });
 });
 

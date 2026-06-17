@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -122,6 +123,51 @@ class AuthController extends Controller
             'role'              => $user->role ?? 'student',
             'avatar'            => $user->avatar,
             'email_verified_at' => $user->email_verified_at,
+        ]);
+    }
+
+    /**
+     * Status do rate limit do usuário autenticado (BS-021).
+     *
+     * Reporta, por categoria, o limite, a janela, o consumido, o restante e os
+     * segundos até resetar. Reproduz a MESMA chave usada pelo middleware de
+     * throttle nos named limiters — md5(nomeLimiter . valorDoBy) — para que os
+     * números reflitam o consumo real.
+     */
+    public function rateLimitStatus(Request $request): JsonResponse
+    {
+        $user    = $request->user();
+        $userKey = $user?->id ? 'user:' . $user->id : 'ip:' . $request->ip();
+
+        // categoria => [nome do limiter, valor do ->by(), limite, janela]
+        $limiters = [
+            'me'          => ['auth-me',      'me:' . $userKey,      (int) config('ratelimit.me_per_minute'),        'minuto'],
+            'verify'      => ['auth-verify',  'verify:' . $userKey,  (int) config('ratelimit.verify_per_minute'),    'minuto'],
+            'refresh'     => ['auth-refresh', 'refresh:' . $userKey, (int) config('ratelimit.refresh_per_minute'),   'minuto'],
+            'logout'      => ['auth-logout',  'logout:' . $userKey,  (int) config('ratelimit.logout_per_minute'),    'minuto'],
+            'generations' => ['generations',  'gen:' . $userKey,     (int) config('ratelimit.generations_per_hour'), 'hora'],
+            'export'      => ['export',       'export:' . $userKey,  (int) config('ratelimit.export_per_hour'),      'hora'],
+        ];
+
+        $status = [];
+        foreach ($limiters as $categoria => [$nome, $by, $limite, $janela]) {
+            $key      = md5($nome . $by); // idêntica à chave do ThrottleRequests
+            $restante = max(0, RateLimiter::remaining($key, $limite));
+
+            $status[$categoria] = [
+                'limit'        => $limite,
+                'window'       => $janela,
+                'used'         => max(0, $limite - $restante),
+                'remaining'    => $restante,
+                'reset_in_sec' => RateLimiter::availableIn($key),
+            ];
+        }
+
+        return response()->json([
+            'user_id' => $user?->id,
+            'store'   => config('cache.default'), // database (grátis) | redis (escala)
+            'limits'  => $status,
+            'note'    => 'generations/export são aplicados no AI Service (FastAPI); aqui está a política canônica.',
         ]);
     }
 

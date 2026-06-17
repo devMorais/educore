@@ -82,7 +82,7 @@ def ownership_check(document_id: int, user_id: int, status_code: int = 404) -> N
         413: {"model": MensagemErro, "description": "Arquivo maior que 100 MB"},
     },
 )
-@limiter.limit("10/hour", key_func=get_user_identifier)
+@limiter.limit(f"{settings.rate_upload_per_hour}/hour", key_func=get_user_identifier)
 async def upload_document(
     request: Request,
     background_tasks: BackgroundTasks,
@@ -290,7 +290,7 @@ async def get_cached_generation(
         "(próximas chamadas do mesmo tipo retornam o cache). O **formato da "
         "resposta varia conforme o `type`** — ver `QuizResponse`, `SummaryResponse`, "
         "`SlidesResponse`, `MindMapResponse`, `FlashcardsResponse` e "
-        "`AccessibilityResponse` na seção **Schemas**. Limite: **30/min**."
+        "`AccessibilityResponse` na seção **Schemas**. Limite: **20/hora**."
     ),
     response_model=dict,
     responses={
@@ -298,7 +298,7 @@ async def get_cached_generation(
         400: {"model": MensagemErro, "description": "Documento não processado ou tipo inválido"},
     },
 )
-@limiter.limit("30/minute", key_func=get_user_identifier)
+@limiter.limit(f"{settings.rate_generations_per_hour}/hour", key_func=get_user_identifier)
 async def generate_content(
     request: Request,
     document_id: int,
@@ -444,7 +444,9 @@ async def get_audio(
               "description": "Arquivo .pptx"},
     },
 )
+@limiter.limit(f"{settings.rate_export_per_hour}/hour", key_func=get_user_identifier)
 async def export_pptx(
+    request: Request,
     document_id: int,
     current_user: dict = get_current_user,
 ):
@@ -510,7 +512,9 @@ async def view_html(
     response_class=Response,
     responses={**_E401, **_E404, 200: {"content": {"text/html": {}}, "description": "Arquivo .html"}},
 )
+@limiter.limit(f"{settings.rate_export_per_hour}/hour", key_func=get_user_identifier)
 async def export_html(
+    request: Request,
     document_id: int,
     current_user: dict = get_current_user,
 ):
@@ -541,7 +545,9 @@ async def export_html(
     response_class=Response,
     responses={**_E401, **_E404, 200: {"content": {"application/json": {}}, "description": "JSON do Kahoot"}},
 )
+@limiter.limit(f"{settings.rate_export_per_hour}/hour", key_func=get_user_identifier)
 async def export_kahoot(
+    request: Request,
     document_id: int,
     current_user: dict = get_current_user,
 ):
@@ -568,7 +574,9 @@ async def export_kahoot(
     response_class=Response,
     responses={**_E401, **_E404, 200: {"content": {"application/json": {}}, "description": "JSON do Socrative"}},
 )
+@limiter.limit(f"{settings.rate_export_per_hour}/hour", key_func=get_user_identifier)
 async def export_socrative(
+    request: Request,
     document_id: int,
     current_user: dict = get_current_user,
 ):
@@ -595,7 +603,9 @@ async def export_socrative(
     response_class=Response,
     responses={**_E401, **_E404, 200: {"content": {"application/zip": {}}, "description": "Pacote SCORM .zip"}},
 )
+@limiter.limit(f"{settings.rate_export_per_hour}/hour", key_func=get_user_identifier)
 async def export_scorm(
+    request: Request,
     document_id: int,
     current_user: dict = get_current_user,
 ):
