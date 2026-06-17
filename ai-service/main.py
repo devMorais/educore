@@ -11,9 +11,8 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.core.config import settings
 from app.core.database import init_db
 from app.core.limiter import limiter
-from app.routers import documents, admin
+from app.routers import documents, admin, health
 from app.services.rag_service import check_expired_uris
-from app.models.schemas import HealthResponse
 
 logging.basicConfig(
     level=logging.INFO,
@@ -119,20 +118,4 @@ if settings.rate_limit_enabled:
 
 app.include_router(documents.router)
 app.include_router(admin.router)
-
-
-@app.get(
-    "/health",
-    response_model=HealthResponse,
-    tags=["Sistema"],
-    summary="Health check",
-    description="Verifica se o serviço está no ar. Endpoint **público** (sem token).",
-)
-async def health():
-    return {
-        "status": "ok",
-        "service": "EduCore AI Service",
-        "version": "1.1.0",
-        "database": "PostgreSQL + pgvector",
-        "features": ["documents", "admin"]
-    }
+app.include_router(health.router)  # BS-024: GET /health detalhado (substitui o /health simples)

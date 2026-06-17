@@ -2,15 +2,12 @@
 
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\HealthController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/health', function () {
-    return response()->json([
-        'status'  => 'ok',
-        'message' => 'API funcionando',
-        'version' => '1.0.0',
-    ]);
-});
+// BS-024: health check detalhado (público para monitores externos; throttled)
+Route::get('/health', [HealthController::class, 'health'])->middleware('throttle:30,1');
+Route::get('/system/status', [HealthController::class, 'systemStatus'])->middleware('throttle:30,1');
 
 Route::prefix('auth')->group(function () {
     // Rate limiting granular por endpoint (BS-021) — limiters nomeados em AppServiceProvider.
