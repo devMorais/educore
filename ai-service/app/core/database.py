@@ -31,6 +31,7 @@ def init_db():
                 pages_processed INTEGER DEFAULT 0,
                 total_pages INTEGER DEFAULT 0,
                 gemini_file_uri TEXT,
+                gemini_file_expires_at TIMESTAMPTZ,
                 file_hash VARCHAR(64),
                 rag_status VARCHAR(50) DEFAULT 'pending',
                 user_id INTEGER,
@@ -45,6 +46,7 @@ def init_db():
             ("pages_processed", "INTEGER DEFAULT 0"),
             ("total_pages", "INTEGER DEFAULT 0"),
             ("gemini_file_uri", "TEXT"),
+            ("gemini_file_expires_at", "TIMESTAMPTZ"),  # BS-019: rastreio de expiração da URI
             ("file_hash", "VARCHAR(64)"),
             ("rag_status", "VARCHAR(50) DEFAULT 'pending'"),
             ("user_id", "INTEGER"),

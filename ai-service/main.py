@@ -1,3 +1,5 @@
+import asyncio
+import contextlib
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
@@ -9,6 +11,7 @@ from app.core.config import settings
 from app.core.database import init_db
 from app.core.limiter import limiter
 from app.routers import documents, admin
+from app.services.rag_service import check_expired_uris
 
 logging.basicConfig(
     level=logging.INFO,
@@ -17,12 +20,42 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+async def _sweep_loop():
+    """
+    Laço da varredura de URIs do Gemini (BS-019). Dorme `interval` e renova URIs
+    perto de expirar. Erros são logados e NÃO derrubam o serviço.
+    """
+    intervalo = max(1, settings.gemini_uri_sweep_interval_hours) * 3600
+    while True:
+        try:
+            await asyncio.sleep(intervalo)
+            await check_expired_uris()
+        except asyncio.CancelledError:
+            break
+        except Exception as e:  # nunca deixa o laço morrer por um erro pontual
+            logger.error(f"[BS-019] varredura de URIs falhou: {e}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Iniciando EduCore AI Service...")
     init_db()
     logger.info("Banco de dados inicializado!")
+
+    sweep_task = None
+    if settings.gemini_uri_sweep_enabled:
+        sweep_task = asyncio.create_task(_sweep_loop())
+        logger.info(
+            f"[BS-019] Varredura de renovação de URIs ativa "
+            f"(a cada {settings.gemini_uri_sweep_interval_hours}h)"
+        )
+
     yield
+
+    if sweep_task:
+        sweep_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await sweep_task
     logger.info("Encerrando EduCore AI Service...")
 
 

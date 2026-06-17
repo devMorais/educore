@@ -73,6 +73,37 @@ class Settings(BaseSettings):
     # Vazio = comportamento normal (cadeia completa Gemini → Groq → …).
     ai_force_provider: str | None = None
 
+    # ── Gemini Files API — renovação automática de URI (BS-019) ──
+    # O PDF enviado ao Gemini Files API expira em ~48h. Para manter a geração
+    # usando o PDF COMPLETO (em vez de cair no RAG), renovamos a URI quando ela
+    # está perto de expirar. Estratégia primária = renovação LAZY (no momento da
+    # geração, sem custo para docs "frios"); a varredura em background é o
+    # complemento conservador (depende do PDF ainda estar em disco).
+    gemini_file_ttl_hours: int = 48          # fallback se a API não informar expiration_time
+    gemini_uri_renew_buffer_hours: int = 1   # na geração: renova se faltar < 1h p/ expirar
+    gemini_uri_proactive_hours: int = 2      # varredura: renova se faltar < 2h p/ expirar
+    gemini_uri_sweep_enabled: bool = True    # liga/desliga a varredura periódica em background
+    gemini_uri_sweep_interval_hours: int = 12  # de quanto em quanto tempo a varredura roda
+    gemini_uri_sweep_max_docs: int = 200     # teto de docs por varredura (protege a cota do Gemini)
+
+    # ── Storage durável do PDF de origem (upgrade recomendado, BS-019) ──
+    # O reupload ao Gemini depende do PDF estar acessível. Em hosts com disco
+    # EFÊMERO (ex.: Railway), os PDFs em `uploads/` somem a cada redeploy, então
+    # docs antigos caem no RAG. Para renovação 100% confiável, guarde o PDF num
+    # storage durável. Default "local" (disco) mantém o comportamento atual.
+    #   - "local"    → disco (grátis, mas efêmero em serverless)               [implementado]
+    #   - "supabase" → Supabase Storage (grátis, já usam Supabase) — RECOMENDADO [pronto p/ ligar]
+    #   - "s3"       → AWS S3 / Cloudflare R2 / Backblaze B2 (compatível S3)     [pronto p/ ligar]
+    pdf_storage_provider: str = "local"
+    supabase_url: str | None = None
+    supabase_service_key: str | None = None
+    supabase_pdf_bucket: str = "educore-pdfs"
+    s3_endpoint_url: str | None = None       # R2/B2 usam endpoint custom; S3 deixa vazio
+    s3_bucket: str | None = None
+    s3_access_key_id: str | None = None
+    s3_secret_access_key: str | None = None
+    s3_region: str = "us-east-1"
+
     # ── Acessibilidade: vídeos LIBRAS no conteúdo PCD (BS-015) ──
     # Provedor: "vlibras" (gratuito, oficial gov.br) | "handtalk" (pago).
     # O avatar é renderizado no FRONT; o backend cura os textos + config de embed.

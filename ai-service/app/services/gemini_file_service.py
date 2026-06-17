@@ -1,6 +1,8 @@
 import logging
 import asyncio
 import unicodedata
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from google import genai
 from google.genai import types
 from app.core.config import settings
@@ -8,6 +10,26 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 client = genai.Client(api_key=settings.gemini_api_key)
+
+
+@dataclass
+class GeminiUpload:
+    """Resultado de um upload ao Gemini Files API."""
+    uri: str
+    expires_at: datetime  # sempre tz-aware (UTC)
+
+
+def _expira_em(file_obj) -> datetime:
+    """
+    Expiração da URI. Preferimos o `expiration_time` REAL retornado pela API
+    (mais preciso que assumir 48h fixas); se a API não informar, caímos no
+    fallback NOW()+TTL (configurável). Sempre retorna datetime tz-aware (UTC).
+    """
+    exp = getattr(file_obj, "expiration_time", None)
+    if exp is not None:
+        # A SDK pode devolver naive (UTC) ou aware — normaliza para aware/UTC.
+        return exp if exp.tzinfo else exp.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) + timedelta(hours=settings.gemini_file_ttl_hours)
 
 
 def _ascii_safe(nome: str) -> str:
@@ -24,16 +46,22 @@ def _ascii_safe(nome: str) -> str:
 class GeminiFileService:
     """Manages PDF uploads to the Gemini Files API for direct document processing."""
 
-    async def upload(self, file_path: str, display_name: str = "") -> str:
+    async def upload(self, file_path: str, display_name: str = "") -> GeminiUpload:
         """
-        Upload a PDF to Gemini Files API.
-        Returns the file URI (valid for 48 hours).
-        This is non-blocking — runs in a thread executor.
+        Upload assíncrono de um PDF ao Gemini Files API (não bloqueia o event loop).
+        Retorna GeminiUpload(uri, expires_at). A URI vale ~48h.
         """
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, self._upload_sync, file_path, display_name)
 
-    def _upload_sync(self, file_path: str, display_name: str) -> str:
+    def upload_sync(self, file_path: str, display_name: str = "") -> GeminiUpload:
+        """
+        Versão SÍNCRONA do upload — usada na renovação lazy (BS-019), que acontece
+        dentro do caminho de geração (síncrono). Retorna GeminiUpload(uri, expires_at).
+        """
+        return self._upload_sync(file_path, display_name)
+
+    def _upload_sync(self, file_path: str, display_name: str) -> GeminiUpload:
         logger.info(f"Enviando para Gemini Files API: {display_name}")
         file_obj = client.files.upload(
             file=file_path,
@@ -54,8 +82,9 @@ class GeminiFileService:
         if file_obj.state.name != "ACTIVE":
             raise RuntimeError(f"Gemini file não ficou ACTIVE: {file_obj.state.name}")
 
-        logger.info(f"Gemini Files API: {file_obj.uri}")
-        return file_obj.uri
+        expires_at = _expira_em(file_obj)
+        logger.info(f"Gemini Files API: {file_obj.uri} (expira em {expires_at.isoformat()})")
+        return GeminiUpload(uri=file_obj.uri, expires_at=expires_at)
 
     async def delete(self, file_uri: str):
         """Delete a file from Gemini Files API (cleanup)."""
