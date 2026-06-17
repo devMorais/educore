@@ -10,7 +10,6 @@ export type SlideLayout =
   | 'summary'
   | 'assessment'
   | 'closing';
-
 export type QuestionType = 'multiple_choice' | 'true_false' | 'fill_blank';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type GenerationType =
@@ -20,7 +19,6 @@ export type GenerationType =
   | 'mindmap'
   | 'flashcards'
   | 'pcd';
-
 export interface QuizQuestion {
   question: string;
   options: string[];
@@ -30,20 +28,17 @@ export interface QuizQuestion {
   type?: QuestionType;
   topic?: string;
 }
-
 export interface QuizResult {
   title: string;
   questions: QuizQuestion[];
   total_questions: number;
 }
-
 export interface SummaryResult {
   title: string;
   summary: string;
   key_points: string[];
   word_count: number;
 }
-
 export interface SlideContent {
   title: string;
   content: string[];
@@ -52,40 +47,44 @@ export interface SlideContent {
   visual_suggestion?: string;
   accent_color?: 'blue' | 'green' | 'orange' | 'purple';
 }
-
 export interface SlidesResult {
   title: string;
   slides: SlideContent[];
   total_slides: number;
 }
-
 export interface MindMapNode {
   id: string;
   topic: string;
   children?: MindMapNode[];
 }
-
 export interface MindMapResult {
   title: string;
   root: MindMapNode;
 }
-
 export interface Flashcard {
   front: string;
   back: string;
   topic?: string;
 }
-
 export interface FlashcardsResult {
   title: string;
   cards: Flashcard[];
   total_cards: number;
 }
-
 export interface WcagMetadata {
   reading_level: string;
   estimated_duration: string;
   complexity_score: number;
+}
+
+// US-027: Interface para vídeos/avatar LIBRAS vindos do backend (BS-015)
+export interface LibrasVideo {
+  term: string;
+  text: string;
+  provider: 'vlibras' | 'handtalk';
+  embed_type: 'widget' | 'sdk';
+  config: Record<string, any>;
+  source?: 'title' | 'vocabulary' | 'moment';
 }
 
 export interface AccessibilityResult {
@@ -96,8 +95,9 @@ export interface AccessibilityResult {
   key_vocabulary: Array<{ term: string; definition: string }>;
   wcag_metadata: WcagMetadata;
   libras_suggestions: string[];
+  // US-027: Campo opcional — não quebra resultados antigos sem libras_videos
+  libras_videos?: LibrasVideo[];
 }
-
 export type ContentResult =
   | QuizResult
   | SummaryResult

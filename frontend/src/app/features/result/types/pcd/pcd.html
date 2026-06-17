@@ -11,7 +11,6 @@
         <h1>{{ data()!.title }}</h1>
       </div>
 
-      <!-- Badge de acessibilidade -->
       <div class="pcd-badge">
         <i class="pi pi-eye"></i>
         <span>Conteúdo Acessível</span>
@@ -80,9 +79,7 @@
         @if (pcdTab() === 'simplified') {
           <div class="pcd-simplificado">
             <div class="pcd-simplificado__header">
-              <span>
-                <i class="pi pi-file-edit"></i> Texto Simplificado
-              </span>
+              <span><i class="pi pi-file-edit"></i> Texto Simplificado</span>
               <button class="pcd-btn-copiar" (click)="copyText(data()!.simplified_text)">
                 <i class="pi pi-copy"></i> Copiar
               </button>
@@ -94,8 +91,6 @@
         <!-- Áudio -->
         @if (pcdTab() === 'audio') {
           <div class="pcd-audio">
-
-            <!-- Player -->
             <div class="pcd-player">
               <div class="pcd-player__icon">
                 <i class="pi"
@@ -105,14 +100,11 @@
                   [class.pi-spinner]="audioStatus() === 'reproduzindo'">
                 </i>
               </div>
-
               <div class="pcd-player__info">
                 @if (audioStatus() === 'parado')       { <span>Pronto para reproduzir</span> }
                 @if (audioStatus() === 'reproduzindo') { <span class="pcd-player__status--ativo">Reproduzindo...</span> }
                 @if (audioStatus() === 'pausado')      { <span class="pcd-player__status--pausado">Pausado</span> }
               </div>
-
-              <!-- Controles -->
               <div class="pcd-player__controles">
                 @if (audioStatus() === 'parado') {
                   <button class="pcd-ctrl pcd-ctrl--play" (click)="reproduzir()">
@@ -135,8 +127,6 @@
                   </button>
                 }
               </div>
-
-              <!-- Velocidade -->
               <div class="pcd-velocidade">
                 <span class="pcd-velocidade__label">
                   <i class="pi pi-sliders-h"></i> Velocidade:
@@ -153,8 +143,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Roteiro -->
             <div class="pcd-roteiro">
               <div class="pcd-roteiro__header">
                 <span><i class="pi pi-align-left"></i> Roteiro de Áudio</span>
@@ -164,7 +152,6 @@
               </div>
               <pre class="pcd-roteiro__texto">{{ data()!.audio_script }}</pre>
             </div>
-
           </div>
         }
 
@@ -189,28 +176,96 @@
           </div>
         }
 
-        <!-- LIBRAS -->
+        <!-- LIBRAS (US-027) -->
         @if (pcdTab() === 'libras') {
           <div class="pcd-libras">
-            <div class="pcd-libras__header">
-              <i class="pi pi-hand-pointer"></i>
-              <span>Sugestões para LIBRAS</span>
-              <span class="pcd-libras__badge">{{ data()!.libras_suggestions.length }} sugestões</span>
-            </div>
-            <p class="pcd-libras__desc">
-              Estas sugestões ajudam intérpretes de LIBRAS a adaptar o conteúdo
-              para a Língua Brasileira de Sinais.
-            </p>
-            <ul class="pcd-libras__lista">
-              @for (s of data()!.libras_suggestions; track s) {
-                <li class="pcd-libras__item">
-                  <span class="pcd-libras__num">
-                    <i class="pi pi-hand-pointer"></i>
-                  </span>
-                  <span>{{ s }}</span>
-                </li>
+
+            <!-- Carregando script do provedor -->
+            @if (librasCarregando()) {
+              <div class="pcd-libras__carregando">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>Carregando intérprete LIBRAS...</span>
+              </div>
+            }
+
+            <!-- Com libras_videos → cards por grupo -->
+            @if (!librasCarregando() && librasGrupos().length > 0) {
+              <div class="pcd-libras__header">
+                <i class="pi pi-hand-pointer"></i>
+                <span>Intérprete LIBRAS</span>
+                <span class="pcd-libras__badge">
+                  {{ data()!.libras_videos!.length }} pontos-chave
+                </span>
+              </div>
+              <p class="pcd-libras__desc">
+                Clique em <strong>Ver em LIBRAS</strong> para o avatar sinalizar cada ponto-chave.
+              </p>
+
+              @for (grupo of librasGrupos(); track grupo.label) {
+                <div class="pcd-libras__grupo">
+                  <div class="pcd-libras__grupo-header">
+                    <i class="pi {{ grupo.icon }}"></i>
+                    <span>{{ grupo.label }}</span>
+                  </div>
+
+                  @for (item of grupo.items; track item.term) {
+                    <div class="pcd-libras-card">
+                      <div class="pcd-libras-card__term">
+                        <i class="pi pi-tag"></i>
+                        {{ item.term }}
+                      </div>
+                      <p #textoLibras class="pcd-libras-card__text">{{ item.text }}</p>
+                      <button
+                        class="pcd-libras-card__btn"
+                        (click)="traduzir(item, textoLibras)"
+                        [attr.aria-label]="'Ver ' + item.term + ' em LIBRAS'">
+                        <i class="pi pi-play"></i>
+                        Ver em LIBRAS
+                      </button>
+                    </div>
+                  }
+                </div>
               }
-            </ul>
+
+              <!-- Aviso VLibras fallback -->
+              @if (data()!.libras_videos![0]?.provider === 'vlibras') {
+                <div class="pcd-libras__aviso">
+                  <i class="pi pi-info-circle"></i>
+                  <span>
+                    O avatar VLibras aparece no canto da tela. Se não abrir automaticamente,
+                    selecione o texto e toque no ícone VLibras.
+                  </span>
+                </div>
+              }
+            }
+
+            <!-- Sem libras_videos → fallback com sugestões em texto -->
+            @if (!librasCarregando() && librasGrupos().length === 0) {
+              <div class="pcd-libras__header">
+                <i class="pi pi-hand-pointer"></i>
+                <span>Sugestões para LIBRAS</span>
+                <span class="pcd-libras__badge">{{ data()!.libras_suggestions.length }} sugestões</span>
+              </div>
+              <div class="pcd-libras__indisponivel">
+                <i class="pi pi-info-circle"></i>
+                <span>LIBRAS indisponível neste material — exibindo sugestões textuais.</span>
+              </div>
+              <p class="pcd-libras__desc">
+                Estas sugestões ajudam intérpretes de LIBRAS a adaptar o conteúdo
+                para a Língua Brasileira de Sinais.
+              </p>
+              <ul class="pcd-libras__lista">
+                @for (s of data()!.libras_suggestions; track s) {
+                  <li class="pcd-libras__item">
+                    <span class="pcd-libras__num">
+                      <i class="pi pi-hand-pointer"></i>
+                    </span>
+                    <span>{{ s }}</span>
+                  </li>
+                }
+              </ul>
+            }
+
           </div>
         }
 

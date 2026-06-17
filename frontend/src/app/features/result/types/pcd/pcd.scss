@@ -563,3 +563,147 @@
   .pcd-tabs { gap: 0.4rem; }
   .pcd-tab  { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
 }
+// ── LIBRAS Cards (US-027) ──────────────────────────────────────────────────
+
+.pcd-libras {
+  &__carregando {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 3rem;
+    color: #7c3aed;
+    font-size: 0.9rem;
+    font-weight: 500;
+
+    i { font-size: 1.4rem; }
+  }
+
+  &__indisponivel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: #92400e;
+    margin-bottom: 1rem;
+
+    i { color: #f59e0b; flex-shrink: 0; }
+  }
+
+  &__aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    color: #1e40af;
+    margin-top: 1.25rem;
+    line-height: 1.5;
+
+    i { color: #3b82f6; flex-shrink: 0; margin-top: 0.1rem; }
+  }
+
+  &__grupo {
+    margin-bottom: 1.5rem;
+
+    &:last-child { margin-bottom: 0; }
+  }
+
+  &__grupo-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #7c3aed;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #ede9fe;
+
+    i { font-size: 0.85rem; }
+  }
+}
+
+// ── Card individual LIBRAS ─────────────────────────────────────────────────
+
+.pcd-libras-card {
+  background: #faf5ff;
+  border: 1px solid #ede9fe;
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-bottom: 0.75rem;
+  transition: box-shadow 0.15s, border-color 0.15s;
+
+  &:last-child { margin-bottom: 0; }
+
+  &:hover {
+    border-color: #c4b5fd;
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.08);
+  }
+
+  &__term {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e1e2f;
+    margin-bottom: 0.5rem;
+
+    i { color: #7c3aed; font-size: 0.82rem; }
+  }
+
+  &__text {
+    font-size: 0.9rem;
+    color: #4a4a5a;
+    line-height: 1.65;
+    margin: 0 0 1rem 0;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    background: linear-gradient(135deg, #7c3aed, #356df1);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+
+    i { font-size: 0.8rem; }
+
+    &:hover  { opacity: 0.88; transform: translateY(-1px); }
+    &:active { transform: translateY(0); }
+
+    // Acessibilidade: foco visível
+    &:focus-visible {
+      outline: 3px solid #7c3aed;
+      outline-offset: 2px;
+    }
+  }
+}
+
+// ── prefers-reduced-motion (US-027 A11y) ──────────────────────────────────
+
+@media (prefers-reduced-motion: reduce) {
+  .pcd-libras-card,
+  .pcd-libras-card__btn,
+  .pcd-ctrl,
+  .pcd-tab {
+    transition: none !important;
+    transform: none !important;
+  }
+}
