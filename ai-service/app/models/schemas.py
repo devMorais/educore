@@ -38,6 +38,9 @@ class DocumentStatusResponse(BaseModel):
     pages_processed: int = 0
     total_pages: int = 0
     error: Optional[str] = None
+    # BS-019: validade da URI do Gemini (PDF completo) — exposto no /status
+    gemini_file_expires_at: Optional[str] = None
+    gemini_active: bool = False
 
 
 class ChunkResponse(BaseModel):
