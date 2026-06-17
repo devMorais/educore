@@ -25,6 +25,8 @@ import { Forum } from './features/admin/forum/forum';
 // US-026: Páginas de erro
 import { NotFound } from './features/errors/not-found/not-found';
 import { Forbidden } from './features/errors/forbidden/forbidden';
+// US-027: Página de Perfil
+import { Profile } from './features/profile/profile';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -33,6 +35,8 @@ export const routes: Routes = [
   { path: 'esqueci-senha', component: ForgotPassword, canActivate: [guestGuard] },
   { path: 'auth/google/callback', component: GoogleCallback },
   { path: 'upload', component: Upload, canActivate: [authGuard] },
+  // US-027: Perfil do usuário
+  { path: 'perfil', component: Profile, canActivate: [authGuard] },
   {
     path: 'resultado',
     canActivate: [authGuard],
@@ -51,12 +55,12 @@ export const routes: Routes = [
     component: Layout,
     canActivate: [authGuard, adminGuard],
     children: [
-      { path: '',          component: Dashboard },
-      { path: 'usuarios',  component: Users },
+      { path: '',            component: Dashboard },
+      { path: 'usuarios',    component: Users },
       { path: 'professores', component: Professors },
-      { path: 'alunos',    component: Students },
-      { path: 'chat',      component: Chat },
-      { path: 'forum',     component: Forum },
+      { path: 'alunos',      component: Students },
+      { path: 'chat',        component: Chat },
+      { path: 'forum',       component: Forum },
     ],
   },
   // US-026: Rotas de erro
