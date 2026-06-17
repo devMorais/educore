@@ -1,0 +1,67 @@
+<!-- Página 404 — Rota não encontrada (US-026) -->
+<div class="error-page" [class.visivel]="visivel()">
+
+  <!-- Ilustração SVG -->
+  <div class="error-page__ilustracao">
+    <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- Fundo circular -->
+      <circle cx="200" cy="150" r="120" fill="rgba(99,130,255,0.08)" />
+
+      <!-- Número 404 -->
+      <text x="200" y="130" text-anchor="middle"
+        font-size="90" font-weight="800"
+        fill="url(#grad404)" opacity="0.15"
+        font-family="sans-serif">404</text>
+
+      <!-- Planeta -->
+      <ellipse cx="200" cy="160" rx="70" ry="70" fill="#1e2a4a" />
+      <ellipse cx="200" cy="160" rx="70" ry="18" fill="none"
+        stroke="#6382ff" stroke-width="3" opacity="0.6" />
+
+      <!-- Astronauta corpo -->
+      <circle cx="200" cy="130" r="22" fill="#e2e8f0" />
+      <rect x="183" y="150" width="34" height="38" rx="8" fill="#e2e8f0" />
+      <!-- Visor -->
+      <circle cx="200" cy="128" r="13" fill="#6382ff" opacity="0.7" />
+      <circle cx="195" cy="124" r="4" fill="white" opacity="0.5" />
+      <!-- Braços -->
+      <rect x="161" y="153" width="22" height="10" rx="5" fill="#e2e8f0" />
+      <rect x="217" y="153" width="22" height="10" rx="5" fill="#e2e8f0" />
+      <!-- Pernas -->
+      <rect x="186" y="185" width="12" height="18" rx="5" fill="#e2e8f0" />
+      <rect x="202" y="185" width="12" height="18" rx="5" fill="#e2e8f0" />
+
+      <!-- Estrelas -->
+      <circle cx="80"  cy="60"  r="2" fill="#a78bfa" />
+      <circle cx="320" cy="80"  r="2" fill="#a78bfa" />
+      <circle cx="60"  cy="200" r="2" fill="#6382ff" />
+      <circle cx="340" cy="220" r="2" fill="#6382ff" />
+      <circle cx="150" cy="40"  r="1.5" fill="white" opacity="0.6" />
+      <circle cx="260" cy="50"  r="1.5" fill="white" opacity="0.6" />
+      <circle cx="100" cy="240" r="1.5" fill="white" opacity="0.6" />
+      <circle cx="300" cy="250" r="1.5" fill="white" opacity="0.6" />
+
+      <defs>
+        <linearGradient id="grad404" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#6382ff" />
+          <stop offset="100%" stop-color="#a78bfa" />
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <!-- Conteúdo -->
+  <div class="error-page__conteudo">
+    <span class="error-page__codigo">404</span>
+    <h1 class="error-page__titulo">Página não encontrada</h1>
+    <p class="error-page__desc">
+      Parece que você se perdeu no espaço! A página que você procura
+      não existe ou foi movida para outra galáxia.
+    </p>
+    <a routerLink="/" class="error-page__btn">
+      <i class="pi pi-home"></i>
+      Voltar para Home
+    </a>
+  </div>
+
+</div> 

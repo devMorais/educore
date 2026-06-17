@@ -1,0 +1,78 @@
+ <!-- Página 403 — Acesso Negado (US-026) -->
+<div class="error-page" [class.visivel]="visivel()">
+
+  <!-- Ilustração SVG -->
+  <div class="error-page__ilustracao">
+    <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- Fundo circular -->
+      <circle cx="200" cy="150" r="120" fill="rgba(229,62,62,0.06)" />
+
+      <!-- Número 403 -->
+      <text x="200" y="130" text-anchor="middle"
+        font-size="90" font-weight="800"
+        fill="url(#grad403)" opacity="0.12"
+        font-family="sans-serif">403</text>
+
+      <!-- Escudo -->
+      <path d="M200 70 L240 90 L240 140 Q240 175 200 195 Q160 175 160 140 L160 90 Z"
+        fill="#1e2a4a" stroke="#e53e3e" stroke-width="3" />
+
+      <!-- Cadeado corpo -->
+      <rect x="182" y="130" width="36" height="28" rx="6" fill="#e53e3e" />
+
+      <!-- Cadeado arco -->
+      <path d="M188 130 L188 118 Q188 105 200 105 Q212 105 212 118 L212 130"
+        fill="none" stroke="#e53e3e" stroke-width="5" stroke-linecap="round" />
+
+      <!-- Buraco cadeado -->
+      <circle cx="200" cy="144" r="5" fill="#1e2a4a" />
+      <rect x="198" y="144" width="4" height="8" rx="2" fill="#1e2a4a" />
+
+      <!-- X vermelho ao redor -->
+      <line x1="155" y1="85" x2="145" y2="75" stroke="#e53e3e"
+        stroke-width="3" stroke-linecap="round" opacity="0.5" />
+      <line x1="145" y1="85" x2="155" y2="75" stroke="#e53e3e"
+        stroke-width="3" stroke-linecap="round" opacity="0.5" />
+      <line x1="255" y1="85" x2="245" y2="75" stroke="#e53e3e"
+        stroke-width="3" stroke-linecap="round" opacity="0.5" />
+      <line x1="245" y1="85" x2="255" y2="75" stroke="#e53e3e"
+        stroke-width="3" stroke-linecap="round" opacity="0.5" />
+
+      <!-- Partículas -->
+      <circle cx="80"  cy="60"  r="2" fill="#fc8181" opacity="0.6" />
+      <circle cx="320" cy="80"  r="2" fill="#fc8181" opacity="0.6" />
+      <circle cx="60"  cy="200" r="2" fill="#e53e3e" opacity="0.5" />
+      <circle cx="340" cy="220" r="2" fill="#e53e3e" opacity="0.5" />
+      <circle cx="150" cy="40"  r="1.5" fill="white" opacity="0.3" />
+      <circle cx="260" cy="50"  r="1.5" fill="white" opacity="0.3" />
+
+      <defs>
+        <linearGradient id="grad403" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#e53e3e" />
+          <stop offset="100%" stop-color="#fc8181" />
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <!-- Conteúdo -->
+  <div class="error-page__conteudo">
+    <span class="error-page__codigo error-page__codigo--403">403</span>
+    <h1 class="error-page__titulo">Acesso Negado</h1>
+    <p class="error-page__desc">
+      Você não tem permissão para acessar esta página.
+      Esta área é restrita a administradores do EduCore.
+    </p>
+    <div class="error-page__acoes">
+      <a routerLink="/login" class="error-page__btn error-page__btn--403">
+        <i class="pi pi-sign-in"></i>
+        Fazer Login
+      </a>
+      <a routerLink="/" class="error-page__btn--secundario">
+        <i class="pi pi-home"></i>
+        Voltar para Home
+      </a>
+    </div>
+  </div>
+
+</div>
