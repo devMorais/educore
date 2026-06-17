@@ -44,4 +44,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('/users',                       [AdminController::class, 'users']);
     Route::patch('/users/{id}/role',           [AdminController::class, 'updateRole']);
     Route::patch('/users/{id}/status',         [AdminController::class, 'updateStatus']);
+    // Auditoria de acesso e ações (BS-022) — com filtros
+    Route::get('/audit-logs',                  [AdminController::class, 'auditLogs']);
 });

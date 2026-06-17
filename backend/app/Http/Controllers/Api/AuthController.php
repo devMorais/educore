@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -31,6 +32,14 @@ class AuthController extends Controller
         $expiresAt = $token->accessToken->expires_at?->toIso8601String()
             ?? now()->addMinutes(config('sanctum.expiration', 1440))->toIso8601String();
 
+        // Auditoria (BS-022)
+        AuditLog::log(AuditLog::REGISTER, [
+            'user_id'       => $user->id,
+            'resource_type' => 'user',
+            'resource_id'   => $user->id,
+            'metadata'      => ['email' => $user->email, 'role' => $user->role],
+        ]);
+
         return response()->json([
             'user'         => $user,
             'access_token' => $token->plainTextToken,
@@ -42,6 +51,11 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
+            // Auditoria de falha de auth — inclui ip_address (BS-022)
+            AuditLog::log(AuditLog::LOGIN_FAILED, [
+                'metadata' => ['email' => $request->input('email')],
+            ]);
+
             return response()->json([
                 'message' => 'Credenciais inválidas.',
             ], 401);
@@ -51,6 +65,9 @@ class AuthController extends Controller
 
         // Registra o último login para rastrear usuários ativos (BS-009)
         $user->update(['last_login_at' => now()]);
+
+        // Auditoria (BS-022)
+        AuditLog::log(AuditLog::LOGIN, ['user_id' => $user->id]);
 
         $token     = $user->createToken('web-session-' . now()->format('YmdHis'));
         $expiresAt = $token->accessToken->expires_at?->toIso8601String()
@@ -66,7 +83,12 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $token = $request->user()->currentAccessToken();
+        $user = $request->user();
+
+        // Auditoria (BS-022) — captura o usuário antes de revogar o token
+        AuditLog::log(AuditLog::LOGOUT, ['user_id' => $user->id]);
+
+        $token = $user->currentAccessToken();
         if ($token) {
             $token->delete();
         }
@@ -223,6 +245,12 @@ class AuthController extends Controller
         if (!User::where('role', 'admin')->exists()) {
             $user->update(['role' => 'admin']);
         }
+
+        // Auditoria (BS-022) — register se a conta acabou de ser criada, senão login
+        AuditLog::log(
+            $user->wasRecentlyCreated ? AuditLog::REGISTER : AuditLog::LOGIN,
+            ['user_id' => $user->id, 'metadata' => ['provider' => 'google']],
+        );
 
         $token     = $user->createToken('web-session-' . now()->format('YmdHis'));
         $expiresAt = now()->addMinutes(config('sanctum.expiration', 1440))->toIso8601String();

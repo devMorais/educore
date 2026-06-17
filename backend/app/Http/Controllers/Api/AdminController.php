@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -130,8 +131,20 @@ class AdminController extends Controller
             'role' => 'required|in:admin,professor,student',
         ])->validate();
 
-        $user = User::findOrFail($id);
+        $user    = User::findOrFail($id);
+        $oldRole = $user->role;
         $user->update(['role' => $validated['role']]);
+
+        // Auditoria (BS-022) — quem alterou (request->user) muda o papel de quem (resource)
+        AuditLog::log(AuditLog::ROLE_CHANGED, [
+            'resource_type' => 'user',
+            'resource_id'   => $user->id,
+            'metadata'      => [
+                'target'   => $user->email,
+                'old_role' => $oldRole,
+                'new_role' => $validated['role'],
+            ],
+        ]);
 
         return response()->json([
             'message' => 'Papel atualizado com sucesso.',
@@ -157,10 +170,47 @@ class AdminController extends Controller
             $user->update(['email_verified_at' => null]);
         }
 
+        // Auditoria (BS-022)
+        AuditLog::log(
+            $validated['active'] ? AuditLog::USER_UNBLOCKED : AuditLog::USER_BLOCKED,
+            ['resource_type' => 'user', 'resource_id' => $user->id, 'metadata' => ['target' => $user->email]],
+        );
+
         return response()->json([
             'message' => $validated['active'] ? 'Usuário desbloqueado.' : 'Usuário bloqueado.',
             'user'    => $user,
         ]);
+    }
+
+    /**
+     * Lista os logs de auditoria com filtros (BS-022).
+     * Filtros: action, user_id, resource_type, from, to (datas ISO). Paginado.
+     */
+    public function auditLogs(Request $request): JsonResponse
+    {
+        $query = AuditLog::query()
+            ->with('user:id,name,email')
+            ->orderByDesc('created_at');
+
+        if ($action = $request->input('action')) {
+            $query->where('action', $action);
+        }
+        if ($userId = $request->input('user_id')) {
+            $query->where('user_id', $userId);
+        }
+        if ($resourceType = $request->input('resource_type')) {
+            $query->where('resource_type', $resourceType);
+        }
+        if ($from = $request->input('from')) {
+            $query->where('created_at', '>=', $from);
+        }
+        if ($to = $request->input('to')) {
+            $query->where('created_at', '<=', $to);
+        }
+
+        $perPage = min((int) $request->input('per_page', 25), 100);
+
+        return response()->json($query->paginate($perPage));
     }
 
     private function fetchAiStats(): array
