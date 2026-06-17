@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
@@ -18,34 +19,42 @@ class AdminController extends Controller
      */
     public function stats(): JsonResponse
     {
-        $totalUsers       = User::count();
-        $activeUsers7Days = User::whereNotNull('last_login_at')
-            ->where('last_login_at', '>=', now()->subDays(7))
-            ->count();
+        // BS-025: cacheado por 5 min (chave versionada). X-Cache: HIT|MISS.
+        $key = 'admin.stats.v1';
+        $hit = Cache::has($key);
 
-        // Registros por dia nos últimos 30 dias
-        $registrationsByDay = User::select(
-                DB::raw('DATE(created_at) as date'),
-                DB::raw('COUNT(*) as count')
-            )
-            ->where('created_at', '>=', now()->subDays(30))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
+        $data = Cache::remember($key, 300, function () {
+            $totalUsers       = User::count();
+            $activeUsers7Days = User::whereNotNull('last_login_at')
+                ->where('last_login_at', '>=', now()->subDays(7))
+                ->count();
 
-        // Tenta buscar stats do AI Service (falha silenciosamente)
-        $aiStats = $this->fetchAiStats();
+            // Registros por dia nos últimos 30 dias
+            $registrationsByDay = User::select(
+                    DB::raw('DATE(created_at) as date'),
+                    DB::raw('COUNT(*) as count')
+                )
+                ->where('created_at', '>=', now()->subDays(30))
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get();
 
-        return response()->json([
-            'total_users'           => $totalUsers,
-            'total_documents'       => $aiStats['total_documents'] ?? 0,
-            'total_generations'     => $aiStats['total_generations'] ?? 0,
-            'active_users_7days'    => $activeUsers7Days,
-            'uploads_per_day'       => $aiStats['uploads_per_day'] ?? [],
-            'registrations_per_day' => $registrationsByDay,
-            // Distribuição real por tipo de conteúdo (alimenta o gráfico donut)
-            'by_type'               => $aiStats['by_type'] ?? [],
-        ]);
+            // Tenta buscar stats do AI Service (falha silenciosamente)
+            $aiStats = $this->fetchAiStats();
+
+            return [
+                'total_users'           => $totalUsers,
+                'total_documents'       => $aiStats['total_documents'] ?? 0,
+                'total_generations'     => $aiStats['total_generations'] ?? 0,
+                'active_users_7days'    => $activeUsers7Days,
+                'uploads_per_day'       => $aiStats['uploads_per_day'] ?? [],
+                'registrations_per_day' => $registrationsByDay,
+                // Distribuição real por tipo de conteúdo (alimenta o gráfico donut)
+                'by_type'               => $aiStats['by_type'] ?? [],
+            ];
+        });
+
+        return response()->json($data)->header('X-Cache', $hit ? 'HIT' : 'MISS');
     }
 
     /**
@@ -55,47 +64,55 @@ class AdminController extends Controller
      */
     public function activity(): JsonResponse
     {
-        $activities = [];
+        // BS-025: atividade/documentos recentes cacheados por 30s. X-Cache: HIT|MISS.
+        $key = 'admin.activity.v1';
+        $hit = Cache::has($key);
 
-        // Registros recentes de usuários (sempre disponível — base do Laravel)
-        $recentUsers = User::orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get(['name', 'created_at']);
+        $data = Cache::remember($key, 30, function () {
+            $activities = [];
 
-        foreach ($recentUsers as $user) {
-            $activities[] = [
-                'type'      => 'registration',
-                'name'      => $user->name,
-                'action'    => 'Criou uma conta',
-                'timestamp' => optional($user->created_at)->toIso8601String(),
-            ];
-        }
+            // Registros recentes de usuários (sempre disponível — base do Laravel)
+            $recentUsers = User::orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get(['name', 'created_at']);
 
-        // Uploads recentes de PDFs (AI Service) com nomes resolvidos
-        $recentDocs = $this->fetchAiDocuments();
-        if (! empty($recentDocs)) {
-            $userIds = collect($recentDocs)->pluck('user_id')->filter()->unique();
-            $names   = User::whereIn('id', $userIds)->pluck('name', 'id');
-
-            foreach ($recentDocs as $doc) {
+            foreach ($recentUsers as $user) {
                 $activities[] = [
-                    'type'      => 'upload',
-                    'name'      => $names[$doc['user_id'] ?? null] ?? 'Usuário',
-                    'action'    => 'Enviou um novo PDF',
-                    'timestamp' => $doc['created_at'] ?? null,
+                    'type'      => 'registration',
+                    'name'      => $user->name,
+                    'action'    => 'Criou uma conta',
+                    'timestamp' => optional($user->created_at)->toIso8601String(),
                 ];
             }
-        }
 
-        // Ordena por data (mais recentes primeiro) e limita às 10 últimas
-        $activities = collect($activities)
-            ->filter(fn ($a) => ! empty($a['timestamp']))
-            ->sortByDesc('timestamp')
-            ->take(10)
-            ->values()
-            ->all();
+            // Uploads recentes de PDFs (AI Service) com nomes resolvidos
+            $recentDocs = $this->fetchAiDocuments();
+            if (! empty($recentDocs)) {
+                $userIds = collect($recentDocs)->pluck('user_id')->filter()->unique();
+                $names   = User::whereIn('id', $userIds)->pluck('name', 'id');
 
-        return response()->json(['activities' => $activities]);
+                foreach ($recentDocs as $doc) {
+                    $activities[] = [
+                        'type'      => 'upload',
+                        'name'      => $names[$doc['user_id'] ?? null] ?? 'Usuário',
+                        'action'    => 'Enviou um novo PDF',
+                        'timestamp' => $doc['created_at'] ?? null,
+                    ];
+                }
+            }
+
+            // Ordena por data (mais recentes primeiro) e limita às 10 últimas
+            return [
+                'activities' => collect($activities)
+                    ->filter(fn ($a) => ! empty($a['timestamp']))
+                    ->sortByDesc('timestamp')
+                    ->take(10)
+                    ->values()
+                    ->all(),
+            ];
+        });
+
+        return response()->json($data)->header('X-Cache', $hit ? 'HIT' : 'MISS');
     }
 
     /**
@@ -146,6 +163,9 @@ class AdminController extends Controller
             ],
         ]);
 
+        // BS-025: invalida o cache do /me do usuário afetado
+        Cache::forget("auth.me.v1.{$user->id}");
+
         return response()->json([
             'message' => 'Papel atualizado com sucesso.',
             'user'    => $user,
@@ -175,6 +195,9 @@ class AdminController extends Controller
             $validated['active'] ? AuditLog::USER_UNBLOCKED : AuditLog::USER_BLOCKED,
             ['resource_type' => 'user', 'resource_id' => $user->id, 'metadata' => ['target' => $user->email]],
         );
+
+        // BS-025: invalida o cache do /me do usuário afetado
+        Cache::forget("auth.me.v1.{$user->id}");
 
         return response()->json([
             'message' => $validated['active'] ? 'Usuário desbloqueado.' : 'Usuário bloqueado.',
