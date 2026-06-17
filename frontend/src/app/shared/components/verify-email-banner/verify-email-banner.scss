@@ -1,0 +1,52 @@
+.verify-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 1.25rem;
+  background: var(--bg-2);
+  border-top: 2px solid var(--ambar);
+  color: var(--texto);
+  font-size: 0.9rem;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3);
+
+  > i { color: var(--ambar); font-size: 1.1rem; }
+
+  &__msg { color: var(--texto); }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--ambar);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 1rem;
+    font-weight: 700;
+    font-family: var(--fonte);
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:hover { opacity: 0.9; }
+    &:disabled { opacity: 0.6; cursor: default; }
+  }
+
+  &__close {
+    background: none;
+    border: none;
+    color: var(--texto-mute);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0.3rem;
+    transition: color 0.2s;
+
+    &:hover { color: var(--texto); }
+  }
+}

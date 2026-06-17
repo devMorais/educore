@@ -2,13 +2,14 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { Navbar } from './shared/components/navbar/navbar';
 import { Footer } from './shared/components/footer/footer';
+import { VerifyEmailBanner } from './shared/components/verify-email-banner/verify-email-banner';
 import { CommonModule } from '@angular/common';
 import { Toast } from 'primeng/toast';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Navbar, Footer, CommonModule, Toast],
+  imports: [RouterOutlet, Navbar, Footer, VerifyEmailBanner, CommonModule, Toast],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

@@ -11,7 +11,8 @@ export interface AuthUser {
   name: string;
   email: string;
   avatar?: string;
-  role?: string; 
+  role?: string;
+  email_verified?: boolean;   // BS-023: verificação de email
 }
 
 interface LoginRequest {
@@ -104,6 +105,11 @@ export class Auth {
   }
   forgotPassword(email: string) {
     return this.http.post(`${this.baseUrl}/auth/forgot-password`, { email });
+  }
+
+  /** BS-023: reenvia o email de verificação para o usuário autenticado. */
+  resendVerification() {
+    return this.http.post(`${this.baseUrl}/auth/email/resend`, {});
   }
 
   /**
