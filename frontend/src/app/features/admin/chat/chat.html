@@ -1,1 +1,63 @@
-<p>chat works!</p>
+<div class="chat-container">
+  <div class="chat-header">
+    <i class="pi pi-comments"></i>
+    <h2>Chat da Equipe</h2>
+  </div>
+
+  @if (erro()) {
+    <div class="chat-erro">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>{{ erro() }}</span>
+    </div>
+  }
+
+  <div class="chat-mensagens" #scrollContainer>
+    @if (carregando()) {
+      <div class="chat-vazio">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Carregando mensagens...</p>
+      </div>
+    } @else if (messages().length === 0) {
+      <div class="chat-vazio">
+        <i class="pi pi-comment"></i>
+        <p>Nenhuma mensagem ainda. Seja o primeiro a enviar!</p>
+      </div>
+    } @else {
+      @for (mensagem of messages(); track mensagem.id) {
+        <div class="chat-mensagem" [class.chat-mensagem--propria]="ehMensagemPropria(mensagem)">
+          @if (mensagem.user?.avatar) {
+            <img class="chat-avatar" [src]="mensagem.user.avatar" [alt]="mensagem.user.name" />
+          } @else {
+            <div class="chat-avatar chat-avatar--fallback">{{ iniciais(mensagem.user?.name ?? '?') }}</div>
+          }
+
+          <div class="chat-balao">
+            <div class="chat-balao__cabecalho">
+              <span class="chat-balao__nome">{{ mensagem.user?.name }}</span>
+              <span class="chat-balao__hora">{{ mensagem.created_at | date: 'HH:mm' }}</span>
+            </div>
+            <p class="chat-balao__texto">{{ mensagem.content }}</p>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <form class="chat-form" (ngSubmit)="enviarMensagem()">
+    <textarea
+      class="chat-input"
+      placeholder="Digite sua mensagem..."
+      rows="1"
+      name="mensagem"
+      [ngModel]="novaMensagem()"
+      (ngModelChange)="novaMensagem.set($event)"
+      (keydown)="aoTeclar($event)"
+    ></textarea>
+    <p-button
+      icon="pi pi-send"
+      type="submit"
+      [disabled]="!novaMensagem().trim() || enviando()"
+      [loading]="enviando()"
+    />
+  </form>
+</div>
