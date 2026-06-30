@@ -1,0 +1,73 @@
+ <div class="notification-bell">
+
+  <!-- Botão do sino -->
+  <button class="notification-bell__btn" (click)="toggleOverlay($event)"
+    [attr.aria-label]="'Notificações' + (temNaoLidas() ? ' — ' + naoLidas() + ' não lidas' : '')">
+    <i class="pi pi-bell"></i>
+
+    @if (temNaoLidas()) {
+      <span class="notification-bell__badge">
+        {{ naoLidas() > 9 ? '9+' : naoLidas() }}
+      </span>
+    }
+  </button>
+
+  <!-- Overlay com a lista de notificações -->
+  @if (overlayAberto()) {
+    <div class="notification-overlay" (click)="$event.stopPropagation()">
+
+      <!-- Cabeçalho do overlay -->
+      <div class="notification-overlay__header">
+        <h3>Notificações</h3>
+        @if (temNaoLidas()) {
+          <button class="notification-overlay__marcar-todas"
+            (click)="marcarTodasComoLidas($event)">
+            Marcar todas como lidas
+          </button>
+        }
+      </div>
+
+      <!-- Corpo do overlay -->
+      <div class="notification-overlay__body">
+
+        @if (carregando()) {
+          <div class="notification-overlay__loading">
+            <i class="pi pi-spin pi-spinner"></i>
+            Carregando...
+          </div>
+        } @else if (notificacoes().length === 0) {
+          <div class="notification-overlay__vazio">
+            <i class="pi pi-bell-slash"></i>
+            <p>Nenhuma notificação por enquanto.</p>
+          </div>
+        } @else {
+          @for (notificacao of notificacoes(); track notificacao.id) {
+            <button
+              class="notification-item"
+              [class.notification-item--nao-lida]="!notificacao.read"
+              (click)="clicarNotificacao(notificacao)">
+
+              <span class="notification-item__icone">
+                <i class="pi {{ iconePorTipo(notificacao.type) }}"></i>
+              </span>
+
+              <div class="notification-item__conteudo">
+                <p class="notification-item__titulo">{{ notificacao.title }}</p>
+                <p class="notification-item__corpo">{{ truncar(notificacao.body) }}</p>
+                <span class="notification-item__tempo">
+                  {{ tempoRelativo(notificacao.created_at) }}
+                </span>
+              </div>
+
+              @if (!notificacao.read) {
+                <span class="notification-item__dot"></span>
+              }
+            </button>
+          }
+        }
+
+      </div>
+    </div>
+  }
+
+</div>
