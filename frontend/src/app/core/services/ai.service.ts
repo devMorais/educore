@@ -51,6 +51,11 @@ export class AiService {
     );
   }
 
+  // US-006: retorna a URL do stream SSE para o EventSource conectar
+  getStreamUrl(documentId: number): string {
+    return `${this.aiUrl}/documents/${documentId}/stream`;
+  }
+
   generateQuiz(documentId: number): Observable<QuizResult> {
     return this.generateContent<QuizResult>(documentId, 'quiz');
   }
