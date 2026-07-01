@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { ChatService, ChatMessage } from '../../../core/services/chat';
-import { Auth } from '../../../core/services/auth';
+import { Auth } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-chat',

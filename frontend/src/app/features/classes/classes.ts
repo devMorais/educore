@@ -47,7 +47,7 @@ export class ClassesComponent implements OnInit {
   termoBusca = signal('');
   resultadosBusca = signal<Aluno[]>([]);
   buscando = signal(false);
-  private timeoutBusca: any;
+  private timeoutBusca: ReturnType<typeof setTimeout> | undefined;
 
   ngOnInit() {
     this.carregarTurmas();
@@ -110,8 +110,8 @@ export class ClassesComponent implements OnInit {
     this.buscando.set(true);
     this.timeoutBusca = setTimeout(() => {
       this.svc.buscarAlunos(termo).subscribe({
-        next: (res: any) => {
-          this.resultadosBusca.set(res.data ?? res);
+        next: (res) => {
+          this.resultadosBusca.set(res.data);
           this.buscando.set(false);
         },
         error: () => this.buscando.set(false),

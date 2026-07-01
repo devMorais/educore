@@ -48,9 +48,9 @@ export class ClassesService {
     return this.http.get<PaginatedAlunos>(`${this.baseUrl}/classes/${classId}/students`, { withCredentials: true });
   }
 
-  buscarAlunos(search: string): Observable<any> {
+  buscarAlunos(search: string): Observable<PaginatedAlunos> {
     const params = new HttpParams().set('search', search).set('role', 'student');
-    return this.http.get<any>(`${this.baseUrl}/admin/users`, { params, withCredentials: true });
+    return this.http.get<PaginatedAlunos>(`${this.baseUrl}/admin/users`, { params, withCredentials: true });
   }
 
   matricular(classId: number, userId: number): Observable<{ message: string }> {

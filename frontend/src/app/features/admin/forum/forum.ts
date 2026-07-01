@@ -8,8 +8,8 @@ import { TextareaModule } from 'primeng/textarea';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { finalize } from 'rxjs';
 import { ForumService, ForumTopic, ForumReply } from '../../../core/services/forum';
-import { Auth } from '../../../core/services/auth';
-import { ToastService } from '../../../core/services/toast';
+import { Auth } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-forum',
