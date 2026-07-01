@@ -22,11 +22,10 @@ import { Professors } from './features/admin/professors/professors';
 import { Students } from './features/admin/students/students';
 import { Chat } from './features/admin/chat/chat';
 import { Forum } from './features/admin/forum/forum';
-// US-026: Páginas de erro
 import { NotFound } from './features/errors/not-found/not-found';
 import { Forbidden } from './features/errors/forbidden/forbidden';
-// US-027: Página de Perfil
 import { Profile } from './features/profile/profile';
+import { ClassesComponent } from './features/classes/classes';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -37,8 +36,8 @@ export const routes: Routes = [
   // Painel — upload de PDF e geração de conteúdo, tudo em um único lugar
   { path: 'painel', component: Panel, canActivate: [authGuard] },
   { path: 'upload', redirectTo: 'painel' },
-  // US-027: Perfil do usuário
   { path: 'perfil', component: Profile, canActivate: [authGuard] },
+  { path: 'turmas', component: ClassesComponent, canActivate: [authGuard] },
   {
     path: 'resultado',
     canActivate: [authGuard],
@@ -65,9 +64,7 @@ export const routes: Routes = [
       { path: 'forum',       component: Forum },
     ],
   },
-  // US-026: Rotas de erro
   { path: '403', component: Forbidden },
   { path: '404', component: NotFound },
-  // Wildcard — qualquer rota não encontrada → 404
   { path: '**', redirectTo: '404' },
 ];

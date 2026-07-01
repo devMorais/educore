@@ -4,6 +4,13 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { AdminUser, PaginatedUsers, UserFilters } from '../types/admin';
 
+// Interface para criação de usuário (professor ou aluno)
+export interface CreateUserPayload {
+  name: string;
+  email: string;
+  password: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private http = inject(HttpClient);
@@ -16,8 +23,25 @@ export class AdminService {
     if (filters.role)     params = params.set('role', filters.role);
     if (filters.page)     params = params.set('page', filters.page.toString());
     if (filters.per_page) params = params.set('per_page', filters.per_page.toString());
-
     return this.http.get<PaginatedUsers>(`${this.baseUrl}/admin/users`, { params, withCredentials: true });
+  }
+
+  // Cria um novo professor
+  createProfessor(payload: CreateUserPayload): Observable<{ message: string; user: AdminUser }> {
+    return this.http.post<{ message: string; user: AdminUser }>(
+      `${this.baseUrl}/admin/professors`,
+      payload,
+      { withCredentials: true }
+    );
+  }
+
+  // Cria um novo aluno
+  createStudent(payload: CreateUserPayload): Observable<{ message: string; user: AdminUser }> {
+    return this.http.post<{ message: string; user: AdminUser }>(
+      `${this.baseUrl}/admin/students`,
+      payload,
+      { withCredentials: true }
+    );
   }
 
   // Muda o role do usuário
@@ -29,7 +53,7 @@ export class AdminService {
     );
   }
 
-  // Bloqueia ou desbloqueia o usuário (backend usa /status com campo active)
+  // Bloqueia ou desbloqueia o usuário
   toggleBlock(id: number, active: boolean): Observable<{ message: string; user: AdminUser }> {
     return this.http.patch<{ message: string; user: AdminUser }>(
       `${this.baseUrl}/admin/users/${id}/status`,
@@ -38,7 +62,7 @@ export class AdminService {
     );
   }
 
-  // Exporta usuários como CSV (gerado no frontend com os dados já carregados)
+  // Exporta usuários como CSV
   exportCsvLocal(usuarios: AdminUser[]): void {
     const cabecalho = ['ID', 'Nome', 'Email', 'Perfil', 'Cadastro', 'Status'];
     const linhas = usuarios.map(u => [
@@ -49,7 +73,6 @@ export class AdminService {
       new Date(u.created_at).toLocaleDateString('pt-BR'),
       u.email_verified_at ? 'Ativo' : 'Bloqueado',
     ]);
-
     const csv = [cabecalho, ...linhas].map(l => l.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);

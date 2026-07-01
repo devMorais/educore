@@ -69,3 +69,24 @@ main {
     padding-top: 0;
   }
 }
+// ── Centralização do Dialog PrimeNG (US-009) ──────────────────────────────────
+.p-dialog-mask {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+// ── Posicionamento do Dialog PrimeNG (US-009) ─────────────────────────────────
+.p-dialog {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  margin: 0 auto !important;
+}
+// ── Padding interno do Dialog PrimeNG (US-009) ────────────────────────────────
+.p-dialog .p-dialog-content {
+  padding: 1.5rem !important;
+}
+
+.p-dialog .p-dialog-header {
+  padding: 1.25rem 1.5rem !important;
+}
