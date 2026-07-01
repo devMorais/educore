@@ -13,6 +13,9 @@
 
     <div class="navbar-actions">
       @if (isLoggedIn()) {
+        <!-- Sino de notificações (US-005) -->
+        <app-notification-bell />
+
         <div class="navbar-user" (click)="toggleDropdown()">
           @if (currentUser()?.avatar) {
             <img [src]="currentUser()!.avatar" class="user-avatar" [alt]="currentUser()!.name">

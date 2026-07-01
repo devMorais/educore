@@ -1,0 +1,206 @@
+// ── Container do sino ────────────────────────────────────────────────────────
+.notification-bell {
+  position: relative;
+}
+
+.notification-bell__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--texto-mute);
+  font-size: 1.1rem;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--surface-hover);
+    color: var(--texto);
+  }
+}
+
+// Badge vermelho com contagem
+.notification-bell__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: var(--erro);
+  color: var(--branco);
+  border-radius: 50px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg);
+}
+
+// ── Overlay (dropdown) ────────────────────────────────────────────────────────
+.notification-overlay {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 360px;
+  max-width: 90vw;
+  background: var(--bg-3);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), var(--glow-violeta);
+  border: var(--borda);
+  overflow: hidden;
+  z-index: 1000;
+  animation: dropdownFade 0.15s ease;
+}
+
+@keyframes dropdownFade {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.notification-overlay__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--surface-brd);
+
+  h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--texto);
+    margin: 0;
+  }
+}
+
+.notification-overlay__marcar-todas {
+  background: none;
+  border: none;
+  color: var(--violeta-claro);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover { text-decoration: underline; }
+}
+
+.notification-overlay__body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notification-overlay__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: var(--texto-mute);
+  font-size: 0.85rem;
+
+  i { color: var(--violeta-claro); }
+}
+
+.notification-overlay__vazio {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  color: var(--texto-dim);
+
+  i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--texto-dim);
+  }
+
+  p { font-size: 0.85rem; margin: 0; }
+}
+
+// ── Item de notificação ───────────────────────────────────────────────────────
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.9rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--surface-brd);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  position: relative;
+
+  &:hover { background: var(--surface-hover); }
+  &:last-child { border-bottom: none; }
+
+  &--nao-lida {
+    background: var(--azul-bg);
+
+    &:hover { background: var(--surface-hover); }
+  }
+}
+
+.notification-item__icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--violeta-claro);
+  font-size: 0.85rem;
+}
+
+.notification-item__conteudo {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-item__titulo {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--texto);
+  margin: 0 0 0.2rem;
+}
+
+.notification-item__corpo {
+  font-size: 0.8rem;
+  color: var(--texto-mute);
+  margin: 0 0 0.3rem;
+  line-height: 1.4;
+}
+
+.notification-item__tempo {
+  font-size: 0.7rem;
+  color: var(--texto-dim);
+}
+
+.notification-item__dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  background: var(--azul);
+  border-radius: 50%;
+  margin-top: 4px;
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .notification-overlay {
+    position: fixed;
+    top: 64px;
+    right: 0.5rem;
+    left: 0.5rem;
+    width: auto;
+  }
+}

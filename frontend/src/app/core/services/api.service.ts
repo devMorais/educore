@@ -20,4 +20,11 @@ export class ApiService {
       withCredentials: true,
     });
   }
+
+  // Adicionado para a US-005 — marcar notificações como lidas
+  patch<T>(endpoint: string, body: unknown = {}) {
+    return this.http.patch<T>(`${this.baseUrl}/${endpoint}`, body, {
+      withCredentials: true,
+    });
+  }
 }
