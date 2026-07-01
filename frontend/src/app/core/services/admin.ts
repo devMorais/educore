@@ -33,8 +33,8 @@ export interface UserFilters {
   per_page?: number;
 }
 
-// Interface para criação de professor
-export interface CreateProfessorPayload {
+// Interface para criação de usuário (professor ou aluno)
+export interface CreateUserPayload {
   name: string;
   email: string;
   password: string;
@@ -56,9 +56,18 @@ export class AdminService {
   }
 
   // Cria um novo professor
-  createProfessor(payload: CreateProfessorPayload): Observable<{ message: string; user: AdminUser }> {
+  createProfessor(payload: CreateUserPayload): Observable<{ message: string; user: AdminUser }> {
     return this.http.post<{ message: string; user: AdminUser }>(
       `${this.baseUrl}/admin/professors`,
+      payload,
+      { withCredentials: true }
+    );
+  }
+
+  // Cria um novo aluno
+  createStudent(payload: CreateUserPayload): Observable<{ message: string; user: AdminUser }> {
+    return this.http.post<{ message: string; user: AdminUser }>(
+      `${this.baseUrl}/admin/students`,
       payload,
       { withCredentials: true }
     );
