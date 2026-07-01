@@ -1,0 +1,598 @@
+// ── Layout principal ──────────────────────────────────────────────────────────
+.admin-professors {
+  padding: 2rem;
+  max-width: 1200px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin: 0 0 0.25rem;
+    }
+
+    p {
+      color: #718096;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+  }
+
+  &__filtros {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  &__tabela-wrapper {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  &__loading,
+  &__vazio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 4rem 2rem;
+    color: #a0aec0;
+    font-size: 0.95rem;
+
+    i { font-size: 2rem; }
+    p { margin: 0; }
+  }
+
+  &__paginacao {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+}
+
+// ── Botão Novo Professor ──────────────────────────────────────────────────────
+.btn-novo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.4rem;
+  background: linear-gradient(135deg, #356df1, #5a8cf8);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(53, 109, 241, 0.3);
+
+  i { font-size: 0.85rem; }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(53, 109, 241, 0.4);
+  }
+}
+
+// ── Filtros ───────────────────────────────────────────────────────────────────
+.filtro-busca {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+
+  i {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+    font-size: 0.9rem;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.65rem 0.9rem 0.65rem 2.4rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #2d3748;
+    background: #ffffff;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: #6382ff;
+      box-shadow: 0 0 0 3px rgba(99,130,255,0.12);
+    }
+
+    &::placeholder { color: #a0aec0; }
+  }
+}
+
+.filtro-status {
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #2d3748;
+  background: #ffffff;
+  cursor: pointer;
+  min-width: 160px;
+  transition: border-color 0.15s;
+
+  &:focus {
+    outline: none;
+    border-color: #6382ff;
+  }
+}
+
+// ── Tabela ────────────────────────────────────────────────────────────────────
+.admin-tabela {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead tr {
+    background: #f7fafc;
+    border-bottom: 2px solid #edf2f7;
+  }
+
+  th {
+    padding: 0.9rem 1.25rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #718096;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #edf2f7;
+    transition: background 0.15s;
+
+    &:hover { background: #f7fafc; }
+    &:last-child { border-bottom: none; }
+
+    &.bloqueado {
+      background: #fff5f5;
+      opacity: 0.85;
+
+      &:hover { background: #fed7d7; }
+    }
+  }
+
+  td {
+    padding: 1rem 1.25rem;
+    font-size: 0.875rem;
+    color: #2d3748;
+    vertical-align: middle;
+  }
+}
+
+// ── Info do usuário ───────────────────────────────────────────────────────────
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+
+  &--iniciais {
+    background: linear-gradient(135deg, #356df1, #a78bfa);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.user-nome  { font-weight: 600; color: #1a202c; }
+.user-email { color: #718096; font-size: 0.82rem; }
+.user-data  { color: #a0aec0; font-size: 0.82rem; }
+
+// ── Badge de documentos ───────────────────────────────────────────────────────
+.docs-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #ebf8ff;
+  color: #2b6cb0;
+  border: 1px solid #bee3f8;
+  border-radius: 50px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+
+  i { font-size: 0.75rem; }
+}
+
+// ── Badge de status ───────────────────────────────────────────────────────────
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: 50px;
+
+  i { font-size: 0.75rem; }
+
+  &--ativo {
+    background: #f0fff4;
+    color: #2f855a;
+    border: 1px solid #c6f6d5;
+  }
+
+  &--bloqueado {
+    background: #fff5f5;
+    color: #c53030;
+    border: 1px solid #fed7d7;
+  }
+}
+
+// ── Botões de ação ────────────────────────────────────────────────────────────
+.acoes {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.acao-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 0.85rem;
+
+  &--bloquear {
+    background: #fff5f5;
+    color: #c53030;
+
+    &:hover { background: #fed7d7; }
+  }
+
+  &--desbloquear {
+    background: #f0fff4;
+    color: #2f855a;
+
+    &:hover { background: #c6f6d5; }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ── Paginação ─────────────────────────────────────────────────────────────────
+.pag-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #4a5568;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
+    border-color: #6382ff;
+    color: #6382ff;
+  }
+
+  &--ativo {
+    background: #6382ff;
+    border-color: #6382ff;
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+.pag-info {
+  font-size: 0.82rem;
+  color: #a0aec0;
+  margin-left: 0.5rem;
+}
+
+// ── Sidebar: Novo Professor ───────────────────────────────────────────────────
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  height: 100vh;
+  background: #ffffff;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.25s ease;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid #edf2f7;
+
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      i { color: #356df1; }
+    }
+  }
+
+  &__fechar {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: #f7fafc;
+    color: #718096;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+
+    &:hover { background: #edf2f7; color: #2d3748; }
+  }
+
+  &__body {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  &__footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid #edf2f7;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+// ── Formulário ────────────────────────────────────────────────────────────────
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  input {
+    padding: 0.65rem 0.9rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #2d3748;
+    transition: border-color 0.15s;
+
+    &:focus {
+      outline: none;
+      border-color: #6382ff;
+      box-shadow: 0 0 0 3px rgba(99,130,255,0.12);
+    }
+
+    &::placeholder { color: #a0aec0; }
+  }
+}
+
+// ── Modal de confirmação ──────────────────────────────────────────────────────
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: scaleIn 0.2s ease;
+
+  &--confirmacao { max-width: 400px; }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #edf2f7;
+
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin: 0;
+    }
+  }
+
+  &__fechar {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 6px;
+    background: #f7fafc;
+    color: #718096;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+
+    &:hover { background: #edf2f7; }
+  }
+
+  &__body {
+    padding: 1.5rem;
+
+    p {
+      color: #4a5568;
+      font-size: 0.95rem;
+      margin: 0;
+      line-height: 1.6;
+
+      strong { color: #1a202c; }
+    }
+  }
+
+  &__footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #edf2f7;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+}
+
+// ── Botões do modal/sidebar ───────────────────────────────────────────────────
+.btn-cancelar {
+  padding: 0.6rem 1.25rem;
+  background: #f7fafc;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { background: #edf2f7; }
+}
+
+.btn-confirmar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &--criar {
+    background: linear-gradient(135deg, #356df1, #5a8cf8);
+    color: #ffffff;
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 14px rgba(53,109,241,0.35);
+      transform: translateY(-1px);
+    }
+
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+
+  &--bloquear {
+    background: #e53e3e;
+    color: #ffffff;
+
+    &:hover { background: #c53030; }
+  }
+
+  &--desbloquear {
+    background: #38a169;
+    color: #ffffff;
+
+    &:hover { background: #2f855a; }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+// ── Responsivo ────────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .admin-professors { padding: 1rem; }
+
+  .sidebar {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .admin-tabela {
+    th:nth-child(4),
+    td:nth-child(4) { display: none; }
+  }
+}
