@@ -1,1 +1,224 @@
-<p>forum works!</p>
+<div class="forum-container">
+
+  @if (visualizacao() === 'lista') {
+
+    <!-- ═══════════ LISTA DE TÓPICOS ═══════════ -->
+    <div class="forum-header">
+      <div class="forum-header__titulo">
+        <i class="pi pi-comments"></i>
+        <h2>Fórum de Discussão</h2>
+      </div>
+      <p-button label="Novo Tópico" icon="pi pi-plus" (onClick)="abrirDialogNovoTopico()" />
+    </div>
+
+    <div class="forum-busca">
+      <span class="p-input-icon-left forum-busca__campo">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          pInputText
+          placeholder="Buscar tópicos..."
+          [ngModel]="busca()"
+          (ngModelChange)="busca.set($event)"
+          (keyup.enter)="buscar()"
+        />
+      </span>
+      <p-button label="Buscar" severity="secondary" (onClick)="buscar()" />
+    </div>
+
+    @if (erroTopicos()) {
+      <div class="forum-erro">
+        <i class="pi pi-exclamation-triangle"></i>
+        <span>{{ erroTopicos() }}</span>
+      </div>
+    }
+
+    @if (carregandoTopicos()) {
+      <div class="forum-vazio">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Carregando tópicos...</p>
+      </div>
+    } @else if (topicos().length === 0) {
+      <div class="forum-vazio">
+        <i class="pi pi-inbox"></i>
+        <p>Nenhum tópico encontrado. Que tal começar uma discussão?</p>
+      </div>
+    } @else {
+      <div class="forum-lista">
+        @for (topico of topicos(); track topico.id) {
+          <div class="forum-card" (click)="abrirTopico(topico)">
+            <div class="forum-card__principal">
+              <h3 class="forum-card__titulo">{{ topico.title }}</h3>
+              <p class="forum-card__autor">
+                por <strong>{{ topico.user?.name }}</strong> · {{ topico.created_at | date: 'dd/MM/yyyy HH:mm' }}
+              </p>
+            </div>
+            <div class="forum-card__meta">
+              <span class="forum-card__respostas">
+                <i class="pi pi-comment"></i> {{ topico.replies_count }}
+              </span>
+              <span class="forum-card__atividade">
+                @if (topico.last_reply_at) {
+                  Última atividade: {{ topico.last_reply_at | date: 'dd/MM/yyyy HH:mm' }}
+                } @else {
+                  Sem respostas ainda
+                }
+              </span>
+              @if (podeDeletar(topico.user?.id)) {
+                <button
+                  class="forum-card__deletar"
+                  pButton
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  (click)="deletarTopico(topico, $event)"
+                ></button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <p-paginator
+        [first]="paginaTopicos() * porPaginaTopicos()"
+        [rows]="porPaginaTopicos()"
+        [totalRecords]="totalTopicos()"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        (onPageChange)="aoMudarPaginaTopicos($event)"
+      />
+    }
+
+  } @else {
+
+    <!-- ═══════════ THREAD DO TÓPICO ═══════════ -->
+    @if (topicoSelecionado(); as topico) {
+      <div class="forum-thread">
+        <button class="forum-thread__voltar" pButton icon="pi pi-arrow-left" label="Voltar" [text]="true" (click)="voltarParaLista()"></button>
+
+        <div class="forum-thread__topico">
+          <h2>{{ topico.title }}</h2>
+          <p class="forum-thread__autor">
+            por <strong>{{ topico.user?.name }}</strong> · {{ topico.created_at | date: 'dd/MM/yyyy HH:mm' }}
+          </p>
+          <p class="forum-thread__corpo">{{ topico.body }}</p>
+        </div>
+
+        @if (erroRespostas()) {
+          <div class="forum-erro">
+            <i class="pi pi-exclamation-triangle"></i>
+            <span>{{ erroRespostas() }}</span>
+          </div>
+        }
+
+        <h3 class="forum-thread__subtitulo">Respostas</h3>
+
+        @if (carregandoRespostas()) {
+          <div class="forum-vazio">
+            <i class="pi pi-spin pi-spinner"></i>
+            <p>Carregando respostas...</p>
+          </div>
+        } @else if (respostas().length === 0) {
+          <div class="forum-vazio">
+            <i class="pi pi-comment"></i>
+            <p>Nenhuma resposta ainda. Seja o primeiro a responder!</p>
+          </div>
+        } @else {
+          <div class="forum-respostas">
+            @for (resposta of respostas(); track resposta.id) {
+              <div class="forum-resposta">
+                <div class="forum-resposta__avatar">{{ iniciais(resposta.user?.name ?? '?') }}</div>
+                <div class="forum-resposta__conteudo">
+                  <div class="forum-resposta__cabecalho">
+                    <span class="forum-resposta__nome">{{ resposta.user?.name }}</span>
+                    <span class="forum-resposta__data">{{ resposta.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+                    @if (podeDeletar(resposta.user?.id)) {
+                      <button
+                        class="forum-resposta__deletar"
+                        pButton
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [text]="true"
+                        (click)="deletarResposta(resposta)"
+                      ></button>
+                    }
+                  </div>
+                  <p class="forum-resposta__texto">{{ resposta.body }}</p>
+                </div>
+              </div>
+            }
+          </div>
+
+          <p-paginator
+            [first]="paginaRespostas() * porPaginaRespostas()"
+            [rows]="porPaginaRespostas()"
+            [totalRecords]="totalRespostas()"
+            [rowsPerPageOptions]="[10, 20, 50]"
+            (onPageChange)="aoMudarPaginaRespostas($event)"
+          />
+        }
+
+        <form class="forum-form-resposta" (ngSubmit)="enviarResposta()">
+          <textarea
+            class="forum-textarea"
+            placeholder="Escreva sua resposta..."
+            rows="3"
+            name="resposta"
+            [ngModel]="novaResposta()"
+            (ngModelChange)="novaResposta.set($event)"
+          ></textarea>
+          <p-button
+            label="Responder"
+            icon="pi pi-send"
+            type="submit"
+            [disabled]="!novaResposta().trim() || enviandoResposta()"
+            [loading]="enviandoResposta()"
+          />
+        </form>
+      </div>
+    }
+  }
+
+  <!-- ═══════════ DIALOG NOVO TÓPICO ═══════════ -->
+  <p-dialog
+    header="Novo Tópico"
+    [(visible)]="dialogNovoTopicoVisivel"
+    [modal]="true"
+    [style]="{ width: '500px' }"
+  >
+    <div class="forum-dialog-campo">
+      <label for="titulo">Título</label>
+      <input
+        id="titulo"
+        type="text"
+        pInputText
+        placeholder="Qual é a sua dúvida ou assunto?"
+        [ngModel]="novoTitulo()"
+        (ngModelChange)="novoTitulo.set($event)"
+      />
+    </div>
+
+    <div class="forum-dialog-campo">
+      <label for="corpo">Descrição</label>
+      <textarea
+        id="corpo"
+        pTextarea
+        rows="5"
+        placeholder="Detalhe seu tópico..."
+        [ngModel]="novoCorpo()"
+        (ngModelChange)="novoCorpo.set($event)"
+      ></textarea>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="dialogNovoTopicoVisivel.set(false)" />
+      <p-button
+        label="Criar Tópico"
+        icon="pi pi-check"
+        [disabled]="!tituloValido() || !corpoValido() || criandoTopico()"
+        [loading]="criandoTopico()"
+        (onClick)="criarTopico()"
+      />
+    </ng-template>
+  </p-dialog>
+
+</div>
