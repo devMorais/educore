@@ -1,11 +1,11 @@
 import { Component, computed, inject, signal, HostListener, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
-import { ResultStore } from '../../../../core/services/result-store';
-import { AiService } from '../../../../core/services/ai';
-import { ToastService } from '../../../../core/services/toast';
-import { Auth } from '../../../../core/services/auth';
-import type { SlidesResult, SlideContent } from '../../../../core/models/content.models';
+import { ResultStore } from '../../../../core/services/result-store.service';
+import { AiService } from '../../../../core/services/ai.service';
+import { ToastService } from '../../../../core/services/toast.service';
+import { Auth } from '../../../../core/services/auth.service';
+import type { SlidesResult, SlideContent } from '../../../../core/types/content';
 
 @Component({
   selector: 'app-slides',
@@ -122,6 +122,6 @@ export class Slides {
 
   goToUpload() {
     this.store.clear();
-    this.router.navigate(['/upload']);
+    this.router.navigate(['/painel']);
   }
 }

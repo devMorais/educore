@@ -1,4 +1,4 @@
- import type { SlidesResult } from '../models/content.models';
+ import type { SlidesResult } from '../types/content';
 
 // Mock de Slides para o Modo Demo (US-025)
 export const MOCK_SLIDES: SlidesResult = {

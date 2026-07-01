@@ -1,12 +1,12 @@
 <p-toast position="top-right" [baseZIndex]="9999" />
 
-@if (!isAdmin()) {
+@if (!semChromePublico()) {
   <app-navbar />
 }
-<main>
+<main [class.no-padding]="semChromePublico()">
   <router-outlet />
 </main>
-@if (!isAdmin()) {
+@if (!semChromePublico()) {
   <app-footer />
 }
 

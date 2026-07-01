@@ -11,6 +11,6 @@ export class Result {
   private router = inject(Router);
 
   goToUpload() {
-    this.router.navigate(['/upload']);
+    this.router.navigate(['/painel']);
   }
 }

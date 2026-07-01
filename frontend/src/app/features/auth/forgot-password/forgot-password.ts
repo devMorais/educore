@@ -1,11 +1,12 @@
 import { Component, signal, inject, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
-import { Auth } from '../../../core/services/auth';
+import { Auth } from '../../../core/services/auth.service';
+import { Logo } from '../../../shared/components/atoms';
 
 @Component({
   selector: 'app-forgot-password',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, Logo],
   templateUrl: './forgot-password.html',
   styleUrl: './forgot-password.scss'
 })

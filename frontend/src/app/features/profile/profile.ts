@@ -3,8 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Auth } from '../../core/services/auth';
-import { ToastService } from '../../core/services/toast';
+import { Auth } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 import { environment } from '../../../environments/environment';
 
 // Página de Perfil do Usuário (US-027)

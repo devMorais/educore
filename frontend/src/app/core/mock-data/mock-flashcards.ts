@@ -1,4 +1,4 @@
- import type { FlashcardsResult } from '../models/content.models';
+ import type { FlashcardsResult } from '../types/content';
 
 // Mock de Flashcards para o Modo Demo (US-025)
 export const MOCK_FLASHCARDS: FlashcardsResult = {

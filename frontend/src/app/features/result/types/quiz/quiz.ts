@@ -1,10 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ResultStore } from '../../../../core/services/result-store';
-import { AiService } from '../../../../core/services/ai';
-import { ToastService } from '../../../../core/services/toast';
-import type { QuizResult, QuizQuestion, Difficulty } from '../../../../core/models/content.models';
+import { ResultStore } from '../../../../core/services/result-store.service';
+import { AiService } from '../../../../core/services/ai.service';
+import { ToastService } from '../../../../core/services/toast.service';
+import type { QuizResult, QuizQuestion, Difficulty } from '../../../../core/types/content';
 
 type FiltroNivel = 'todas' | 'easy' | 'medium' | 'hard';
 type FormatoExport = 'kahoot' | 'socrative' | 'scorm';
@@ -198,6 +198,6 @@ export class Quiz {
 
   goToUpload() {
     this.store.clear();
-    this.router.navigate(['/upload']);
+    this.router.navigate(['/painel']);
   }
 }

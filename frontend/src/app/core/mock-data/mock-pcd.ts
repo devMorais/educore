@@ -1,4 +1,4 @@
-import type { AccessibilityResult } from '../models/content.models';
+import type { AccessibilityResult } from '../types/content';
 
 // Mock de PCD (Acessibilidade) para o Modo Demo (US-025)
 export const MOCK_PCD: AccessibilityResult = {

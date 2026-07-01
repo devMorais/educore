@@ -4,10 +4,10 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
-import { ResultStore } from '../../../../core/services/result-store';
-import { ToastService } from '../../../../core/services/toast';
-import { LibrasLoaderService } from '../../../../core/services/libras-loader';
-import type { AccessibilityResult, LibrasVideo } from '../../../../core/models/content.models';
+import { ResultStore } from '../../../../core/services/result-store.service';
+import { ToastService } from '../../../../core/services/toast.service';
+import { LibrasLoaderService } from '../../../../core/services/libras-loader.service';
+import type { AccessibilityResult, LibrasVideo } from '../../../../core/types/content';
 
 // Abas disponíveis
 type PcdTab = 'simplified' | 'audio' | 'vocabulary' | 'libras';
@@ -188,6 +188,6 @@ export class Pcd implements OnInit, OnDestroy {
 
   goToUpload() {
     this.store.clear();
-    this.router.navigate(['/upload']);
+    this.router.navigate(['/painel']);
   }
 }

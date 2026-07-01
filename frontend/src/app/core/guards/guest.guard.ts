@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { Auth } from '../services/auth';
+import { Auth } from '../services/auth.service';
 
 /**
  * Guard de Convidado
@@ -8,7 +8,7 @@ import { Auth } from '../services/auth';
  * Bloqueia acesso às rotas públicas (login, cadastro, etc.)
  * para usuários já autenticados.
  * - Admin autenticado é redirecionado para /admin (US-001)
- * - Usuário comum autenticado é redirecionado para /upload
+ * - Usuário comum autenticado é redirecionado para /painel
  */
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(Auth);
@@ -24,6 +24,6 @@ export const guestGuard: CanActivateFn = () => {
     return router.parseUrl('/admin');
   }
 
-  // Usuário comum autenticado vai para upload
-  return router.parseUrl('/upload');
+  // Usuário comum autenticado vai para o painel
+  return router.parseUrl('/painel');
 };

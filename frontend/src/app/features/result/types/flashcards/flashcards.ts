@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { ResultStore } from '../../../../core/services/result-store';
-import type { FlashcardsResult, Flashcard } from '../../../../core/models/content.models';
+import { ResultStore } from '../../../../core/services/result-store.service';
+import type { FlashcardsResult, Flashcard } from '../../../../core/types/content';
 
 @Component({
   selector: 'app-flashcards',
@@ -130,6 +130,6 @@ export class Flashcards {
 
   goToUpload() {
     this.store.clear();
-    this.router.navigate(['/upload']);
+    this.router.navigate(['/painel']);
   }
 }

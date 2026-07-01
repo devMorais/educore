@@ -1,9 +1,9 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
-import { Auth } from '../../../core/services/auth';
-import { ToastService } from '../../../core/services/toast';
-import { Logo } from '../../../shared/components/logo/logo';
+import { Auth } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { Logo } from '../../../shared/components/atoms';
 
 @Component({
   selector: 'app-register',
@@ -163,7 +163,7 @@ export class Register {
         this.loading.set(false);
         const nome = this.authService.currentUser()?.name?.split(' ')[0] || 'usuário';
         this.toast.sucesso(`Bem-vindo ao EduCore, ${nome}!`, 'Conta criada com sucesso');
-        this.router.navigate(['/upload']);
+        this.router.navigate(['/painel']);
       },
       error: (err) => {
         this.loading.set(false);

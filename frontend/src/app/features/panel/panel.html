@@ -1,0 +1,285 @@
+@if (menuAberto()) {
+  <div class="pn-overlay" (click)="fecharMenu()"></div>
+}
+
+<div class="pn-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="pn-sidebar" [class.is-open]="menuAberto()" [class.is-collapsed]="colapsado()">
+    <div class="pn-sidebar__top">
+      <a routerLink="/painel" class="pn-sidebar__logo" (click)="fecharMenu()">
+        <app-logo [height]="34" />
+      </a>
+      <button class="pn-collapse-btn" (click)="alternarColapso()"
+              [pTooltip]="colapsado() ? 'Expandir menu' : 'Recolher menu'" tooltipPosition="right"
+              [attr.aria-label]="colapsado() ? 'Expandir menu' : 'Recolher menu'">
+        <i class="pi" [class.pi-angle-left]="!colapsado()" [class.pi-angle-right]="colapsado()"></i>
+      </button>
+    </div>
+
+    <nav class="pn-sidebar__nav">
+      @for (item of navVisivel(); track item.route) {
+        <a [routerLink]="item.route" routerLinkActive="active"
+           class="pn-sidebar__link" (click)="fecharMenu()"
+           [pTooltip]="colapsado() ? item.label : ''" tooltipPosition="right">
+          <i class="pi" [class]="item.icon"></i>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    @if (recentDocuments().length > 0) {
+      <p class="pn-sidebar__section-label">
+        <i class="pi pi-history"></i> <span>Materiais recentes</span>
+      </p>
+      <div class="pn-sidebar__history">
+        <ul>
+          @for (doc of recentDocuments(); track doc.id) {
+            <li class="pn-sidebar__doc"
+                [class.is-active]="uploadedDocumentId() === doc.id"
+                [class.is-failed]="doc.status === 'failed'"
+                (click)="doc.status === 'failed' ? reenviar(doc, $event) : selectDocument(doc)"
+                [pTooltip]="colapsado() ? doc.filename : (doc.status === 'failed' ? doc.filename + ' — clique para reenviar' : doc.filename)"
+                tooltipPosition="right">
+              <i class="pn-sidebar__doc-icon pi pi-file-pdf"></i>
+              <span>{{ doc.filename }}</span>
+              <i class="pn-sidebar__doc-status pi"
+                 [class]="statusClass(doc.status)"
+                 [class.pi-check-circle]="doc.status === 'completed'"
+                 [class.pi-refresh]="doc.status === 'failed'"
+                 [class.pi-spin]="doc.status !== 'completed' && doc.status !== 'failed'"
+                 [class.pi-spinner]="doc.status !== 'completed' && doc.status !== 'failed'"></i>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <div class="pn-sidebar__footer">
+      <button class="pn-theme-btn" (click)="alternarTema()"
+              [pTooltip]="theme.tema() === 'escuro' ? 'Modo claro' : 'Modo escuro'" tooltipPosition="right">
+        <i class="pi" [class.pi-sun]="theme.tema() === 'escuro'" [class.pi-moon]="theme.tema() === 'claro'"></i>
+        <span>{{ theme.tema() === 'escuro' ? 'Modo claro' : 'Modo escuro' }}</span>
+      </button>
+
+      <div class="pn-sidebar__user">
+        <p-avatar [label]="userInitial()" shape="circle" styleClass="pn-avatar"></p-avatar>
+        <div class="pn-sidebar__user-info">
+          <span class="pn-sidebar__user-name">{{ userName() }}</span>
+          <span class="pn-sidebar__user-role">{{ isAdmin() ? 'Administrador' : 'Conta EduCore' }}</span>
+        </div>
+      </div>
+      <button class="pn-sidebar__logout" (click)="logout()"
+              [pTooltip]="colapsado() ? 'Sair' : ''" tooltipPosition="right">
+        <i class="pi pi-sign-out"></i> <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO -->
+  <div class="pn-main">
+
+    <!-- HEADER -->
+    <header class="pn-header">
+      <button class="pn-menu-btn" (click)="alternarMenu()" aria-label="Abrir menu">
+        <i class="pi pi-bars"></i>
+      </button>
+
+      <h1 class="pn-header__title">Painel EduCore</h1>
+
+      <div class="pn-header__actions">
+        <button class="pn-ask-ai" (click)="perguntarIA()">
+          <i class="pi pi-sparkles"></i>
+          <span>Perguntar à IA do EduCore</span>
+          <span class="pn-badge">Em breve</span>
+        </button>
+
+        <div class="pn-header__user">
+          <p-avatar [label]="userInitial()" shape="circle" styleClass="pn-avatar"></p-avatar>
+          <div class="pn-header__user-info">
+            <span class="pn-header__user-name">{{ userName() }}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Banner Modo Demo (US-025) -->
+    @if (demoService.isDemo()) {
+      <div class="demo-banner">
+        <i class="pi pi-eye"></i>
+        <span><strong>MODO DEMO</strong> — Dados de exemplo carregados. Nenhum PDF real foi processado.</span>
+        <button class="demo-banner__sair" (click)="demoService.exit()">
+          <i class="pi pi-times"></i>
+          Sair do Modo Demo
+        </button>
+      </div>
+    }
+
+    @if (generating()) {
+      <div class="up-gen-overlay" role="status" aria-live="polite">
+        <div class="up-gen-overlay__box">
+          <span class="up-gen-overlay__spinner"></span>
+          <h3>Gerando {{ generatingLabel() }}...</h3>
+          <p>Aguarde enquanto a IA prepara o seu material.</p>
+        </div>
+      </div>
+    }
+
+    <!-- WORKSPACE: upload e geração de conteúdo -->
+    <section class="up-workspace">
+
+      <div class="up-main__header">
+        @if (isCompleted()) {
+          <div class="up-main__heading">
+            <span class="up-main__check">
+              <i class="pi pi-check"></i>
+            </span>
+            <div>
+              <h2>Pronto! Escolha o que gerar</h2>
+              <p>Seu material foi processado e está pronto para uso</p>
+            </div>
+          </div>
+          <button class="up-btn-new" (click)="enviarNovoPdf()">
+            <i class="pi pi-plus"></i> Enviar novo PDF
+          </button>
+        } @else {
+          <div>
+            <h2>Novo Material</h2>
+            <p>Faça upload do seu PDF e deixe a IA gerar o conteúdo educacional</p>
+          </div>
+        }
+      </div>
+
+      @if (!uploadedDocumentId() && !demoService.isDemo()) {
+        <div class="up-card up-card--full">
+          <div class="up-dropzone"
+               [class.is-dragging]="isDragging()"
+               (dragover)="onDragOver($event)"
+               (dragleave)="onDragLeave()"
+               (drop)="onDrop($event)"
+               (click)="fileInput.click()">
+            <input #fileInput type="file" accept=".pdf" hidden (change)="onFileSelected($event)">
+
+            @if (!selectedFile()) {
+              <div class="up-dropzone__icon">
+                <i class="pi pi-cloud-upload"></i>
+              </div>
+              <h3>Arraste seu PDF aqui</h3>
+              <p>ou clique para selecionar</p>
+              <span class="up-dropzone__chip">
+                <i class="pi pi-file-pdf"></i> PDF • Máximo 100 MB
+              </span>
+            } @else {
+              <div class="up-dropzone__selected">
+                <i class="pi pi-file-pdf up-dropzone__pdf-icon"></i>
+                <div>
+                  <strong>{{ selectedFile()!.name }}</strong>
+                  <small>{{ formatFileSize(selectedFile()!.size) }}</small>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (errorMessage()) {
+            <div class="up-alert">
+              <i class="pi pi-exclamation-circle"></i> {{ errorMessage() }}
+            </div>
+          }
+
+          @if (selectedFile()) {
+            <button class="up-btn-primary" (click)="uploadFile()" [disabled]="uploading()">
+              @if (uploading()) {
+                <span class="up-spinner"></span>
+                Enviando {{ uploadProgress() }}%...
+              } @else {
+                <i class="pi pi-send"></i> Enviar para IA
+              }
+            </button>
+            @if (uploading()) {
+              <div class="up-progress">
+                <div class="up-progress__fill" [style.width.%]="uploadProgress()"></div>
+              </div>
+            }
+          }
+        </div>
+      }
+
+      @if (uploadedDocumentId() && !isCompleted()) {
+        <div class="up-card up-card--center">
+          <div class="up-processing">
+            <i class="pi pi-spin pi-spinner up-processing__icon"></i>
+            <h3>Processando com IA...</h3>
+            <p class="up-processing__fase">{{ mensagemFase() }}</p>
+            @if (processingProgress() > 0) {
+              <p class="up-processing__pct">{{ processingProgress() }}% concluído</p>
+              <div class="up-progress" style="margin-top:0.75rem">
+                <div class="up-progress__fill" [style.width.%]="processingProgress()"></div>
+              </div>
+            } @else {
+              <div class="up-progress" style="margin-top:0.75rem">
+                <div class="up-progress__fill up-progress__fill--anim"></div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (errorMessage() && !uploadedDocumentId() && !selectedFile()) {
+        <div class="up-card up-card--center">
+          <div class="up-error">
+            <i class="pi pi-times-circle up-error__icon"></i>
+            <h3>Falha no processamento</h3>
+            <p>{{ errorMessage() }}</p>
+            <button class="up-btn-retry" (click)="tentarNovamente()">
+              <i class="pi pi-refresh"></i>
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      }
+
+      <div class="up-grid-section">
+        <div class="up-grid-section__label">
+          @if (!botoesDisponiveis()) {
+            <i class="pi pi-lock"></i> <span>Envie ou selecione um PDF para liberar a geração</span>
+          } @else {
+            <i class="pi pi-sparkles"></i> <span>O que você quer gerar?</span>
+          }
+        </div>
+
+        <div class="up-grid" [class.up-grid--bloqueada]="!botoesDisponiveis()">
+          @for (btn of actionButtons; track btn.type) {
+            <button class="up-action up-action--{{ btn.color }}"
+                    [class.is-cached]="isCached(btn.type)"
+                    (click)="generate(btn.type)"
+                    [disabled]="generating() || !botoesDisponiveis()">
+              <span class="up-action__icon">
+                <i class="pi {{ btn.icon }}"></i>
+              </span>
+              <strong>{{ btn.label }}</strong>
+              <small>{{ btn.desc }}</small>
+              @if (isCached(btn.type)) {
+                <span class="up-action__cache-badge">
+                  <i class="pi pi-check-circle"></i> Gerado
+                </span>
+              }
+              @if (generatingType() === btn.type) {
+                <span class="up-action__spinner">
+                  <i class="pi pi-spin pi-spinner"></i>
+                </span>
+              }
+            </button>
+          }
+        </div>
+
+        @if (errorMessage() && (isCompleted() || uploadedDocumentId())) {
+          <div class="up-alert up-alert--mt">
+            <i class="pi pi-exclamation-circle"></i> {{ errorMessage() }}
+          </div>
+        }
+      </div>
+
+    </section>
+
+  </div>
+</div>

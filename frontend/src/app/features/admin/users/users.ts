@@ -2,8 +2,9 @@ import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-import { AdminService, AdminUser, PaginatedUsers, UserFilters } from '../../../core/services/admin';
-import { ToastService } from '../../../core/services/toast';
+import { AdminService } from '../../../core/services/admin.service';
+import { ToastService } from '../../../core/services/toast.service';
+import type { AdminUser, PaginatedUsers, UserFilters } from '../../../core/types/admin';
 
 @Component({
   selector: 'app-users',

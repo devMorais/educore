@@ -60,7 +60,12 @@ a {
   z-index: 9999 !important;
 }
 
-// Espaço para o header fixo
+// Espaço para o header fixo (navbar pública)
 main {
   padding-top: 68px;
+
+  // Rotas com layout próprio (admin, painel) não têm navbar pública fixa
+  &.no-padding {
+    padding-top: 0;
+  }
 }

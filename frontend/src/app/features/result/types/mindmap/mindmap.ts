@@ -4,9 +4,9 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser, NgTemplateOutlet } from '@angular/common';
 import { Router } from '@angular/router';
-import { ResultStore } from '../../../../core/services/result-store';
-import { ToastService } from '../../../../core/services/toast';
-import type { MindMapResult, MindMapNode } from '../../../../core/models/content.models';
+import { ResultStore } from '../../../../core/services/result-store.service';
+import { ToastService } from '../../../../core/services/toast.service';
+import type { MindMapResult, MindMapNode } from '../../../../core/types/content';
 
 @Component({
   selector: 'app-mindmap',
@@ -198,6 +198,6 @@ export class Mindmap implements AfterViewInit {
 
   goToUpload() {
     this.store.clear();
-    this.router.navigate(['/upload']);
+    this.router.navigate(['/painel']);
   }
 }

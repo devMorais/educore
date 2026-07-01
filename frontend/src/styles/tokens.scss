@@ -49,6 +49,8 @@
   --preto:         #000000;
   --erro:          #EF4444;
   --erro-bg:       rgba(239, 68, 68, 0.1);
+  --verde-bg:      rgba(16, 185, 129, 0.1);
+  --azul-bg:       rgba(79, 110, 247, 0.1);
 
   // ── Pontos do browser-mockup (semáforo do SO) ──
   --mockup-red:    #EF4444;
@@ -98,4 +100,29 @@
   --color-border:        #E2E8F0;
   --radius:              12px;
   --shadow:              0 4px 24px rgba(124, 58, 237, 0.08);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TEMA CLARO — remapeia os tokens semânticos para a paleta clara
+// já existente acima. Ativado via classe .tema-claro no <html>
+// (ThemeService). Nenhum componente precisa saber disso: todos já
+// consomem os tokens semânticos (--bg, --surface, --texto, etc).
+// ═══════════════════════════════════════════════════════════════
+:root.tema-claro {
+  --bg:            var(--bg-claro);
+  --bg-2:          var(--bg-claro-2);
+  --bg-3:          var(--surface-claro);
+
+  --surface:           var(--surface-claro);
+  --surface-hover:     var(--bg-claro-2);
+  --surface-brd:       var(--surface-claro-brd);
+  --surface-brd-hover: rgba(91, 45, 142, 0.35);
+
+  --texto:      var(--texto-escuro);
+  --texto-mute: var(--texto-escuro-mute);
+  --texto-dim:  rgba(30, 27, 46, 0.45);
+
+  --shadow-card: var(--shadow-claro);
+  --glow-brand:  0 0 24px rgba(91, 45, 142, 0.18);
+  --glow-violeta: 0 0 20px rgba(139, 111, 232, 0.15);
 }

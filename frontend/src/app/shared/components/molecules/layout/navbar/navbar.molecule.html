@@ -1,0 +1,113 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <a routerLink="/" class="navbar-brand" (click)="fecharMenu()">
+      <app-logo [height]="44" />
+    </a>
+
+    <div class="navbar-links">
+      <a routerLink="/" routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: true}">Início</a>
+      <button class="nav-link-btn" (click)="scrollTo('features')">Funcionalidades</button>
+      <button class="nav-link-btn" (click)="scrollTo('pricing')">Planos</button>
+    </div>
+
+    <div class="navbar-actions">
+      @if (isLoggedIn()) {
+        <div class="navbar-user" (click)="toggleDropdown()">
+          @if (currentUser()?.avatar) {
+            <img [src]="currentUser()!.avatar" class="user-avatar" [alt]="currentUser()!.name">
+          } @else {
+            <div class="user-avatar user-avatar--iniciais">{{ iniciais() }}</div>
+          }
+          <i class="pi pi-chevron-down user-chevron" [class.rotated]="dropdownAberto()"></i>
+
+          @if (dropdownAberto()) {
+            <div class="user-dropdown" (click)="$event.stopPropagation()">
+              <div class="user-dropdown__header">
+                @if (currentUser()?.avatar) {
+                  <img [src]="currentUser()!.avatar" class="user-dropdown__avatar"
+                    [alt]="currentUser()!.name">
+                } @else {
+                  <div class="user-dropdown__avatar user-avatar--iniciais">{{ iniciais() }}</div>
+                }
+                <div>
+                  <p class="user-dropdown__name">{{ currentUser()?.name }}</p>
+                  <p class="user-dropdown__email">{{ currentUser()?.email }}</p>
+                </div>
+              </div>
+              <div class="user-dropdown__divider"></div>
+              <a routerLink="/painel" class="user-dropdown__item" (click)="fecharDropdown()">
+                <i class="pi pi-th-large"></i> Dashboard
+              </a>
+              <a routerLink="/perfil" class="user-dropdown__item" (click)="fecharDropdown()">
+                <i class="pi pi-user"></i> Meu Perfil
+              </a>
+              <div class="user-dropdown__divider"></div>
+              <button class="user-dropdown__item user-dropdown__item--danger" (click)="logout()">
+                <i class="pi pi-sign-out"></i> Sair
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a routerLink="/login" class="btn-ghost">Entrar</a>
+        <a routerLink="/cadastro" class="btn-primary">Começar grátis</a>
+      }
+    </div>
+
+    <button class="navbar-hamburger" (click)="toggleMenu()"
+      [class.aberto]="menuAberto()" aria-label="Abrir menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <div class="navbar-mobile" [class.navbar-mobile--aberto]="menuAberto()">
+    @if (isLoggedIn()) {
+      <div class="mobile-user">
+        @if (currentUser()?.avatar) {
+          <img [src]="currentUser()!.avatar" class="user-avatar" [alt]="currentUser()!.name">
+        } @else {
+          <div class="user-avatar user-avatar--iniciais">{{ iniciais() }}</div>
+        }
+        <div>
+          <span class="user-name">{{ currentUser()?.name }}</span>
+          <span class="user-email">{{ currentUser()?.email }}</span>
+        </div>
+      </div>
+      <div class="mobile-divider"></div>
+    }
+    <div class="mobile-links">
+      <a routerLink="/" routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: true}" (click)="fecharMenu()">
+        <i class="pi pi-home"></i> Início
+      </a>
+      <button class="nav-link-btn mobile-nav-btn" (click)="scrollTo('features')">
+        <i class="pi pi-star"></i> Funcionalidades
+      </button>
+      <button class="nav-link-btn mobile-nav-btn" (click)="scrollTo('pricing')">
+        <i class="pi pi-tag"></i> Planos
+      </button>
+      @if (isLoggedIn()) {
+        <a routerLink="/painel" (click)="fecharMenu()">
+          <i class="pi pi-th-large"></i> Dashboard
+        </a>
+        <div class="mobile-divider"></div>
+        <button class="mobile-logout" (click)="logout()">
+          <i class="pi pi-sign-out"></i> Sair
+        </button>
+      } @else {
+        <div class="mobile-divider"></div>
+        <a routerLink="/login" class="mobile-btn-ghost" (click)="fecharMenu()">
+          <i class="pi pi-sign-in"></i> Entrar
+        </a>
+        <a routerLink="/cadastro" class="mobile-btn-primary" (click)="fecharMenu()">
+          <i class="pi pi-user-plus"></i> Começar grátis
+        </a>
+      }
+    </div>
+  </div>
+
+  @if (menuAberto()) {
+    <div class="navbar-overlay" (click)="fecharMenu()"></div>
+  }
+</nav>

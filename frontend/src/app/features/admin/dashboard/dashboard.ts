@@ -2,37 +2,11 @@ import { Component, computed, inject, signal, OnInit, PLATFORM_ID } from '@angul
 import { isPlatformBrowser } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
 import { AvatarModule } from 'primeng/avatar';
-import { Auth } from '../../../core/services/auth';
-import { ApiService } from '../../../core/services/api';
-import { ToastService } from '../../../core/services/toast';
-import { Skeleton } from '../../../shared/components/skeleton/skeleton';
-
-// Estrutura de resposta do endpoint GET /api/admin/stats
-interface AdminStats {
-  total_users:        number;
-  total_documents:    number;
-  total_generations:  number;
-  active_users_7days: number;
-  uploads_per_day:    { date: string; count: number }[];
-  by_type?:           { type: string; count: number }[];
-}
-
-// Estrutura crua de atividade vinda de GET /api/admin/activity
-interface ActivityItem {
-  type:      string;
-  name:      string;
-  action:    string;
-  timestamp: string;
-}
-
-// Atividade já formatada para o template
-interface ActivityVM {
-  initial: string;
-  name:    string;
-  action:  string;
-  time:    string;
-  color:   string;
-}
+import { Auth } from '../../../core/services/auth.service';
+import { ApiService } from '../../../core/services/api.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { Skeleton } from '../../../shared/components/atoms';
+import type { AdminStats, ActivityItem, ActivityVM, ChartLineData, ChartDonutData } from '../../../core/types/dashboard';
 
 @Component({
   selector: 'app-dashboard',
@@ -61,8 +35,8 @@ export class Dashboard implements OnInit {
   ativos7dias     = signal(0);
 
   // Dados dos gráficos
-  chartUploads = signal<any>(null);
-  chartTipos   = signal<any>(null);
+  chartUploads = signal<ChartLineData | null>(null);
+  chartTipos   = signal<ChartDonutData | null>(null);
 
   // Atividade recente (dados reais)
   atividades = signal<ActivityVM[]>([]);
@@ -164,7 +138,7 @@ export class Dashboard implements OnInit {
   }
 
   // Monta o gráfico de linha com uploads por dia (30d)
-  private montarChartLinha(dados: { date: string; count: number }[]) {
+  private montarChartLinha(dados: { date: string; count: number }[]): ChartLineData | null {
     if (!dados.length) return null;
     return {
       labels: dados.map(d => this.formatarData(d.date)),
@@ -182,7 +156,7 @@ export class Dashboard implements OnInit {
   }
 
   // Monta o gráfico donut com a distribuição REAL por tipo de conteúdo (by_type)
-  private montarChartDonut(dados: { type: string; count: number }[]) {
+  private montarChartDonut(dados: { type: string; count: number }[]): ChartDonutData | null {
     if (!dados.length) return null;
     return {
       labels: dados.map(d => this.tipoMeta[d.type]?.label ?? d.type),

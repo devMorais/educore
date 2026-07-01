@@ -1,20 +1,32 @@
+// ── Página ────────────────────────────────────────────────────────────────
 .login-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #FAF5FF 0%, #FFF7ED 100%);
   padding: 24px;
+  background: var(--gradiente-bg);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--mesh-hero);
+    pointer-events: none;
+  }
 }
 
 .login-card {
-  background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: 20px;
+  position: relative;
+  background: var(--bg-2);
+  border: var(--borda);
+  border-radius: var(--radius-xl);
   padding: 48px 40px;
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 8px 40px rgba(124, 58, 237, 0.1);
+  box-shadow: var(--shadow-card);
 }
 
 .login-header {
@@ -22,44 +34,37 @@
   margin-bottom: 32px;
 
   .brand {
-    display: inline-block;
-    font-size: 20px;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-decoration: none;
-    margin-bottom: 24px;
+    display: inline-flex;
+    justify-content: center;
+    margin-bottom: 20px;
   }
 
   h1 {
     font-size: 24px;
     font-weight: 800;
-    color: var(--color-text);
+    color: var(--texto);
     margin-bottom: 8px;
   }
 
   p {
     font-size: 14px;
-    color: var(--color-text-muted);
+    color: var(--texto-mute);
   }
 }
 
-// Alerta de erro em destaque vermelho (401)
+// Alerta de erro em destaque (401)
 .alert-error {
-  background: #FEF2F2;
-  border: 1px solid #FECACA;
-  color: #DC2626;
+  background: var(--erro-bg);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--erro);
   padding: 12px 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 20px;
   animation: shake 0.3s ease;
 }
 
-// Animação de shake no erro
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-6px); }
@@ -81,44 +86,60 @@ form {
   label {
     font-size: 13px;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--texto);
   }
 
-  input {
-    padding: 12px 16px;
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    font-size: 15px;
-    font-family: 'Inter', sans-serif;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none;
-    width: 100%;
-
-    &:focus {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px var(--color-primary-light);
-    }
-
-    &::placeholder {
-      color: #CBD5E1;
-    }
-
-    &:disabled {
-      background: #F8FAFC;
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
+  &.field-error input,
+  &.field-has-error input {
+    border-color: var(--erro) !important;
+    box-shadow: 0 0 0 3px var(--erro-bg) !important;
   }
 }
 
-// Wrapper do campo senha com botão mostrar/ocultar
-.password-wrapper {
+input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: var(--borda);
+  border-radius: var(--radius-sm);
+  color: var(--texto);
+  font-size: 15px;
+  font-family: var(--fonte);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+
+  &:focus {
+    border-color: var(--violeta-claro);
+    box-shadow: 0 0 0 3px rgba(139, 111, 232, 0.15);
+  }
+
+  &::placeholder {
+    color: var(--texto-dim);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Wrapper genérico de input com ícone/botão à direita (senha, validação)
+.password-wrapper,
+.input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 
-  input {
-    padding-right: 48px; // Espaço para o botão
+  input { padding-right: 44px; }
+
+  .input-icon {
+    position: absolute;
+    right: 12px;
+    font-size: 16px;
+    pointer-events: none;
+
+    &.error   { color: var(--erro); }
+    &.success { color: var(--verde); }
   }
 
   .toggle-senha {
@@ -127,15 +148,68 @@ form {
     background: none;
     border: none;
     cursor: pointer;
+    color: var(--texto-mute);
     font-size: 16px;
     padding: 4px;
     line-height: 1;
-    opacity: 0.6;
-    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
 
-    &:hover {
-      opacity: 1;
+    &:hover { color: var(--violeta-claro); }
+  }
+}
+
+.erro-inline {
+  font-size: 12px;
+  color: var(--erro);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.sucesso-inline {
+  font-size: 12px;
+  color: var(--verde);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+// Indicador de força de senha
+.forca-senha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+
+  .forca-barras {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+
+    .barra {
+      height: 4px;
+      flex: 1;
+      border-radius: 2px;
+      background: var(--surface-brd);
+      transition: background 0.3s;
+
+      &.ativa.fraca  { background: var(--erro); }
+      &.ativa.media  { background: var(--laranja); }
+      &.ativa.forte  { background: var(--verde); }
     }
+  }
+
+  .forca-texto {
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 36px;
+
+    &.fraca  { color: var(--erro); }
+    &.media  { color: var(--laranja); }
+    &.forte  { color: var(--verde); }
   }
 }
 
@@ -145,37 +219,33 @@ form {
 
   a {
     font-size: 13px;
-    color: var(--color-primary);
+    color: var(--violeta-claro);
     text-decoration: none;
     font-weight: 500;
 
-    &:hover {
-      text-decoration: underline;
-    }
+    &:hover { text-decoration: underline; }
   }
 }
 
 .btn-primary {
   width: 100%;
   padding: 13px;
-  background: var(--color-primary);
-  color: #fff;
+  background: var(--gradiente-marca);
+  color: var(--branco);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   font-size: 15px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--fonte);
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  box-shadow: var(--glow-brand);
+  transition: transform 0.15s, opacity 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 
-  &:hover:not(:disabled) {
-    background: var(--color-primary-dark);
-    transform: translateY(-1px);
-  }
+  &:hover:not(:disabled) { transform: translateY(-1px); }
 
   &:disabled {
     opacity: 0.6;
@@ -183,12 +253,11 @@ form {
   }
 }
 
-// Spinner de loading
 .spinner {
   width: 16px;
   height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: #fff;
+  border-top-color: var(--branco);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   display: inline-block;
@@ -203,26 +272,27 @@ form {
   align-items: center;
   gap: 12px;
   margin: 20px 0;
-  color: var(--color-text-muted);
+  color: var(--texto-dim);
   font-size: 13px;
 
   &::before, &::after {
     content: '';
     flex: 1;
     height: 1px;
-    background: var(--color-border);
+    background: var(--surface-brd);
   }
 }
 
 .btn-google {
   width: 100%;
   padding: 12px;
-  background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
+  background: var(--surface);
+  border: var(--borda);
+  border-radius: var(--radius-sm);
+  color: var(--texto);
   font-size: 14px;
   font-weight: 500;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--fonte);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -231,8 +301,8 @@ form {
   transition: background 0.2s, border-color 0.2s;
 
   &:hover:not(:disabled) {
-    background: #F8FAFC;
-    border-color: var(--color-primary);
+    background: var(--surface-hover);
+    border-color: var(--surface-brd-hover);
   }
 
   &:disabled {
@@ -244,17 +314,15 @@ form {
 .footer-links {
   text-align: center;
   font-size: 14px;
-  color: var(--color-text-muted);
+  color: var(--texto-mute);
   margin-top: 20px;
 
   a {
-    color: var(--color-primary);
+    color: var(--violeta-claro);
     font-weight: 600;
     text-decoration: none;
 
-    &:hover {
-      text-decoration: underline;
-    }
+    &:hover { text-decoration: underline; }
   }
 }
 

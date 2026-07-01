@@ -1,4 +1,4 @@
- import type { QuizResult } from '../models/content.models';
+ import type { QuizResult } from '../types/content';
 
 // Mock de Quiz para o Modo Demo (US-025)
 export const MOCK_QUIZ: QuizResult = {

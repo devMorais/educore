@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import type { MindMapNode } from '../../../core/models/content.models';
+import type { MindMapNode } from '../../../core/types/content';
 
 @Component({
   selector: 'app-mindmap-node',

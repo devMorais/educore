@@ -1,4 +1,4 @@
- import type { SummaryResult } from '../models/content.models';
+ import type { SummaryResult } from '../types/content';
 
 // Mock de Resumo para o Modo Demo (US-025)
 export const MOCK_SUMMARY: SummaryResult = {

@@ -1,8 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { ResultStore } from '../../../../core/services/result-store';
-import { ToastService } from '../../../../core/services/toast';
-import type { SummaryResult } from '../../../../core/models/content.models';
+import { ResultStore } from '../../../../core/services/result-store.service';
+import { ToastService } from '../../../../core/services/toast.service';
+import type { SummaryResult } from '../../../../core/types/content';
 
 @Component({
   selector: 'app-summary',
@@ -50,6 +50,6 @@ export class Summary {
 
   goToUpload() {
     this.store.clear();
-    this.router.navigate(['/upload']);
+    this.router.navigate(['/painel']);
   }
 }

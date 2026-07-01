@@ -1,4 +1,4 @@
- import type { MindMapResult } from '../models/content.models';
+ import type { MindMapResult } from '../types/content';
 
 // Mock de Mapa Mental para o Modo Demo (US-025)
 export const MOCK_MINDMAP: MindMapResult = {

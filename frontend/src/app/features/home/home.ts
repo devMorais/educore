@@ -5,7 +5,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
-import { DemoService } from '../../core/services/demo';
+import { DemoService } from '../../core/services/demo.service';
 
 @Component({
   selector: 'app-home',

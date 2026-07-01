@@ -1,9 +1,9 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
-import { Auth } from '../../../core/services/auth';
-import { ToastService } from '../../../core/services/toast';
-import { Logo } from '../../../shared/components/logo/logo';
+import { Auth } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { Logo } from '../../../shared/components/atoms';
 
 @Component({
   selector: 'app-login',
@@ -53,7 +53,7 @@ export class Login {
         const usuario = this.authService.currentUser();
         const nome = usuario?.name?.split(' ')[0] || 'usuário';
         this.toast.sucesso(`Bem-vindo de volta, ${nome}!`, 'Login realizado');
-        this.router.navigate(['/upload']);
+        this.router.navigate(['/painel']);
       },
       error: (err) => {
         this.loading.set(false);

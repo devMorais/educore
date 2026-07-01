@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Auth } from '../../../core/services/auth';
+import { Auth } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-google-callback',
@@ -33,7 +33,7 @@ export class GoogleCallback implements OnInit {
     }
 
     this.auth.exchangeGoogleCode(code, state).subscribe({
-      next: () => this.router.navigate(['/upload']),
+      next: () => this.router.navigate(['/painel']),
       error: () => this.router.navigate(['/login']),
     });
   }

@@ -2,8 +2,8 @@ import { inject } from '@angular/core';
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
-import { Auth } from '../services/auth';
-import { ToastService } from '../services/toast';
+import { Auth } from '../services/auth.service';
+import { ToastService } from '../services/toast.service';
 import { environment } from '../../../environments/environment';
 
 /**
@@ -15,6 +15,9 @@ import { environment } from '../../../environments/environment';
  * - Trata demais erros de forma centralizada com ToastService.
  * - Não exibe toast em rotas de polling (/status).
  */
+
+// Formato de erro de validação do Laravel: { errors: { campo: string | string[] } }
+type LaravelValidationErrors = Record<string, string | string[]>;
 
 let isRefreshing = false;
 
@@ -65,11 +68,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           auth.clearSession();
           router.navigate(['/login']);
         } else if (err.status === 422) {
-          const erros = err.error?.errors;
+          const erros = err.error?.errors as LaravelValidationErrors | undefined;
           if (erros) {
-            Object.values(erros).forEach((mensagens: any) => {
+            Object.values(erros).forEach((mensagens) => {
               const lista = Array.isArray(mensagens) ? mensagens : [mensagens];
-              lista.forEach((msg: string) => toast.erro(msg, 'Dados inválidos'));
+              lista.forEach((msg) => toast.erro(msg, 'Dados inválidos'));
             });
           } else {
             toast.erro(err.error?.message || 'Dados inválidos.', 'Atenção');

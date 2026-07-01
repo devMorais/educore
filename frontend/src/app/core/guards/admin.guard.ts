@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { Auth } from '../services/auth';
+import { Auth } from '../services/auth.service';
 
 /**
  * Guard de Role para a Área Admin (US-001)
