@@ -23,6 +23,11 @@ interface PanelNavItem {
   adminOnly?: boolean;
 }
 
+// Tipo das fases de processamento (US-006: estágios do SSE em pt-BR)
+type FaseProcessamento =
+  | 'enviando' | 'na_fila' | 'extraindo' | 'fragmentando'
+  | 'embeddings' | 'finalizando' | '';
+
 @Component({
   selector: 'app-panel',
   imports: [RouterLink, RouterLinkActive, AvatarModule, TooltipModule, Logo],
@@ -81,20 +86,21 @@ export class Panel implements OnInit, OnDestroy {
   recentDocuments    = signal<DocumentItem[]>([]);
   cachedGenerations  = signal<GenerationCache[]>([]);
 
-  // Fase atual do processamento para mensagens em tempo real
-  faseProcessamento = signal<'enviando' | 'analisando' | 'finalizando' | ''>('');
+  // Fase atual do processamento — agora com os estágios do SSE em pt-BR
+  faseProcessamento = signal<FaseProcessamento>('');
+
+  // Indica se a conexão é via SSE ou polling (para debug/transparência)
+  conexaoSSE = signal(false);
 
   // Indica se a geração de conteúdo está liberada (só quando o documento está 100% processado)
   botoesDisponiveis = signal(false);
-
-  // Controla o loading skeleton enquanto a lista de documentos carrega
   loadingDocs = signal(true);
 
   private readonly MAX_SIZE = 100 * 1024 * 1024;
   private pollingInterval: ReturnType<typeof setInterval> | null = null;
+  private eventSource: EventSource | null = null;
 
   ngOnInit() {
-    // Se entrou no modo demo, prepara a tela como se um documento estivesse pronto
     if (this.demoService.isDemo()) {
       this.isCompleted.set(true);
       this.botoesDisponiveis.set(true);
@@ -105,7 +111,6 @@ export class Panel implements OnInit, OnDestroy {
     this.loadDocuments();
   }
 
-  // Abre/fecha a sidebar no mobile
   alternarMenu() {
     this.menuAberto.update(v => !v);
   }
@@ -243,11 +248,15 @@ export class Panel implements OnInit, OnDestroy {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
+  // Mensagem de fase em pt-BR — agora cobre todos os estágios do SSE
   mensagemFase(): string {
     const fase = this.faseProcessamento();
-    if (fase === 'enviando')    return 'Enviando arquivo para o servidor...';
-    if (fase === 'analisando')  return 'Analisando conteúdo com IA...';
-    if (fase === 'finalizando') return 'Finalizando processamento...';
+    if (fase === 'enviando')     return 'Enviando arquivo para o servidor...';
+    if (fase === 'na_fila')      return 'Na fila de processamento...';
+    if (fase === 'extraindo')    return 'Extraindo texto do PDF...';
+    if (fase === 'fragmentando') return 'Fragmentando conteúdo...';
+    if (fase === 'embeddings')   return 'Gerando embeddings com IA...';
+    if (fase === 'finalizando')  return 'Finalizando processamento...';
     return 'Iniciando análise do documento...';
   }
 
@@ -299,8 +308,9 @@ export class Panel implements OnInit, OnDestroy {
             this.loadDocuments();
             this.loadGenerations(event.body.document_id);
           } else {
-            this.faseProcessamento.set('analisando');
-            this.startPolling(event.body.document_id);
+            // US-006: conecta via SSE em vez de iniciar o polling direto
+            this.faseProcessamento.set('na_fila');
+            this.iniciarSSE(event.body.document_id);
           }
         }
       },
@@ -320,6 +330,85 @@ export class Panel implements OnInit, OnDestroy {
     return err.error?.detail ?? 'Erro ao enviar o arquivo. Tente novamente.';
   }
 
+  // ── US-006: SSE com fallback para polling ──────────────────────────────────
+
+  // Mapeia o "stage" vindo do backend para a fase em pt-BR usada no template
+  private mapearStage(stage: string): FaseProcessamento {
+    const mapa: Record<string, FaseProcessamento> = {
+      queued:      'na_fila',
+      extracting:  'extraindo',
+      chunking:    'fragmentando',
+      embedding:   'embeddings',
+      finalizing:  'finalizando',
+      completed:   'finalizando',
+    };
+    return mapa[stage] ?? 'na_fila';
+  }
+
+  // Conecta ao stream SSE do backend para progresso em tempo real
+  private iniciarSSE(documentId: number) {
+    // SSR-safe: EventSource só existe no browser
+    if (!isPlatformBrowser(this.platformId) || typeof EventSource === 'undefined') {
+      this.startPolling(documentId);
+      return;
+    }
+
+    const url = this.aiService.getStreamUrl(documentId);
+    this.eventSource = new EventSource(url);
+    this.conexaoSSE.set(true);
+
+    this.eventSource.onmessage = (event: MessageEvent) => {
+      try {
+        const data: { type?: string; percent?: number; stage?: string; status?: string } =
+          JSON.parse(event.data);
+
+        const progresso = data.percent ?? 0;
+        this.processingProgress.set(progresso);
+
+        if (data.stage) {
+          this.faseProcessamento.set(this.mapearStage(data.stage));
+        }
+
+        const status = data.status ?? data.type;
+
+        if (status === 'completed') {
+          this.fecharSSE();
+          this.faseProcessamento.set('');
+          this.processingProgress.set(100);
+          this.isCompleted.set(true);
+          this.botoesDisponiveis.set(true);
+          this.loadDocuments();
+          this.loadGenerations(documentId);
+        } else if (status === 'failed') {
+          this.fecharSSE();
+          this.faseProcessamento.set('');
+          this.errorMessage.set('Erro ao processar o PDF. Clique em "Tentar novamente".');
+          this.uploadedDocumentId.set(null);
+          this.botoesDisponiveis.set(false);
+        }
+      } catch {
+        // Ignora mensagens mal formatadas do stream
+      }
+    };
+
+    this.eventSource.onerror = () => {
+      // Endpoint SSE indisponível (404) ou conexão caiu — faz fallback para polling
+      this.fecharSSE();
+      this.conexaoSSE.set(false);
+      this.startPolling(documentId);
+    };
+  }
+
+  // Fecha a conexão SSE aberta
+  private fecharSSE() {
+    if (this.eventSource) {
+      this.eventSource.close();
+      this.eventSource = null;
+    }
+    this.conexaoSSE.set(false);
+  }
+
+  // Fallback: polling a cada 2s em /documents/{id}/status
   private startPolling(documentId: number) {
     this.stopPolling();
     this.pollingInterval = setInterval(() => {
@@ -331,7 +420,7 @@ export class Panel implements OnInit, OnDestroy {
           if (progresso >= 80) {
             this.faseProcessamento.set('finalizando');
           } else if (progresso >= 10) {
-            this.faseProcessamento.set('analisando');
+            this.faseProcessamento.set('extraindo');
           }
 
           if (status.status === 'completed') {
@@ -361,9 +450,9 @@ export class Panel implements OnInit, OnDestroy {
     }
   }
 
-  // Clica no tipo — se modo demo carrega mock, senão chama a API
+  // ────────────────────────────────────────────────────────────────────────────
+
   generate(type: GenerationType | string) {
-    // Modo demo: carrega mock instantaneamente
     if (this.demoService.isDemo()) {
       const tiposDemo: GenerationType[] = ['quiz', 'summary', 'slides', 'mindmap', 'flashcards', 'pcd'];
       if (tiposDemo.includes(type as GenerationType)) {
@@ -435,8 +524,9 @@ export class Panel implements OnInit, OnDestroy {
     });
   }
 
-  // Para o polling ao destruir o componente (evita memory leak)
+  // Fecha SSE e/ou polling ao destruir o componente (evita memory leak)
   ngOnDestroy() {
+    this.fecharSSE();
     this.stopPolling();
   }
 }
