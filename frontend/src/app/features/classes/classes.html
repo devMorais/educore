@@ -1,0 +1,190 @@
+<p-toast />
+
+<div class="turmas-page">
+  <div class="turmas-header">
+    <div>
+      <h1 class="turmas-titulo">Minhas Turmas</h1>
+      <p class="turmas-subtitulo">Gerencie suas turmas e alunos matriculados</p>
+    </div>
+    <p-button 
+      label="Nova Turma" 
+      icon="pi pi-plus" 
+      styleClass="p-button-rounded"
+      (onClick)="abrirDialog()" />
+  </div>
+
+  @if (carregando()) {
+    <div class="turmas-grid">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="turma-skeleton">
+          <p-skeleton height="2rem" styleClass="mb-2" />
+          <p-skeleton height="1rem" width="70%" styleClass="mb-3" />
+          <p-skeleton height="1rem" width="40%" />
+        </div>
+      }
+    </div>
+  }
+
+  @if (!carregando()) {
+    @if (turmas().length === 0) {
+      <div class="turmas-vazio">
+        <i class="pi pi-book"></i>
+        <p>Nenhuma turma criada ainda.</p>
+        <p-button 
+          label="Criar primeira turma" 
+          icon="pi pi-plus" 
+          styleClass="p-button-outlined p-button-rounded"
+          (onClick)="abrirDialog()" />
+      </div>
+    } @else {
+      <div class="turmas-grid">
+        @for (turma of turmas(); track turma.id) {
+          <div class="turma-card" (click)="abrirSidebar(turma)">
+            <div class="turma-card-header">
+              <span class="turma-icone"><i class="pi pi-users"></i></span>
+              <p-tag [value]="turma.students_count + ' alunos'" severity="info" />
+            </div>
+            <h3 class="turma-nome">{{ turma.name }}</h3>
+            <p class="turma-descricao">{{ turma.description || 'Sem descrição' }}</p>
+            <div class="turma-rodape">
+              <i class="pi pi-calendar"></i>
+              <span>Criada em {{ formatarData(turma.created_at) }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- Dialog: Nova Turma -->
+<p-dialog
+  header="Nova Turma"
+  [(visible)]="dialogAberto"
+  [modal]="true"
+  [style]="{ width: '30rem' }"
+  [draggable]="false"
+  styleClass="turmas-dialog">
+
+  <div class="dialog-form">
+    <div class="campo">
+      <label>Nome da turma *</label>
+      <input
+        pInputText
+        [ngModel]="nomeTurma()"
+        (ngModelChange)="nomeTurma.set($event)"
+        placeholder="Ex: Matemática 3º Ano A"
+        autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label>Descrição</label>
+      <textarea
+        pTextarea
+        [ngModel]="descricaoTurma()"
+        (ngModelChange)="descricaoTurma.set($event)"
+        placeholder="Descreva a turma, objetivos, horários..."
+        rows="3">
+      </textarea>
+    </div>
+
+    <!-- Botões HTML puro -->
+    <div class="dialog-botoes">
+      <button class="btn-cancelar" (click)="dialogAberto.set(false)">
+        Cancelar
+      </button>
+      <button class="btn-criar" (click)="criarTurma()" [disabled]="salvando()">
+        <i class="pi pi-check"></i> Criar Turma
+      </button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Drawer: Alunos -->
+<p-drawer [(visible)]="sidebarAberta" position="right" [style]="{ width: '28rem' }">
+  <ng-template pTemplate="header">
+    <div class="sidebar-header">
+      <h3>{{ turmaSelecionada()?.name }}</h3>
+      <span class="sidebar-subtitulo">{{ alunosMatriculados().length }} aluno(s) matriculado(s)</span>
+    </div>
+  </ng-template>
+
+  <div class="sidebar-conteudo">
+    <div class="busca-section">
+      <label>Matricular aluno</label>
+      <div class="busca-input-wrapper">
+        <i class="pi pi-search busca-icon"></i>
+        <input
+          pInputText
+          [ngModel]="termoBusca()"
+          (ngModelChange)="onBuscarAlunos($event)"
+          placeholder="Buscar por nome ou e-mail..."
+          class="w-full busca-input" />
+        @if (buscando()) {
+          <i class="pi pi-spin pi-spinner busca-loading"></i>
+        }
+      </div>
+
+      @if (resultadosBusca().length > 0) {
+        <div class="busca-resultados">
+          @for (aluno of resultadosBusca(); track aluno.id) {
+            <div class="busca-item">
+              <p-avatar [label]="iniciais(aluno.name)" shape="circle" size="normal" />
+              <div class="busca-item-info">
+                <span class="busca-item-nome">{{ aluno.name }}</span>
+                <span class="busca-item-email">{{ aluno.email }}</span>
+              </div>
+              @if (jaMatriculado(aluno)) {
+                <p-tag value="Matriculado" severity="success" />
+              } @else {
+                <p-button 
+                  icon="pi pi-plus" 
+                  size="small" 
+                  styleClass="p-button-rounded"
+                  (onClick)="matricular(aluno)" />
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="alunos-section">
+      <label>Alunos matriculados</label>
+
+      @if (carregandoAlunos()) {
+        @for (i of [1,2,3]; track i) {
+          <div class="aluno-skeleton">
+            <p-skeleton shape="circle" size="2.5rem" />
+            <div style="flex:1">
+              <p-skeleton height="0.9rem" width="60%" styleClass="mb-1" />
+              <p-skeleton height="0.75rem" width="80%" />
+            </div>
+          </div>
+        }
+      } @else if (alunosMatriculados().length === 0) {
+        <div class="alunos-vazio">
+          <i class="pi pi-user-plus"></i>
+          <p>Nenhum aluno matriculado ainda.</p>
+        </div>
+      } @else {
+        @for (aluno of alunosMatriculados(); track aluno.id) {
+          <div class="aluno-item">
+            <p-avatar [label]="iniciais(aluno.name)" shape="circle" size="normal" />
+            <div class="aluno-info">
+              <span class="aluno-nome">{{ aluno.name }}</span>
+              <span class="aluno-email">{{ aluno.email }}</span>
+            </div>
+            <p-button 
+              icon="pi pi-trash" 
+              severity="danger" 
+              size="small" 
+              styleClass="p-button-outlined p-button-rounded"
+              (onClick)="removerAluno(aluno)" />
+          </div>
+        }
+      }
+    </div>
+  </div>
+</p-drawer>
