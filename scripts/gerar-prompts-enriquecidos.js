@@ -377,6 +377,7 @@ D['D-12'] = {
 D['D-13'] = {
   titulo: 'Corrigir configuração da URL do AI Service',
   sprint: 4, user: CLAUDIA_ID,
+  concluida: true, // feita como hotfix em 04/07/2026 (commit d131df3), verificada em producao via /api/health
   servicos: 'Laravel (backend/)',
   pastas: ['backend'],
   branch: 'feature/d-13-corrigir-config-ai-service-url',
@@ -1183,7 +1184,8 @@ for (let sprintNum = 1; sprintNum <= 8; sprintNum++) {
     if (d.sprint !== sprintNum) return;
     d.codigo = codigo;
     const descricaoCompleta = montarDescricao(d, d.user);
-    linhas.push(`UPDATE tasks SET description = ${esc(descricaoCompleta)} WHERE board_id = 7 AND description LIKE ${esc('[' + codigo + ']%')} LIMIT 1;`);
+    const statusSet = d.concluida ? `, status = 'Concluída', completed_at = NOW()` : '';
+    linhas.push(`UPDATE tasks SET description = ${esc(descricaoCompleta)}${statusSet} WHERE board_id = 7 AND description LIKE ${esc('[' + codigo + ']%')} LIMIT 1;`);
     linhas.push('');
   });
 
