@@ -2,34 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-
-export interface Turma {
-  id: number;
-  name: string;
-  description?: string;
-  students_count: number;
-  created_at: string;
-}
-
-export interface Aluno {
-  id: number;
-  name: string;
-  email: string;
-  avatar?: string;
-}
-
-export interface PaginatedAlunos {
-  data: Aluno[];
-  total: number;
-  per_page: number;
-  current_page: number;
-  last_page: number;
-}
-
-export interface TurmaPayload {
-  name: string;
-  description?: string;
-}
+import type { Turma, PaginatedAlunos, TurmaPayload } from '../types/classes';
 
 @Injectable({ providedIn: 'root' })
 export class ClassesService {

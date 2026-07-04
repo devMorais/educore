@@ -2,49 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-
-// Autor do tópico/resposta
-export interface ForumAuthor {
-  id: number;
-  name: string;
-  avatar?: string;
-  role?: string;
-}
-
-// Tópico do fórum
-export interface ForumTopic {
-  id: number;
-  title: string;
-  body: string;
-  user: ForumAuthor;
-  replies_count: number;
-  last_reply_at: string | null;
-  created_at: string;
-}
-
-// Resposta de um tópico
-export interface ForumReply {
-  id: number;
-  topic_id: number;
-  body: string;
-  user: ForumAuthor;
-  created_at: string;
-}
-
-// Paginação padrão do Laravel
-export interface Paginated<T> {
-  data: T[];
-  total: number;
-  per_page: number;
-  current_page: number;
-  last_page: number;
-}
-
-export interface TopicFilters {
-  search?: string;
-  page?: number;
-  per_page?: number;
-}
+import type { ForumTopic, ForumReply, Paginated, TopicFilters } from '../types/forum';
 
 @Injectable({ providedIn: 'root' })
 export class ForumService {

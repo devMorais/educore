@@ -1,7 +1,8 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ClassesService, Turma, Aluno } from '../../core/services/classes';
+import { ClassesService } from '../../core/services/classes.service';
+import type { Turma, Aluno } from '../../core/types/classes';
 import { MessageService } from 'primeng/api';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';

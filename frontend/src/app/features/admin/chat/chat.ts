@@ -4,8 +4,9 @@ import { interval, switchMap, startWith, catchError, of, finalize } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
-import { ChatService, ChatMessage } from '../../../core/services/chat';
+import { ChatService } from '../../../core/services/chat.service';
 import { Auth } from '../../../core/services/auth.service';
+import type { ChatMessage } from '../../../core/types/chat';
 
 @Component({
   selector: 'app-chat',

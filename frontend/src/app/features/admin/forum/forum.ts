@@ -7,9 +7,10 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { finalize } from 'rxjs';
-import { ForumService, ForumTopic, ForumReply } from '../../../core/services/forum';
+import { ForumService } from '../../../core/services/forum.service';
 import { Auth } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import type { ForumTopic, ForumReply } from '../../../core/types/forum';
 
 @Component({
   selector: 'app-forum',
