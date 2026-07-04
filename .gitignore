@@ -27,7 +27,6 @@ ai-service/**/__pycache__/
 ai-service/*.pyc
 ai-service/uploads/
 ai-service/google-credentials.json
-ai-service/package-lock.json
 
 # Node
 node_modules/
@@ -53,4 +52,3 @@ frontend/src/environments/environment.production.ts
 # Arquivos locais temporários / documentação interna
 *.docx
 gerar_guia_testes.py
-frontend/origin)

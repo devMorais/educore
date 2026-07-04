@@ -6,7 +6,6 @@ pydantic==2.13.4
 pydantic-settings==2.14.1
 httpx==0.28.1
 python-multipart==0.0.29
-google-generativeai==0.8.6
 google-genai==1.75.0
 llama-parse==0.6.94
 llama-index-core==0.14.22
