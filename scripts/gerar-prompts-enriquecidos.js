@@ -4,6 +4,7 @@ const path = require('path');
 const BOARD_ID = 7;
 const FERNANDO_ID = 1;
 const CLAUDIA_ID = 2;
+const STATUS_ID_CONCLUIDA = 28; // confirmado via SELECT id,name FROM statuses WHERE board_id=7
 const PATH_FERNANDO = 'C:\\Users\\UITEC\\Herd';
 const PATH_CLAUDIA = 'C:\\Users\\claudia\\Herd';
 
@@ -1184,7 +1185,7 @@ for (let sprintNum = 1; sprintNum <= 8; sprintNum++) {
     if (d.sprint !== sprintNum) return;
     d.codigo = codigo;
     const descricaoCompleta = montarDescricao(d, d.user);
-    const statusSet = d.concluida ? `, status = 'Concluída', completed_at = NOW()` : '';
+    const statusSet = d.concluida ? `, status_id = ${STATUS_ID_CONCLUIDA}, completed_at = NOW()` : '';
     linhas.push(`UPDATE tasks SET description = ${esc(descricaoCompleta)}${statusSet} WHERE board_id = 7 AND description LIKE ${esc('[' + codigo + ']%')} LIMIT 1;`);
     linhas.push('');
   });

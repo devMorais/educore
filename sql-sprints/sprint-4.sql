@@ -101,7 +101,7 @@ Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.
 4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
 5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
          a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
-         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)', status = 'Concluída', completed_at = NOW() WHERE board_id = 7 AND description LIKE '[D-13]%' LIMIT 1;
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)', status_id = 28, completed_at = NOW() WHERE board_id = 7 AND description LIKE '[D-13]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-14] Corrigir vulnerabilidades de segurança do Angular
 
