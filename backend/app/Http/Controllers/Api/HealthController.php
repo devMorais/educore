@@ -137,7 +137,7 @@ class HealthController extends Controller
     private function fetchAiHealth(): array
     {
         try {
-            $url = config('services.ai_service.url', env('AI_SERVICE_URL', 'http://localhost:8001'));
+            $url = config('services.ai_service.url');
             // Aceita 503 (o AI service responde 503 quando 'critical') sem lançar exceção.
             $res  = Http::timeout(self::TIMEOUT)->get("{$url}/health");
             $body = $res->json();

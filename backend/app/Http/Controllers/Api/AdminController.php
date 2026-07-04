@@ -240,7 +240,7 @@ class AdminController extends Controller
     {
         try {
             $token   = request()->bearerToken();
-            $baseUrl = config('services.ai_service.url', env('AI_SERVICE_URL', 'http://localhost:8001'));
+            $baseUrl = config('services.ai_service.url');
             $res     = Http::withToken($token)
                 ->timeout(3)
                 ->get("{$baseUrl}/admin/stats");
@@ -258,7 +258,7 @@ class AdminController extends Controller
     {
         try {
             $token   = request()->bearerToken();
-            $baseUrl = config('services.ai_service.url', env('AI_SERVICE_URL', 'http://localhost:8001'));
+            $baseUrl = config('services.ai_service.url');
             $res     = Http::withToken($token)
                 ->timeout(3)
                 ->get("{$baseUrl}/admin/documents", ['page' => 1, 'per_page' => 10]);
