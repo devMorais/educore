@@ -31,6 +31,9 @@ A tela /admin/forum já existe com lista de tópicos, criação, thread de respo
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - frontend/src/app/features/admin/forum/forum.ts e forum.service.ts (LEIA — mostra exatamente as rotas e payloads esperados)
 - backend/routes/api.php (adicionar as rotas de fórum)
@@ -50,7 +53,10 @@ A tela /admin/forum já existe com lista de tópicos, criação, thread de respo
 1. git add .
 2. git commit -m "feat(D-05): backend completo do forum de discussao"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-05]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-05]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-06] Descontinuar o Chat interno da área administrativa
 
@@ -80,6 +86,9 @@ O chat em /admin/chat tem frontend com polling a cada 3s, mas o próprio código
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - frontend/src/app/app.routes.ts (remover a rota /admin/chat)
 - frontend/src/app/features/admin/chat/ (NÃO DELETAR os arquivos, só remover do menu e da navegação — pode ser retomado no futuro)
@@ -95,7 +104,10 @@ O chat em /admin/chat tem frontend com polling a cada 3s, mas o próprio código
 1. git add .
 2. git commit -m "chore(D-06): remover chat interno do menu admin (backend nunca foi feito)"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-06]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-06]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-07] Exibir botão de exportação para Google Slides
 
@@ -125,6 +137,9 @@ O ai-service JÁ TEM a integração funcional com o Google Slides (função _try
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - frontend/src/app/features/result/types/slides/ (tela de resultado de slides, adicionar o botão aqui)
 - frontend/src/app/core/services/ai.service.ts (conferir se o tipo de retorno da geração já inclui google_slides_url; se não, adicionar ao tipo em core/types/)
@@ -139,7 +154,10 @@ O ai-service JÁ TEM a integração funcional com o Google Slides (função _try
 1. git add .
 2. git commit -m "feat(D-07): botao de exportacao para Google Slides na tela de resultado"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-07]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-07]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-16] Aplicar rate limit nos endpoints de áudio e visualização HTML
 
@@ -167,6 +185,9 @@ GET /documents/{id}/audio e GET /documents/{id}/html-view disparam geração rea
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - ai-service/app/routers/documents.py (endpoints /audio linha ~364 e /html-view linha ~474; olhar os outros endpoints já protegidos como referência do padrão de @limiter.limit)
 
@@ -179,7 +200,10 @@ GET /documents/{id}/audio e GET /documents/{id}/html-view disparam geração rea
 1. git add .
 2. git commit -m "fix(D-16): rate limit por usuario em /audio e /html-view"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-16]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-16]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-17] Garantir modo de produção seguro no ai-service
 
@@ -207,6 +231,9 @@ ai-service/app/core/config.py tem debug: bool = True como valor padrão — se a
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - ai-service/app/core/config.py
 
@@ -219,7 +246,10 @@ ai-service/app/core/config.py tem debug: bool = True como valor padrão — se a
 1. git add .
 2. git commit -m "fix(D-17): default seguro de DEBUG no ai-service"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-17]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-17]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-21] Exclusão de conta e exportação de dados pessoais (LGPD)
 
@@ -248,6 +278,9 @@ Não existe nenhum mecanismo de "direito ao esquecimento" ou portabilidade de da
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - backend/routes/api.php (adicionar GET /profile/export e DELETE /profile, protegidas por auth:sanctum)
 - backend/app/Http/Controllers/Api/AuthController.php ou novo ProfileController
@@ -266,7 +299,10 @@ Não existe nenhum mecanismo de "direito ao esquecimento" ou portabilidade de da
 1. git add .
 2. git commit -m "feat(D-21): exportacao e exclusao de dados pessoais (LGPD)"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-21]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-21]%' LIMIT 1;
 
 -- Verificacao: confirme que todas as descricoes desta sprint foram atualizadas (buscar pelo novo cabecalho "CONTEXTO DO PROJETO")
 SELECT id, LEFT(description, 60) AS inicio FROM tasks WHERE board_id = 7 AND sprint_id = (SELECT id FROM sprints WHERE board_id = 7 AND name LIKE 'Sprint 2 -%' LIMIT 1) ORDER BY id;

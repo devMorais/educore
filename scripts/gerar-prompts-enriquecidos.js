@@ -16,6 +16,18 @@ Arquitetura (3 serviços independentes dentro do mesmo monorepo "educore"):
 
 const NUNCA_ASSUMA = `⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".`;
 
+const CADERNO_ANTES = `📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.`;
+
+function cadernoDepois(semCodigo) {
+  if (semCodigo) {
+    return `📓 Ao terminar, atualize o Caderno da tarefa "[META-01]" no Avante com o que foi feito/decidido nesta demanda (mantém o time sincronizado mesmo sem abrir o repositório).`;
+  }
+  return `📓 Atualize DOIS lugares com o que mudou nesta demanda:
+      a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+      b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)`;
+}
+
 function gitSteps(basePath, pastas, branch, extraDidatico) {
   const cds = pastas.map(p => `cd ${basePath}\\educore\\${p}`).join('\n   ');
   let txt = `🛠️ ANTES DE COMEÇAR (Git) — siga exatamente nesta ordem, sem pular etapas:
@@ -64,6 +76,8 @@ function montarDescricao(d, userId) {
   partes.push('');
   partes.push(NUNCA_ASSUMA);
   partes.push('');
+  partes.push(CADERNO_ANTES);
+  partes.push('');
   partes.push('📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:');
   d.arquivos.forEach(a => partes.push(`- ${a}`));
   partes.push('');
@@ -77,6 +91,10 @@ function montarDescricao(d, userId) {
     partes.push(`2. git commit -m "${d.commitMsg}"`);
     partes.push('3. git push -u origin HEAD');
     partes.push('4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.');
+    partes.push('5. ' + cadernoDepois(false).replace(/\n   /g, '\n      '));
+  } else {
+    partes.push('');
+    partes.push(cadernoDepois(true));
   }
 
   return partes.join('\n');
@@ -1178,3 +1196,49 @@ for (let sprintNum = 1; sprintNum <= 8; sprintNum++) {
 
 console.log('Gerados 8 arquivos em', outDir);
 console.log('Total de demandas mapeadas:', Object.keys(D).length);
+
+// ============================================================
+// SPRINT 0: tarefa META com o CLAUDE.md no Caderno (fonte unica)
+// ============================================================
+const claudeMdPath = path.join(__dirname, '..', 'CLAUDE.md');
+const claudeMdContent = fs.readFileSync(claudeMdPath, 'utf8');
+
+const metaDescricao = `[META-01] Contexto do Projeto para IA (CLAUDE.md)
+
+📌 Esta NÃO é uma demanda de execução — é uma referência viva. O Caderno desta tarefa (aba "Caderno" aqui no Avante) contém uma cópia do CLAUDE.md do repositório.
+
+Como usar:
+- Antes de começar qualquer uma das 49 demandas (D-01 a D-49), abra o Caderno desta tarefa e cole o conteúdo junto com a descrição da demanda no prompt da sua IA.
+- Ao terminar qualquer demanda que mude arquitetura, convenção, endpoint ou infraestrutura, atualize DOIS lugares: o arquivo CLAUDE.md no repositório (commitado) e o Caderno desta tarefa (copie o conteúdo atualizado do arquivo pra cá).
+
+Se algum dia os dois ficarem diferentes, o arquivo do repositório manda — o Caderno aqui é só um espelho pra quem está sem o repo aberto.`;
+
+const metaLinhas = [];
+metaLinhas.push(`-- ============================================================`);
+metaLinhas.push(`-- EduCore — Tarefa META (Caderno = espelho do CLAUDE.md)`);
+metaLinhas.push(`-- Rodar uma unica vez. Se a tarefa META-01 ja existir, isso so atualiza o Caderno (notes).`);
+metaLinhas.push(`-- ============================================================`);
+metaLinhas.push('');
+metaLinhas.push(`-- 1) Cria a tarefa META se ainda nao existir`);
+metaLinhas.push(`INSERT INTO tasks (board_id, sprint_id, status_id, assigned_to, description, notes, priority, epic, sort_order, created_at, updated_at)`);
+metaLinhas.push(`SELECT ${BOARD_ID}, (SELECT id FROM sprints WHERE board_id = ${BOARD_ID} AND name LIKE ${esc('Sprint 1 -%')} LIMIT 1), 25, ${FERNANDO_ID}, ${esc(metaDescricao)}, ${esc(claudeMdContent)}, 'Alta', 'Meta: Documentacao Viva', -1, NOW(), NOW()`);
+metaLinhas.push(`WHERE NOT EXISTS (SELECT 1 FROM tasks WHERE board_id = ${BOARD_ID} AND description LIKE ${esc('[META-01]%')});`);
+metaLinhas.push('');
+metaLinhas.push(`-- 2) Se ja existir, garante que o Caderno (notes) fica sincronizado com o CLAUDE.md atual do repo`);
+metaLinhas.push(`UPDATE tasks SET notes = ${esc(claudeMdContent)}, updated_at = NOW() WHERE board_id = ${BOARD_ID} AND description LIKE ${esc('[META-01]%')};`);
+metaLinhas.push('');
+metaLinhas.push(`-- 3) Cria a tag "Meta" se ainda nao existir, e vincula`);
+metaLinhas.push(`INSERT INTO tags (board_id, name, color, created_at, updated_at)`);
+metaLinhas.push(`SELECT ${BOARD_ID}, 'Meta', '#64748B', NOW(), NOW()`);
+metaLinhas.push(`WHERE NOT EXISTS (SELECT 1 FROM tags WHERE board_id = ${BOARD_ID} AND name = 'Meta');`);
+metaLinhas.push('');
+metaLinhas.push(`INSERT INTO task_tag (task_id, tag_id)`);
+metaLinhas.push(`SELECT t.id, tg.id FROM tasks t JOIN tags tg ON tg.board_id = ${BOARD_ID} AND tg.name = 'Meta'`);
+metaLinhas.push(`WHERE t.board_id = ${BOARD_ID} AND t.description LIKE ${esc('[META-01]%')}`);
+metaLinhas.push(`AND NOT EXISTS (SELECT 1 FROM task_tag WHERE task_id = t.id AND tag_id = tg.id);`);
+metaLinhas.push('');
+metaLinhas.push(`-- 4) Verificacao`);
+metaLinhas.push(`SELECT id, LEFT(description,50) AS titulo, LENGTH(notes) AS tamanho_caderno FROM tasks WHERE board_id = ${BOARD_ID} AND description LIKE ${esc('[META-01]%')};`);
+
+fs.writeFileSync(path.join(outDir, 'sprint-0-meta-caderno.sql'), metaLinhas.join('\n'), 'utf8');
+console.log('Gerado: sql-sprints/sprint-0-meta-caderno.sql');

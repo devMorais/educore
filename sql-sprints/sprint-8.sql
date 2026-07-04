@@ -31,6 +31,9 @@ Depende da demanda D-31 já existir (reaproveita content_feedbacks, com um campo
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - CRIAR: frontend/src/app/shared/components/molecules/feedback/export-feedback-dialog/
 - frontend/src/app/features/result/ (adicionar o hook pós-download em cada tipo de exportação: PPTX, Kahoot, SCORM, Socrative)
@@ -44,7 +47,10 @@ Depende da demanda D-31 já existir (reaproveita content_feedbacks, com um campo
 1. git add .
 2. git commit -m "feat(D-39): NPS pos-exportacao"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-39]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-39]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-42] Otimizar performance e SEO do frontend
 
@@ -74,6 +80,9 @@ O bundle inicial carrega o painel admin inteiro mesmo para um visitante anônimo
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - frontend/src/app/app.routes.ts (converter para loadComponent nas rotas de /admin/* e nos tipos de resultado)
 - frontend/public/images/ (remover imagens mortas, sem referência no código)
@@ -90,7 +99,10 @@ O bundle inicial carrega o painel admin inteiro mesmo para um visitante anônimo
 1. git add .
 2. git commit -m "perf(D-42): lazy loading e limpeza de assets/dependencias mortas"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-42]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-42]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-44] Padronizar tratamento de erros e limpar código morto no frontend
 
@@ -120,6 +132,9 @@ Hoje existem 3 padrões de erro coexistindo (interceptor global, componentes com
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - frontend/src/app/core/interceptors/auth.interceptor.ts (já trata 401/422/429/500 via ToastService)
 - frontend/src/app/features/panel/panel.ts, frontend/src/app/features/admin/forum/forum.ts (remover toasts duplicados)
@@ -137,7 +152,10 @@ Hoje existem 3 padrões de erro coexistindo (interceptor global, componentes com
 1. git add .
 2. git commit -m "fix(D-44): padronizar tratamento de erros e remover toasts duplicados"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-44]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-44]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-45] Validar diferencial competitivo e produzir vídeos demo
 
@@ -159,6 +177,9 @@ Ver PLANO-MARKETING-EDUCORE.md seção 1.5 — pesquisa de mercado já mapeada, 
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - PLANO-MARKETING-EDUCORE.md (referência completa)
 
@@ -167,7 +188,9 @@ Ver PLANO-MARKETING-EDUCORE.md seção 1.5 — pesquisa de mercado já mapeada, 
 - [ ] Conclusão clara sobre qual diferencial comunicar (ex: qualidade visual do slide)
 - [ ] 6 vídeos curtos finalizados: 3 demos "PDF vira X em segundos" (quiz, resumo, slides) + 3 comparativos antes/depois
 - [ ] Nenhum jargão técnico nos vídeos (nunca mencionar RAG, embeddings, pgvector)
-- [ ] Vídeos aprovados pelo Fernando antes da publicação' WHERE board_id = 7 AND description LIKE '[D-45]%' LIMIT 1;
+- [ ] Vídeos aprovados pelo Fernando antes da publicação
+
+📓 Ao terminar, atualize o Caderno da tarefa "[META-01]" no Avante com o que foi feito/decidido nesta demanda (mantém o time sincronizado mesmo sem abrir o repositório).' WHERE board_id = 7 AND description LIKE '[D-45]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-46] Lançar presença em redes sociais e programa de indicação
 
@@ -189,6 +212,9 @@ Ver PLANO-MARKETING-EDUCORE.md seções 4 e 4.5.
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - PLANO-MARKETING-EDUCORE.md
 
@@ -196,7 +222,9 @@ Ver PLANO-MARKETING-EDUCORE.md seções 4 e 4.5.
 - [ ] Perfis Instagram e TikTok do EduCore criados e ativos, com link de bio funcional para /precos
 - [ ] Cadência de pelo menos 3 posts/semana com os vídeos da D-45
 - [ ] Pelo menos 10 grupos de WhatsApp/Telegram/Facebook de professores mapeados e com presença ativa
-- [ ] Programa de indicação desenhado com regra clara (comissão recorrente ou mês grátis) e mecanismo de rastreio' WHERE board_id = 7 AND description LIKE '[D-46]%' LIMIT 1;
+- [ ] Programa de indicação desenhado com regra clara (comissão recorrente ou mês grátis) e mecanismo de rastreio
+
+📓 Ao terminar, atualize o Caderno da tarefa "[META-01]" no Avante com o que foi feito/decidido nesta demanda (mantém o time sincronizado mesmo sem abrir o repositório).' WHERE board_id = 7 AND description LIKE '[D-46]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-47] Recrutar beta testers e coletar depoimentos
 
@@ -218,13 +246,18 @@ Fase de validação antes de tráfego pago, conforme PLANO-MARKETING-EDUCORE.md.
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - PLANO-MARKETING-EDUCORE.md
 
 📋 CRITÉRIOS DE ACEITE (checklist — só considere concluído quando TODOS estiverem marcados):
 - [ ] 10 a 15 professores beta recrutados, usando trial estendido sem cobrança
 - [ ] Taxa de ativação desse grupo (cadastro -> 1º PDF processado com sucesso) medida e documentada
-- [ ] Pelo menos 5 depoimentos em vídeo coletados, com autorização de uso' WHERE board_id = 7 AND description LIKE '[D-47]%' LIMIT 1;
+- [ ] Pelo menos 5 depoimentos em vídeo coletados, com autorização de uso
+
+📓 Ao terminar, atualize o Caderno da tarefa "[META-01]" no Avante com o que foi feito/decidido nesta demanda (mantém o time sincronizado mesmo sem abrir o repositório).' WHERE board_id = 7 AND description LIKE '[D-47]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-48] Publicar página de preços otimizada para conversão
 
@@ -252,6 +285,9 @@ A página /precos já foi criada tecnicamente na D-28 — esta demanda complemen
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - frontend/src/app/features/pricing/ (já existe da D-28)
 - PLANO-MARKETING-EDUCORE.md seção 3 (proposta de valor por segmento)
@@ -265,7 +301,10 @@ A página /precos já foi criada tecnicamente na D-28 — esta demanda complemen
 1. git add .
 2. git commit -m "feat(D-48): copy de conversao e SEO na pagina de precos"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-48]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-48]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-49] Primeira campanha de tráfego pago controlada
 
@@ -293,6 +332,9 @@ Só deve começar depois de confirmar conversão orgânica saudável (10-20 assi
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - frontend/src/index.html (instalar o pixel de conversão do Meta Ads)
 - PLANO-MARKETING-EDUCORE.md seção 4.4
@@ -307,7 +349,10 @@ Só deve começar depois de confirmar conversão orgânica saudável (10-20 assi
 1. git add .
 2. git commit -m "feat(D-49): instalar pixel de conversao para campanha de trafego pago"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-49]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-49]%' LIMIT 1;
 
 -- Verificacao: confirme que todas as descricoes desta sprint foram atualizadas (buscar pelo novo cabecalho "CONTEXTO DO PROJETO")
 SELECT id, LEFT(description, 60) AS inicio FROM tasks WHERE board_id = 7 AND sprint_id = (SELECT id FROM sprints WHERE board_id = 7 AND name LIKE 'Sprint 8 -%' LIMIT 1) ORDER BY id;

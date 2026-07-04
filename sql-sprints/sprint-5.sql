@@ -31,6 +31,9 @@ O cadastro hoje aceita qualquer senha com 8+ caracteres. A tabela audit_logs já
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - backend/app/Http/Requests/Auth/RegisterRequest.php
 - backend/app/Http/Controllers/Api/AuthController.php (método login)
@@ -46,7 +49,10 @@ O cadastro hoje aceita qualquer senha com 8+ caracteres. A tabela audit_logs já
 1. git add .
 2. git commit -m "fix(D-18): politica de senha forte e bloqueio por forca bruta"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-18]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-18]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-19] Publicar Termos de Uso e Política de Privacidade com aceite no cadastro
 
@@ -77,6 +83,9 @@ Não existem páginas de Termos de Uso ou Política de Privacidade — os links 
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - CRIAR: frontend/src/app/features/legal/termos-de-uso/ (rota pública /termos-de-uso)
 - CRIAR: frontend/src/app/features/legal/politica-de-privacidade/ (rota pública /politica-de-privacidade)
@@ -97,7 +106,10 @@ Não existem páginas de Termos de Uso ou Política de Privacidade — os links 
 1. git add .
 2. git commit -m "feat(D-19): termos de uso, politica de privacidade e aceite no cadastro"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-19]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-19]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-20] Banner de consentimento de cookies
 
@@ -127,6 +139,9 @@ Não existe nenhum aviso de cookies no site. Implementar de forma simples, sem b
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - CRIAR: frontend/src/app/shared/components/molecules/feedback/cookie-banner/ (componente novo)
 - frontend/src/app/app.ts (incluir o componente globalmente)
@@ -141,7 +156,10 @@ Não existe nenhum aviso de cookies no site. Implementar de forma simples, sem b
 1. git add .
 2. git commit -m "feat(D-20): banner de consentimento de cookies"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-20]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-20]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-28] Implementar cobrança recorrente via Asaas
 
@@ -170,6 +188,9 @@ Portar a integração já validada no projeto Votar (PagamentoAsaasControlador) 
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - MULTITENANT-BILLING.md (seção 4, LEIA PRIMEIRO)
 - Projeto Votar (referência do PagamentoAsaasControlador já validado em produção — peça o caminho exato se não souber onde fica)
@@ -190,7 +211,10 @@ Portar a integração já validada no projeto Votar (PagamentoAsaasControlador) 
 1. git add .
 2. git commit -m "feat(D-28): cobranca recorrente via Asaas"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-28]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-28]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-32] Compressão de PDFs grandes antes do processamento
 
@@ -218,6 +242,9 @@ PDFs grandes (>10MB) hoje vão inteiros para o LlamaParse (cobrado por página) 
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - ai-service/app/services/pdf_service.py (PyMuPDF já é dependência do projeto)
 - ai-service/app/core/config.py (adicionar PDF_COMPRESSION_THRESHOLD_MB, default 10)
@@ -232,7 +259,10 @@ PDFs grandes (>10MB) hoje vão inteiros para o LlamaParse (cobrado por página) 
 1. git add .
 2. git commit -m "feat(D-32): compressao automatica de PDFs grandes"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-32]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-32]%' LIMIT 1;
 
 -- Verificacao: confirme que todas as descricoes desta sprint foram atualizadas (buscar pelo novo cabecalho "CONTEXTO DO PROJETO")
 SELECT id, LEFT(description, 60) AS inicio FROM tasks WHERE board_id = 7 AND sprint_id = (SELECT id FROM sprints WHERE board_id = 7 AND name LIKE 'Sprint 5 -%' LIMIT 1) ORDER BY id;

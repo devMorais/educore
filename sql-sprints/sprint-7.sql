@@ -31,6 +31,9 @@ Não existe hoje uma tela central de histórico de PDFs processados. Os endpoint
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - CRIAR: frontend/src/app/features/meus-documentos/ (rota /meus-docs, protegida por authGuard)
 - frontend/src/app/core/services/ai.service.ts (já deve ter os métodos de listar/excluir documentos, conferir)
@@ -45,7 +48,10 @@ Não existe hoje uma tela central de histórico de PDFs processados. Os endpoint
 1. git add .
 2. git commit -m "feat(D-36): tela Meus Documentos com historico completo"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-36]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-36]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-37] Compartilhamento de resultado via link público
 
@@ -76,6 +82,9 @@ Não existe forma de compartilhar um quiz/resumo/slides gerado com alguém sem c
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - CRIAR: backend/database/migrations/..._create_shared_links_table.php (token único, user_id, document_id, generation_type, generation_data JSON, expires_at)
 - CRIAR: backend/app/Http/Controllers/Api/ShareController.php
@@ -93,7 +102,10 @@ Não existe forma de compartilhar um quiz/resumo/slides gerado com alguém sem c
 1. git add .
 2. git commit -m "feat(D-37): compartilhamento de resultado via link publico"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-37]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-37]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-38] Analytics de uso (admin e professor)
 
@@ -124,6 +136,9 @@ Não existe visão agregada de uso da plataforma além dos KPIs básicos do dash
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - backend/app/Http/Controllers/Api/AdminController.php (adicionar analytics, usando Cache::remember com 10min)
 - backend/routes/api.php (GET /admin/analytics, GET /admin/analytics/types, GET /admin/analytics/retention)
@@ -140,7 +155,10 @@ Não existe visão agregada de uso da plataforma além dos KPIs básicos do dash
 1. git add .
 2. git commit -m "feat(D-38): analytics de uso para admin e professor"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-38]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-38]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-40] Monitoramento de erros em produção (Sentry) nos três serviços
 
@@ -170,6 +188,9 @@ Não existe nenhuma ferramenta de monitoramento de erros nos 3 serviços — des
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - backend/composer.json (adicionar sentry/sentry-laravel)
 - ai-service/requirements.txt (adicionar sentry-sdk[fastapi])
@@ -186,7 +207,10 @@ Não existe nenhuma ferramenta de monitoramento de erros nos 3 serviços — des
 1. git add .
 2. git commit -m "feat(D-40): monitoramento de erros (Sentry) nos 3 servicos"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-40]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-40]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-41] Cobertura de testes automatizados para fluxos críticos
 
@@ -216,6 +240,9 @@ backend/tests/Feature/AuthTest.php é o único teste com conteúdo real; os 28 s
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - backend/tests/Feature/ (criar testes para AdminController completo, CheckRole, HealthController, verificação de email, OAuth)
 - frontend/src/app/core/services/auth.service.spec.ts, result-store.service.spec.ts (hoje boilerplate, escrever testes reais)
@@ -230,7 +257,10 @@ backend/tests/Feature/AuthTest.php é o único teste com conteúdo real; os 28 s
 1. git add .
 2. git commit -m "test(D-41): cobertura de testes automatizados nos 3 servicos"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-41]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-41]%' LIMIT 1;
 
 UPDATE tasks SET description = '[D-43] Decidir e implementar o destino do SSR
 
@@ -258,6 +288,9 @@ O scaffold de Angular SSR está todo configurado mas app.routes.server.ts força
 
 ⚠️ REGRA OBRIGATÓRIA: você (a IA executando esta tarefa) NUNCA deve assumir, adivinhar ou inventar nome de rota, campo de banco, comportamento ou decisão de arquitetura que não esteja explícito nesta descrição ou já presente no código existente do projeto. Se qualquer parte desta tarefa estiver ambígua, incompleta, ou surgir qualquer dúvida sobre como proceder, PARE imediatamente e pergunte ao responsável antes de continuar. Nunca prossiga no "achismo".
 
+📓 CADERNO DO PROJETO (contexto vivo, fonte única de verdade):
+Antes de começar, abra a tarefa "[META-01] Contexto do Projeto para IA (CLAUDE.md)" neste mesmo quadro do Avante, aba "Caderno", e cole o conteúdo dela junto com esta descrição no prompt da sua IA. Isso garante que ela já entende a arquitetura, as convenções e o estado atual do projeto sem você precisar reexplicar do zero — economiza tempo e tokens.
+
 📍 TELA(S) / ROTA(S) / ARQUIVOS ENVOLVIDOS:
 - frontend/src/app/app.routes.server.ts
 - frontend/src/server.ts
@@ -273,7 +306,10 @@ O scaffold de Angular SSR está todo configurado mas app.routes.server.ts força
 1. git add .
 2. git commit -m "chore(D-43): decisao e implementacao do destino do SSR"
 3. git push -u origin HEAD
-4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.' WHERE board_id = 7 AND description LIKE '[D-43]%' LIMIT 1;
+4. Abra o Pull Request no GitHub (base: main). NÃO faça merge sozinho — avise o responsável do projeto.
+5. 📓 Atualize DOIS lugares com o que mudou nesta demanda:
+         a. O arquivo CLAUDE.md na raiz do repositório (commitar junto com o código desta demanda)
+         b. O Caderno da tarefa "[META-01]" aqui no Avante (mantém o time sincronizado mesmo sem abrir o repositório)' WHERE board_id = 7 AND description LIKE '[D-43]%' LIMIT 1;
 
 -- Verificacao: confirme que todas as descricoes desta sprint foram atualizadas (buscar pelo novo cabecalho "CONTEXTO DO PROJETO")
 SELECT id, LEFT(description, 60) AS inicio FROM tasks WHERE board_id = 7 AND sprint_id = (SELECT id FROM sprints WHERE board_id = 7 AND name LIKE 'Sprint 7 -%' LIMIT 1) ORDER BY id;
