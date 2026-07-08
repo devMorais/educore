@@ -13,7 +13,7 @@ import { environment } from '../../../environments/environment';
  * - Em caso de 401, tenta renovar o token via /auth/refresh (BS-007).
  *   Se o refresh falhar, limpa a sessão e redireciona para login.
  * - Trata demais erros de forma centralizada com ToastService.
- * - Não exibe toast em rotas de polling (/status).
+ * - Não exibe toast em rotas de polling (/status e /notifications/unread-count).
  */
 
 // Formato de erro de validação do Laravel: { errors: { campo: string | string[] } }
@@ -33,7 +33,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     req.url.startsWith(environment.aiServiceUrl);
 
   // Não exibe toast em rotas de polling e nem na própria rota de refresh
-  const isPolling = req.url.includes('/status');
+  // (inclui /status e /notifications/unread-count, que ainda não tem
+  // backend implementado e é chamada em polling a cada 30s pelo sino).
+  const isPolling = req.url.includes('/status') || req.url.includes('/notifications/unread-count');
   const isRefreshReq = req.url.includes('/auth/refresh');
 
   // Injeta o token se existir

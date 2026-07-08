@@ -5,6 +5,8 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -49,5 +51,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getEmailVerifiedAttribute(): bool
     {
         return ! is_null($this->email_verified_at);
+    }
+
+    /**
+     * Turmas que este usuário leciona (quando role = professor). D-01.
+     */
+    public function classesAsProfessor(): HasMany
+    {
+        return $this->hasMany(EduClass::class, 'professor_id');
+    }
+
+    /**
+     * Turmas em que este usuário está matriculado (quando role = student). D-01.
+     */
+    public function classesAsStudent(): BelongsToMany
+    {
+        return $this->belongsToMany(EduClass::class, 'class_user', 'user_id', 'class_id')
+            ->withTimestamps();
     }
 }
