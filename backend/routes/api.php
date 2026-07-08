@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\HealthController;
 use Illuminate\Support\Facades\Route;
 
@@ -52,4 +53,20 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::patch('/users/{id}/status',         [AdminController::class, 'updateStatus']);
     // Auditoria de acesso e ações (BS-022) — com filtros
     Route::get('/audit-logs',                  [AdminController::class, 'auditLogs']);
+    // Turmas — visão geral de todas as turmas de todos os professores (D-01)
+    Route::get('/classes',                     [ClassController::class, 'adminIndex']);
+});
+
+// Rotas de turmas (D-01) — professor ou admin autenticados.
+// Isolamento entre professores é garantido dentro do ClassController
+// (cada professor só vê/edita as próprias turmas; admin vê todas).
+Route::prefix('classes')->middleware(['auth:sanctum', 'role:professor,admin'])->group(function () {
+    Route::get('/',                            [ClassController::class, 'index']);
+    Route::post('/',                           [ClassController::class, 'store']);
+    Route::get('/{id}',                        [ClassController::class, 'show']);
+    Route::put('/{id}',                        [ClassController::class, 'update']);
+    Route::delete('/{id}',                     [ClassController::class, 'destroy']);
+    Route::get('/{classId}/students',          [ClassController::class, 'students']);
+    Route::post('/{classId}/enroll',           [ClassController::class, 'enroll']);
+    Route::delete('/{classId}/enroll/{userId}', [ClassController::class, 'unenroll']);
 });
