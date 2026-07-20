@@ -3,6 +3,7 @@ import { Home } from './features/home/home';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
 import { ForgotPassword } from './features/auth/forgot-password/forgot-password';
+import { ResetPassword } from './features/auth/reset-password/reset-password';
 import { Panel } from './features/panel/panel';
 import { Result } from './features/result/result';
 import { GoogleCallback } from './features/auth/google-callback/google-callback';
@@ -32,6 +33,7 @@ export const routes: Routes = [
   { path: 'login', component: Login, canActivate: [guestGuard] },
   { path: 'cadastro', component: Register, canActivate: [guestGuard] },
   { path: 'esqueci-senha', component: ForgotPassword, canActivate: [guestGuard] },
+  { path: 'redefinir-senha', component: ResetPassword, canActivate: [guestGuard] },
   { path: 'auth/google/callback', component: GoogleCallback },
   // Painel — upload de PDF e geração de conteúdo, tudo em um único lugar
   { path: 'painel', component: Panel, canActivate: [authGuard] },

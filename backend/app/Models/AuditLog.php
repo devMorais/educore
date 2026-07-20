@@ -10,6 +10,30 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Log de auditoria (BS-022). Registro imutável de uma ação importante do sistema.
+ *
+ * @property int $id
+ * @property int|null $user_id
+ * @property string $action
+ * @property string|null $resource_type
+ * @property string|null $resource_id
+ * @property string|null $ip_address
+ * @property string|null $user_agent
+ * @property array<array-key, mixed>|null $metadata
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property-read \App\Models\User|null $user
+ * @method static Builder<static>|AuditLog newModelQuery()
+ * @method static Builder<static>|AuditLog newQuery()
+ * @method static Builder<static>|AuditLog query()
+ * @method static Builder<static>|AuditLog whereAction($value)
+ * @method static Builder<static>|AuditLog whereCreatedAt($value)
+ * @method static Builder<static>|AuditLog whereId($value)
+ * @method static Builder<static>|AuditLog whereIpAddress($value)
+ * @method static Builder<static>|AuditLog whereMetadata($value)
+ * @method static Builder<static>|AuditLog whereResourceId($value)
+ * @method static Builder<static>|AuditLog whereResourceType($value)
+ * @method static Builder<static>|AuditLog whereUserAgent($value)
+ * @method static Builder<static>|AuditLog whereUserId($value)
+ * @mixin \Eloquent
  */
 class AuditLog extends Model
 {
@@ -36,11 +60,16 @@ class AuditLog extends Model
     public const ROLE_CHANGED   = 'role_changed';
     public const USER_BLOCKED   = 'user_blocked';
     public const USER_UNBLOCKED = 'user_unblocked';
+
     // Originadas no AI Service (FastAPI) — registráveis via record()/log() quando reportadas
     public const DOCUMENT_UPLOADED = 'document_uploaded';
     public const DOCUMENT_DELETED  = 'document_deleted';
     public const CONTENT_GENERATED = 'content_generated';
     public const EXPORT            = 'export';
+
+    // ── D-02: Recuperação de senha ──
+    public const PASSWORD_RESET_REQUESTED = 'password_reset_requested';
+    public const PASSWORD_RESET_COMPLETED = 'password_reset_completed';
 
     /**
      * Escrita de baixo nível do log. Usada pelo Listener (após o evento) e por
