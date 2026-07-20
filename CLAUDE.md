@@ -2,7 +2,7 @@
 
 > Lido automaticamente pelo Claude Code no início de qualquer sessão neste repositório. Objetivo: qualquer IA (Claude, ChatGPT, Copilot) que pegar uma demanda do Avante deve conseguir trabalhar sem precisar re-explorar o projeto do zero.
 > **Mantenha este arquivo atualizado.** Ao terminar qualquer demanda (`D-XX` do Avante) que mude arquitetura, convenção, endpoint novo ou infraestrutura, atualize a seção relevante aqui antes de abrir o PR. Se uma informação abaixo estiver desatualizada, corrija — não deixe o arquivo mentir.
-> Última revisão: 04/07/2026.
+> Última revisão: 20/07/2026.
 
 ---
 
@@ -60,6 +60,11 @@ Turmas (`/turmas`), Chat interno (`/admin/chat` — decisão: descontinuar, não
 - ✅ `DEBUG=False` setado no Railway (antes `/docs`/`/redoc` do ai-service ficavam públicos).
 - ✅ 794 arquivos mortos removidos (imagens de template, gerador Node.js morto do PPTX, `nixpacks.toml`, dependências não usadas).
 - ✅ 7 branches remotas obsoletas da Claudia apagadas (eram vazias ou já superadas).
+
+### D-15 — Validar PDF por conteúdo real, não só extensão (20/07/2026) — CONCLUÍDA
+- ✅ `POST /documents/upload` (ai-service) agora lê os 5 primeiros bytes do arquivo (`await file.read(5)`) e exige `b"%PDF-"` (magic bytes do formato PDF) ANTES de qualquer I/O de banco/disco — um `.txt` renomeado pra `.pdf` é rejeitado com 400, sem custo de LlamaParse/Gemini. Depois da checagem, `await file.seek(0)` reposiciona o ponteiro pra ler o arquivo inteiro normalmente.
+- ✅ **Primeiro teste pytest do ai-service** — `pytest` adicionado ao `requirements.txt` (não existia teste automatizado nenhum nesse serviço antes). `ai-service/tests/conftest.py` monta um `FastAPI()` de teste só com o router de `documents`, evitando o `lifespan` do `main.app` (que chama `init_db()` e exigiria um Postgres real só pra importar o app). Auth mockada via `app.dependency_overrides[verify_token]` (não `get_current_user` — esse é `Depends(verify_token)`, o override tem que mirar o callable de dentro do `Depends`, não o `Depends` em si).
+- ⚠️ **Gotcha de ambiente local (não é bug, é sobre trocar de branch):** o `ai-service/.env` é compartilhado entre TODAS as branches locais (não é versionado). Se uma branch anterior adicionou uma env var nova ao `Settings` (ex: `LARAVEL_INTERNAL_API_KEY` do D-04, ainda não mergeado), rodar `pytest`/`uvicorn` numa branch que não conhece esse campo quebra com `pydantic_core.ValidationError: Extra inputs are not permitted` — o `Settings` do pydantic-settings rejeita env vars não declaradas por padrão. Comente a linha extra no `.env` local até a branch que a introduziu ser mergeada.
 
 ### Ainda não corrigido (não assuma que já existe)
 Billing/quota (100% inexistente, mapeado em `MULTITENANT-BILLING.md`), LGPD (termos/privacidade/exclusão de conta), storage de PDF ainda em disco local efêmero no Railway (some a cada redeploy), ai-service roda com 1 worker só (concorrência trava com 2+ usuários gerando ao mesmo tempo).
