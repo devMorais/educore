@@ -2,7 +2,7 @@
 
 > Lido automaticamente pelo Claude Code no início de qualquer sessão neste repositório. Objetivo: qualquer IA (Claude, ChatGPT, Copilot) que pegar uma demanda do Avante deve conseguir trabalhar sem precisar re-explorar o projeto do zero.
 > **Mantenha este arquivo atualizado.** Ao terminar qualquer demanda (`D-XX` do Avante) que mude arquitetura, convenção, endpoint novo ou infraestrutura, atualize a seção relevante aqui antes de abrir o PR. Se uma informação abaixo estiver desatualizada, corrija — não deixe o arquivo mentir.
-> Última revisão: 04/07/2026.
+> Última revisão: 20/07/2026.
 
 ---
 
@@ -53,13 +53,19 @@ Em 04/07/2026 uma auditoria completa (ver `ANALISE-TECNICA-PRODUCAO.md`) achou q
 **Backlog de execução oficial:** `DEMANDAS-EDUCORE-COMERCIAL.md` — 49 demandas (`D-01` a `D-49`), full-stack, autossuficientes, organizadas em 8 fases/sprints. Cada uma já tem: descrição em formato de prompt pronto pra IA, passo a passo de Git, critérios de aceite. **Esta é a fonte de verdade do que falta fazer** — o board Avante (quadro "Educore", `board_id=7` no banco `u846585591_gestao_tarefas`) foi recriado a partir dela.
 
 ### Features com frontend pronto mas SEM backend (fachada) — corrigir na Fase 1
-Turmas (`/turmas`), Chat interno (`/admin/chat` — decisão: descontinuar, não terminar), Fórum (`/admin/forum`), Notificações in-app (sino do header), Recuperar senha (`/esqueci-senha`), Editar perfil (avatar/nome). Ver `D-01` a `D-08` no backlog.
+Turmas (`/turmas`), Chat interno (`/admin/chat` — decisão: descontinuar, não terminar), Fórum (`/admin/forum`), Notificações in-app (sino do header), Recuperar senha (`/esqueci-senha`). Ver `D-01`, `D-02`, `D-04`, `D-05`, `D-06` no backlog.
 
 ### Já corrigido nesta sessão (04/07/2026)
 - ✅ D-13: `AI_SERVICE_URL` movido pra `config/services.php` (antes quebrava com `config:cache`).
 - ✅ `DEBUG=False` setado no Railway (antes `/docs`/`/redoc` do ai-service ficavam públicos).
 - ✅ 794 arquivos mortos removidos (imagens de template, gerador Node.js morto do PPTX, `nixpacks.toml`, dependências não usadas).
 - ✅ 7 branches remotas obsoletas da Claudia apagadas (eram vazias ou já superadas).
+
+### D-03 — Edição de perfil (nome e avatar) (20/07/2026) — CONCLUÍDA, saiu da lista de fachada
+- ✅ `POST /profile` (autenticado, fora do prefix `/auth` porque o frontend já chama `${baseUrl}/profile` direto) implementado como método `AuthController::updateProfile()` — sem controller/service dedicado, seguindo o padrão de validação já usado em `register`/`login` (FormRequest em `Http/Requests/Auth/`, aqui `UpdateProfileRequest`).
+- ✅ Avatar salvo em `storage/app/public/avatars` (disco `public`, link simbólico padrão — rodar `php artisan storage:link` em qualquer ambiente novo, incluindo produção após deploy). Valida `image` + `mimes:jpg,jpeg,png,webp` + `max:2048` (2MB).
+- ✅ Avatar antigo é removido do disco ao enviar um novo — **mas comparando só o PATH da URL** (`parse_url(..., PHP_URL_PATH)` começando com `/storage/avatars/`), não a URL completa. Nunca comparar contra `config('filesystems.disks.public.url')` diretamente — ver armadilha na seção 6.
+- ✅ Cache do `/me` (`auth.me.v1.{id}`, BS-025) invalidado após salvar, mesmo padrão já usado em `AdminController::updateRole/updateStatus`.
 
 ### Ainda não corrigido (não assuma que já existe)
 Billing/quota (100% inexistente, mapeado em `MULTITENANT-BILLING.md`), LGPD (termos/privacidade/exclusão de conta), storage de PDF ainda em disco local efêmero no Railway (some a cada redeploy), ai-service roda com 1 worker só (concorrência trava com 2+ usuários gerando ao mesmo tempo).
@@ -70,6 +76,8 @@ Billing/quota (100% inexistente, mapeado em `MULTITENANT-BILLING.md`), LGPD (ter
 - **Não confiar em "Concluída" no Avante sem checar o código** (seção 5).
 - **`ai-service` — nunca assumir que uma dependência não é usada só por não achar `import` no `.py`** — `@angular/material` no frontend só aparecia usado via `@use` no `.scss`, não em `.ts`. Sempre `grep` amplo (código + estilos + templates) antes de remover algo como morto.
 - **Google Slides e fallback de IA (Groq/Cerebras/Mistral) já estão implementados** no `rag_service.py`, mesmo que o ticket original pedisse um arquivo separado (`llm_router.py`) — a implementação real ficou embutida, é intencional, não recriar duplicado.
+- **`Storage::fake($disk)` não preserva a config `url` do disco** (só carrega `throw`, ver `buildDiskConfiguration()` no framework) — em teste, `Storage::disk('public')->url($path)` devolve caminho RELATIVO (`/storage/avatars/x.jpg`), enquanto em produção (disco real) devolve URL ABSOLUTA (`https://educore.test/storage/avatars/x.jpg`). Nunca comparar uma URL salva contra `config('filesystems.disks.public.url')` pra decidir se é "nossa" — funciona só em produção, quebra silenciosamente em teste. Compare o PATH via `parse_url($url, PHP_URL_PATH)` (funciona nos dois formatos). Achado no D-03.
+- **Guard Sanctum memoiza o usuário resolvido dentro do mesmo método de teste** (`RequestGuard::$user`) — uma segunda chamada HTTP com o mesmo token, no mesmo teste, não re-valida contra o banco. E `actingAs($user, 'sanctum')` chama `Auth::shouldUse('sanctum')`, trocando o guard PADRÃO do teste (quebra `Auth::attempt()`, que não existe em `RequestGuard`). Fix: `$this->app['auth']->forgetGuards(); $this->app['auth']->shouldUse('web');` entre as duas fases do teste. Achado no D-09, reapareceu no D-03 (`ProfileTest::test_profile_update_persists_after_relogin`).
 
 ## 7. Documentos de referência (não duplicar conteúdo aqui)
 

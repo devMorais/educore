@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/health', [HealthController::class, 'health'])->middleware('throttle:30,1');
 Route::get('/system/status', [HealthController::class, 'systemStatus'])->middleware('throttle:30,1');
 
+// D-03: edição de perfil (nome + avatar) — autenticado, fora do prefix /auth
+// porque o frontend já chama POST /profile diretamente.
+Route::middleware('auth:sanctum')->post('/profile', [AuthController::class, 'updateProfile']);
+
 Route::prefix('auth')->group(function () {
     // Rate limiting granular por endpoint (BS-021) — limiters nomeados em AppServiceProvider.
     // Cadastro/login são limitados por IP (usuário ainda não autenticado).

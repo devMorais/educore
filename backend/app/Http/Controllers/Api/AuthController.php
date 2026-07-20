@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -196,6 +198,43 @@ class AuthController extends Controller
         $data = Cache::remember($key, 30, fn () => $user);
 
         return response()->json($data)->header('X-Cache', $hit ? 'HIT' : 'MISS');
+    }
+
+    /**
+     * D-03: atualiza nome e avatar do usuário autenticado.
+     *
+     * O avatar é salvo em storage/app/public/avatars (disco `public`, link
+     * simbólico padrão do Laravel) e a coluna `users.avatar` guarda a URL
+     * pública completa — mesmo formato já usado pelo avatar do Google OAuth
+     * (handleGoogleCallback), então o frontend não precisa distinguir a origem.
+     */
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $user->name = $request->input('name');
+
+        if ($request->hasFile('avatar')) {
+            // Só apaga o avatar antigo se ele foi armazenado por nós — evita tentar
+            // deletar do disco local uma URL externa (ex: avatar do Google). Compara
+            // só o PATH (via parse_url), não a URL completa: Storage::disk('public')
+            // ->url() pode devolver caminho relativo ou absoluto dependendo do driver
+            // (ex: relativo sob Storage::fake() nos testes), então comparar contra a
+            // config('filesystems.disks.public.url') quebraria em um dos dois casos.
+            $avatarPath = $user->avatar ? parse_url($user->avatar, PHP_URL_PATH) : null;
+            if ($avatarPath && str_starts_with($avatarPath, '/storage/avatars/')) {
+                Storage::disk('public')->delete('avatars/' . basename($avatarPath));
+            }
+
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = Storage::disk('public')->url($path);
+        }
+
+        $user->save();
+
+        // BS-025: invalida o cache do /me — próxima leitura reflete nome/avatar novos.
+        Cache::forget("auth.me.v1.{$user->id}");
+
+        return response()->json(['user' => $user]);
     }
 
     /**
