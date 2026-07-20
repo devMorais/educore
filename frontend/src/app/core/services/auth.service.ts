@@ -76,8 +76,19 @@ export class Auth {
     this.currentUser.set(null);
     this.router.navigate(['/login']);
   }
+
   forgotPassword(email: string) {
     return this.http.post(`${this.baseUrl}/auth/forgot-password`, { email });
+  }
+
+  /** D-02: redefine a senha usando o token recebido por email. */
+  resetPassword(payload: {
+    token: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+  }) {
+    return this.http.post(`${this.baseUrl}/auth/reset-password`, payload);
   }
 
   /** BS-023: reenvia o email de verificação para o usuário autenticado. */

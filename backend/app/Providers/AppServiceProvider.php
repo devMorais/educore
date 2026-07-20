@@ -65,6 +65,15 @@ class AppServiceProvider extends ServiceProvider
             (int) config('ratelimit.login_per_minute')
         )->by('login:ip:' . $r->ip())->response($resposta429));
 
+        // ── D-02: Recuperação de senha: chave por IP ──
+        RateLimiter::for('forgot-password', fn (Request $r) => Limit::perHour(
+            (int) config('ratelimit.forgot_password_per_hour')
+        )->by('forgot-password:ip:' . $r->ip())->response($resposta429));
+
+        RateLimiter::for('reset-password', fn (Request $r) => Limit::perMinute(
+            (int) config('ratelimit.reset_password_per_minute')
+        )->by('reset-password:ip:' . $r->ip())->response($resposta429));
+
         // ── Auth autenticado: chave por usuário ──
         RateLimiter::for('auth-me', fn (Request $r) => Limit::perMinute(
             (int) config('ratelimit.me_per_minute')

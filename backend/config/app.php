@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Frontend URL (D-02)
+    |--------------------------------------------------------------------------
+    |
+    | URL do frontend Angular. Usada para montar links que apontam pra fora do
+    | Laravel (ex: link de redefinição de senha em ResetPasswordNotification).
+    | Nunca use env('FRONTEND_URL') fora deste arquivo — sempre config('app.frontend_url').
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:4200'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
