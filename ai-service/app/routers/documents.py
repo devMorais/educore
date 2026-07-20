@@ -92,6 +92,15 @@ async def upload_document(
     if not (file.filename or "").lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Apenas arquivos PDF são aceitos")
 
+    # D-15: valida o conteúdo real do arquivo (magic bytes do PDF), não só a
+    # extensão do nome — antes, qualquer arquivo renomeado pra .pdf passava
+    # direto pro pipeline (custo de LlamaParse/Gemini pra processar lixo).
+    # Lê só os 5 primeiros bytes antes de ler o arquivo inteiro.
+    header = await file.read(5)
+    if header != b"%PDF-":
+        raise HTTPException(status_code=400, detail="Arquivo não é um PDF válido")
+    await file.seek(0)
+
     content = await file.read()
     if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="Arquivo muito grande. Máximo 100 MB")
