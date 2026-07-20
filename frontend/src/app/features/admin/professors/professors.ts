@@ -85,9 +85,9 @@ export class Professors implements OnInit, OnDestroy {
         // Aplica filtro de status no frontend se necessário
         let lista = res.data;
         if (this.filtroStatus() === 'ativo') {
-          lista = lista.filter(p => !!p.email_verified_at);
+          lista = lista.filter(p => p.status !== 'blocked');
         } else if (this.filtroStatus() === 'bloqueado') {
-          lista = lista.filter(p => !p.email_verified_at);
+          lista = lista.filter(p => p.status === 'blocked');
         }
         this.professores.set(lista);
         this.totalProfessores.set(res.total);
@@ -121,9 +121,9 @@ export class Professors implements OnInit, OnDestroy {
     this.carregarProfessores();
   }
 
-  // Verifica se o professor está bloqueado
+  // Verifica se o professor está bloqueado (D-09: campo status, separado de email_verified_at)
   isBloqueado(professor: AdminUser): boolean {
-    return !professor.email_verified_at;
+    return professor.status === 'blocked';
   }
 
   // Abre a sidebar de novo professor

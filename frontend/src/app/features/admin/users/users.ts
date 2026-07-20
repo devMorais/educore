@@ -133,9 +133,9 @@ export class Users implements OnInit, OnDestroy {
     this.usuarioSelecionado.set(null);
   }
 
-  // Verifica se o usuário está bloqueado (email_verified_at nulo = bloqueado)
+  // Verifica se o usuário está bloqueado (D-09: campo status, separado de email_verified_at)
   isBloqueado(usuario: AdminUser): boolean {
-    return !usuario.email_verified_at;
+    return usuario.status === 'blocked';
   }
 
   // Muda o role do usuário

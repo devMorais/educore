@@ -2,7 +2,7 @@
 
 > Lido automaticamente pelo Claude Code no início de qualquer sessão neste repositório. Objetivo: qualquer IA (Claude, ChatGPT, Copilot) que pegar uma demanda do Avante deve conseguir trabalhar sem precisar re-explorar o projeto do zero.
 > **Mantenha este arquivo atualizado.** Ao terminar qualquer demanda (`D-XX` do Avante) que mude arquitetura, convenção, endpoint novo ou infraestrutura, atualize a seção relevante aqui antes de abrir o PR. Se uma informação abaixo estiver desatualizada, corrija — não deixe o arquivo mentir.
-> Última revisão: 04/07/2026.
+> Última revisão: 20/07/2026.
 
 ---
 
@@ -61,6 +61,16 @@ Turmas (`/turmas`), Chat interno (`/admin/chat` — decisão: descontinuar, não
 - ✅ 794 arquivos mortos removidos (imagens de template, gerador Node.js morto do PPTX, `nixpacks.toml`, dependências não usadas).
 - ✅ 7 branches remotas obsoletas da Claudia apagadas (eram vazias ou já superadas).
 
+### D-09 — Corrigir bloqueio administrativo de usuários (20/07/2026) — CONCLUÍDA
+- ✅ Nova coluna `status` (string `active`|`blocked`, default `active`) em `users` — **fonte de verdade única** pra bloqueio administrativo. `email_verified_at` voltou a significar só "e-mail confirmado", não é mais tocado por `AdminController::updateStatus()`.
+- ✅ Bloquear (`PATCH /admin/users/{id}/status`, `{active:false}`) agora chama `$user->tokens()->delete()` na hora — toda sessão ativa do usuário (qualquer dispositivo) para de funcionar imediatamente, não só no próximo login.
+- ✅ `login()`, `me()` e `verify()` rejeitam `status=blocked` com 403. A revogação de token já cobre a maior parte dos casos (token deletado não autentica mais via `auth:sanctum`), mas os 3 métodos têm checagem explícita como defesa extra.
+- ✅ `verifyEmail()` (link assinado, sem login) nunca mais reativa/verifica um usuário bloqueado — retorna 403 antes de chamar `markEmailAsVerified()`.
+- 🐛 **Achado e corrigido junto (fora do escopo original, mas quebrava a própria feature):** o frontend do admin (`users.ts`, `professors.ts`, `students.ts`, `admin.service.ts`) ainda derivava "bloqueado" de `!email_verified_at` (o bug original que o D-09 existe pra corrigir, só que no frontend). Corrigido pra usar o novo campo `status` — inclui filtro de lista, badge visual e export CSV. `AdminUser` (tipo TS) ganhou o campo `status: 'active' | 'blocked'`.
+- 🐛 **Mesmo bug de CORS do D-04, achado de novo em outro arquivo:** `admin.service.ts` também tinha `withCredentials: true` em toda chamada (`listUsers`, `createProfessor/Student`, `updateRole`, `toggleBlock`) — o painel admin inteiro provavelmente estava quebrado no navegador, não só o bloqueio. Removido, mesmo motivo do D-04 (ver armadilhas, seção 6). Se aparecer um `withCredentials: true` em algum outro service novo, é quase certo que é o mesmo bug — checar antes de copiar o padrão.
+- ⚠️ **Consequência operacional do rollout:** como o `status` antigo (via `email_verified_at`) não dava pra distinguir com segurança "bloqueado por admin" de "só não verificou o e-mail", a migration não tenta recuperar esse histórico — todo usuário existente vira `status=active` depois de rodar a migration, mesmo quem estava bloqueado antes. Quem precisar continuar bloqueado tem que ser bloqueado de novo pelo painel admin após o deploy.
+- 🧪 **Gotcha de teste Sanctum (não é bug de produção, é sobre COMO testar):** dentro do MESMO método de teste, `Auth::guard('sanctum')` memoiza o usuário resolvido (`RequestGuard::$user`) — uma segunda chamada HTTP com o mesmo token não re-valida contra o banco, mesmo que o token tenha sido deletado nesse meio-tempo. E `actingAs($user, 'sanctum')` chama `Auth::shouldUse('sanctum')`, trocando o guard PADRÃO do teste (quebra `Auth::attempt()`, que não existe em `RequestGuard`). Fix: `$this->app['auth']->forgetGuards(); $this->app['auth']->shouldUse('web');` entre as duas fases do teste. Ver `tests/Feature/UserBlockingTest.php`.
+
 ### Ainda não corrigido (não assuma que já existe)
 Billing/quota (100% inexistente, mapeado em `MULTITENANT-BILLING.md`), LGPD (termos/privacidade/exclusão de conta), storage de PDF ainda em disco local efêmero no Railway (some a cada redeploy), ai-service roda com 1 worker só (concorrência trava com 2+ usuários gerando ao mesmo tempo).
 
@@ -70,6 +80,8 @@ Billing/quota (100% inexistente, mapeado em `MULTITENANT-BILLING.md`), LGPD (ter
 - **Não confiar em "Concluída" no Avante sem checar o código** (seção 5).
 - **`ai-service` — nunca assumir que uma dependência não é usada só por não achar `import` no `.py`** — `@angular/material` no frontend só aparecia usado via `@use` no `.scss`, não em `.ts`. Sempre `grep` amplo (código + estilos + templates) antes de remover algo como morto.
 - **Google Slides e fallback de IA (Groq/Cerebras/Mistral) já estão implementados** no `rag_service.py`, mesmo que o ticket original pedisse um arquivo separado (`llm_router.py`) — a implementação real ficou embutida, é intencional, não recriar duplicado.
+- **Nunca usar `withCredentials: true` em chamadas HTTP pro Laravel** — o CORS responde `Access-Control-Allow-Origin: *`, e a spec proíbe curinga com `credentials: include`; o navegador bloqueia a resposta (erro só aparece no console, silencioso pro usuário). O EduCore usa Bearer token, nunca cookie — não há motivo pra essa flag existir. Já achado e corrigido em dois arquivos (`api.service.ts` no D-04, `admin.service.ts` no D-09) — se aparecer em outro service novo, é o mesmo bug, não copiar o padrão.
+- **`email_verified_at` significa SÓ "e-mail confirmado"** (desde o D-09) — nunca usar pra inferir se um usuário está bloqueado. Use `user.status === 'blocked'` (backend) / `usuario.status === 'blocked'` (frontend, campo em `AdminUser`).
 
 ## 7. Documentos de referência (não duplicar conteúdo aqui)
 

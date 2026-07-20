@@ -7,6 +7,7 @@ export interface AdminUser {
   avatar?: string;
   created_at: string;
   last_login_at?: string;
+  status: 'active' | 'blocked';
   email_verified_at?: string | null;
   documents_count?: number;
 }

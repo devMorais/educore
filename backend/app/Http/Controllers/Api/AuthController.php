@@ -76,6 +76,12 @@ class AuthController extends Controller
             return response()->json(['message' => 'Link de verificação inválido.'], 403);
         }
 
+        // D-09: verificar o email NUNCA reativa um usuário bloqueado por um admin —
+        // status e email_verified_at são conceitos independentes desde o D-09.
+        if ($user->status === 'blocked') {
+            return response()->json(['message' => 'Esta conta está bloqueada.'], 403);
+        }
+
         if ($user->hasVerifiedEmail()) {
             return response()->json(['message' => 'Email já verificado.', 'user' => $user]);
         }
@@ -128,6 +134,18 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+
+        // D-09: usuário bloqueado por um admin nunca recebe token, mesmo com senha certa.
+        if ($user->status === 'blocked') {
+            AuditLog::log(AuditLog::LOGIN_FAILED, [
+                'user_id'  => $user->id,
+                'metadata' => ['email' => $user->email, 'reason' => 'blocked'],
+            ]);
+
+            return response()->json([
+                'message' => 'Esta conta está bloqueada. Entre em contato com o suporte.',
+            ], 403);
+        }
 
         // Registra o último login para rastrear usuários ativos (BS-009)
         $user->update(['last_login_at' => now()]);
@@ -188,9 +206,17 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
+        $user = $request->user();
+
+        // D-09: defesa extra além da revogação de tokens no bloqueio — se por
+        // qualquer motivo um token ainda válido chegar aqui, nunca serve dados
+        // de conta bloqueada (nem entra no cache).
+        if ($user->status === 'blocked') {
+            return response()->json(['message' => 'Esta conta está bloqueada.'], 403);
+        }
+
         // BS-025: cacheado 30s por user_id (chave versionada). Invalidado quando o
         // papel/status do usuário muda (AdminController). X-Cache: HIT|MISS.
-        $user = $request->user();
         $key  = "auth.me.v1.{$user->id}";
         $hit  = Cache::has($key);
         $data = Cache::remember($key, 30, fn () => $user);
@@ -208,6 +234,11 @@ class AuthController extends Controller
 
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        // D-09: mesma defesa extra do me() — ver comentário lá.
+        if ($user->status === 'blocked') {
+            return response()->json(['message' => 'Esta conta está bloqueada.'], 403);
         }
 
         return response()->json([
