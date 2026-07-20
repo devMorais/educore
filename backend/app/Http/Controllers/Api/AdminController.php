@@ -173,8 +173,12 @@ class AdminController extends Controller
     }
 
     /**
-     * Bloqueia ou desbloqueia um usuário (BS-009).
-     * Usa o campo email_verified_at como indicador de status ativo.
+     * Bloqueia ou desbloqueia um usuário (BS-009 / D-09).
+     *
+     * D-09: `status` (active|blocked) é a fonte de verdade — email_verified_at
+     * voltou a significar só "e-mail confirmado", nunca mais é tocado aqui.
+     * Ao bloquear, revoga TODOS os tokens Sanctum do usuário na hora, então
+     * qualquer sessão ativa dele para de funcionar na próxima requisição.
      */
     public function updateStatus(Request $request, int $id): JsonResponse
     {
@@ -182,12 +186,13 @@ class AdminController extends Controller
             'active' => 'required|boolean',
         ])->validate();
 
-        $user = User::findOrFail($id);
+        $user      = User::findOrFail($id);
+        $newStatus = $validated['active'] ? 'active' : 'blocked';
 
-        if ($validated['active']) {
-            $user->update(['email_verified_at' => $user->email_verified_at ?? now()]);
-        } else {
-            $user->update(['email_verified_at' => null]);
+        $user->update(['status' => $newStatus]);
+
+        if ($newStatus === 'blocked') {
+            $user->tokens()->delete();
         }
 
         // Auditoria (BS-022)

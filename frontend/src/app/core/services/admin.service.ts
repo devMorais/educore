@@ -23,7 +23,7 @@ export class AdminService {
     if (filters.role)     params = params.set('role', filters.role);
     if (filters.page)     params = params.set('page', filters.page.toString());
     if (filters.per_page) params = params.set('per_page', filters.per_page.toString());
-    return this.http.get<PaginatedUsers>(`${this.baseUrl}/admin/users`, { params, withCredentials: true });
+    return this.http.get<PaginatedUsers>(`${this.baseUrl}/admin/users`, { params });
   }
 
   // Cria um novo professor
@@ -31,7 +31,6 @@ export class AdminService {
     return this.http.post<{ message: string; user: AdminUser }>(
       `${this.baseUrl}/admin/professors`,
       payload,
-      { withCredentials: true }
     );
   }
 
@@ -40,7 +39,6 @@ export class AdminService {
     return this.http.post<{ message: string; user: AdminUser }>(
       `${this.baseUrl}/admin/students`,
       payload,
-      { withCredentials: true }
     );
   }
 
@@ -49,7 +47,6 @@ export class AdminService {
     return this.http.patch<{ message: string; user: AdminUser }>(
       `${this.baseUrl}/admin/users/${id}/role`,
       { role },
-      { withCredentials: true }
     );
   }
 
@@ -58,7 +55,6 @@ export class AdminService {
     return this.http.patch<{ message: string; user: AdminUser }>(
       `${this.baseUrl}/admin/users/${id}/status`,
       { active },
-      { withCredentials: true }
     );
   }
 
@@ -71,7 +67,7 @@ export class AdminService {
       u.email,
       u.role,
       new Date(u.created_at).toLocaleDateString('pt-BR'),
-      u.email_verified_at ? 'Ativo' : 'Bloqueado',
+      u.status === 'blocked' ? 'Bloqueado' : 'Ativo',
     ]);
     const csv = [cabecalho, ...linhas].map(l => l.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

@@ -1,0 +1,31 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            // D-09: separado de email_verified_at, que volta a significar só
+            // "e-mail confirmado". Valores: active | blocked. String simples
+            // (não enum nativo do banco), mesmo padrão já usado pra `role`.
+            $table->string('status')->default('active')->after('role');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('status');
+        });
+    }
+};

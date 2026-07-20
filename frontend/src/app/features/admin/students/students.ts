@@ -85,9 +85,9 @@ export class Students implements OnInit, OnDestroy {
         // Aplica filtro de status no frontend se necessário
         let lista = res.data;
         if (this.filtroStatus() === 'ativo') {
-          lista = lista.filter(a => !!a.email_verified_at);
+          lista = lista.filter(a => a.status !== 'blocked');
         } else if (this.filtroStatus() === 'bloqueado') {
-          lista = lista.filter(a => !a.email_verified_at);
+          lista = lista.filter(a => a.status === 'blocked');
         }
         this.alunos.set(lista);
         this.totalAlunos.set(res.total);
@@ -121,9 +121,9 @@ export class Students implements OnInit, OnDestroy {
     this.carregarAlunos();
   }
 
-  // Verifica se o aluno está bloqueado
+  // Verifica se o aluno está bloqueado (D-09: campo status, separado de email_verified_at)
   isBloqueado(aluno: AdminUser): boolean {
-    return !aluno.email_verified_at;
+    return aluno.status === 'blocked';
   }
 
   // Abre a sidebar de novo aluno
