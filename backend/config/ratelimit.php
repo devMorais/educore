@@ -27,6 +27,9 @@ return [
     'refresh_per_minute' => (int) env('RATE_REFRESH_PER_MINUTE', 60),  // /auth/refresh
     'logout_per_minute'  => (int) env('RATE_LOGOUT_PER_MINUTE', 60),   // /auth/logout
 
+    // ── D-04: Notificações in-app (chave = user id) ──
+    'notifications_per_minute' => (int) env('RATE_NOTIFICATIONS_PER_MINUTE', 60), // /notifications/*: 60/min por usuário
+
     // ── Geração/Export (chave = user id) ──
     // Política CANÔNICA do produto. A aplicação real desses limites acontece no
     // AI Service (FastAPI/slowapi), pois os endpoints de geração/export vivem lá.

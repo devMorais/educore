@@ -11,6 +11,7 @@ import { AiService } from '../../core/services/ai.service';
 import { ResultStore } from '../../core/services/result-store.service';
 import { DemoService } from '../../core/services/demo.service';
 import { Logo } from '../../shared/components/atoms';
+import { NotificationBell } from '../../shared/components/molecules/feedback';
 import type { GenerationType } from '../../core/types/content';
 import type { DocumentStatus, DocumentItem, GenerationCache } from '../../core/types/ai';
 
@@ -30,7 +31,7 @@ type FaseProcessamento =
 
 @Component({
   selector: 'app-panel',
-  imports: [RouterLink, RouterLinkActive, AvatarModule, TooltipModule, Logo],
+  imports: [RouterLink, RouterLinkActive, AvatarModule, TooltipModule, Logo, NotificationBell],
   templateUrl: './panel.html',
   styleUrl: './panel.scss',
 })

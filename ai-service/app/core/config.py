@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     # Laravel — URL base para verificação de tokens Sanctum
     laravel_api_url: str = "http://educore.test"
 
+    # D-04: chave compartilhada simples para POST /api/internal/notifications
+    # no Laravel (avisa quando o processamento de um documento termina).
+    # Precisa ter o MESMO valor do INTERNAL_API_KEY no backend/.env.
+    laravel_internal_api_key: str | None = None
+
     # Google Slides API — service account JSON (string base64 ou JSON raw)
     google_service_account_json: str | None = None
 

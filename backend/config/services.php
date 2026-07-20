@@ -45,4 +45,11 @@ return [
         'url' => env('AI_SERVICE_URL', 'http://localhost:8001'),
     ],
 
+    // D-04: chave compartilhada simples pras rotas internas (/internal/*),
+    // validada por VerifyInternalApiKey. Precisa ter o MESMO valor no
+    // ai-service (settings.laravel_internal_api_key / .env INTERNAL_API_KEY).
+    'internal' => [
+        'api_key' => env('INTERNAL_API_KEY'),
+    ],
+
 ];

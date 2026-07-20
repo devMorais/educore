@@ -3,11 +3,28 @@
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\InternalNotificationController;
+use App\Http\Controllers\Api\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // BS-024: health check detalhado (público para monitores externos; throttled)
 Route::get('/health', [HealthController::class, 'health'])->middleware('throttle:30,1');
 Route::get('/system/status', [HealthController::class, 'systemStatus'])->middleware('throttle:30,1');
+
+// D-04: notificações in-app (sino do header) — autenticado, chave por usuário.
+Route::prefix('notifications')->middleware(['auth:sanctum', 'throttle:notifications'])->group(function () {
+    Route::get('/',            [NotificationController::class, 'index']);
+    Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::patch('/read-all',   [NotificationController::class, 'markAllAsRead']);
+    Route::patch('/{id}/read',  [NotificationController::class, 'markAsRead']);
+});
+
+// D-04: webhook interno — chamado pelo ai-service quando um documento termina
+// de processar. Protegido por chave compartilhada (VerifyInternalApiKey),
+// NUNCA por auth:sanctum (não existe usuário logado nessa chamada).
+Route::prefix('internal')->middleware(['internal-key', 'throttle:60,1'])->group(function () {
+    Route::post('/notifications', [InternalNotificationController::class, 'store']);
+});
 
 Route::prefix('auth')->group(function () {
     // Rate limiting granular por endpoint (BS-021) — limiters nomeados em AppServiceProvider.
