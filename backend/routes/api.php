@@ -2,12 +2,24 @@
 
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ForumController;
 use App\Http\Controllers\Api\HealthController;
 use Illuminate\Support\Facades\Route;
 
 // BS-024: health check detalhado (público para monitores externos; throttled)
 Route::get('/health', [HealthController::class, 'health'])->middleware('throttle:30,1');
 Route::get('/system/status', [HealthController::class, 'systemStatus'])->middleware('throttle:30,1');
+
+// D-05: fórum de discussão — qualquer usuário autenticado cria/responde/vê;
+// exclusão é restrita ao autor ou admin (checado no controller).
+Route::prefix('forum')->middleware('auth:sanctum')->group(function () {
+    Route::get('/topics',                          [ForumController::class, 'topics']);
+    Route::post('/topics',                         [ForumController::class, 'storeTopic']);
+    Route::delete('/topics/{id}',                  [ForumController::class, 'destroyTopic']);
+    Route::get('/topics/{topicId}/replies',        [ForumController::class, 'replies']);
+    Route::post('/topics/{topicId}/replies',       [ForumController::class, 'storeReply']);
+    Route::delete('/topics/{topicId}/replies/{replyId}', [ForumController::class, 'destroyReply']);
+});
 
 Route::prefix('auth')->group(function () {
     // Rate limiting granular por endpoint (BS-021) — limiters nomeados em AppServiceProvider.

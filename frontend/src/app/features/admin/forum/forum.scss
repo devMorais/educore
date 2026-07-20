@@ -10,14 +10,16 @@
 // O seletor cobre tanto o header quanto o p-dialog, pois o diálogo do PrimeNG
 // é renderizado num overlay fora da árvore do componente (CDK overlay).
 ::ng-deep .forum-header .p-button:not(.p-button-secondary):not(.p-button-text),
-::ng-deep .p-dialog .p-button:not(.p-button-secondary):not(.p-button-text) {
+::ng-deep .p-dialog .p-button:not(.p-button-secondary):not(.p-button-text),
+::ng-deep .forum-form-resposta .p-button:not(.p-button-secondary):not(.p-button-text) {
   background: var(--p-primary-color, #6366f1) !important;
   color: #fff !important;
   border-color: var(--p-primary-color, #6366f1) !important;
 }
 
 // Garante que o botão fique visivelmente desabilitado quando inválido
-::ng-deep .p-dialog .p-button:disabled {
+::ng-deep .p-dialog .p-button:disabled,
+::ng-deep .forum-form-resposta .p-button:disabled {
   background: var(--p-text-muted-color, #94a3b8) !important;
   border-color: var(--p-text-muted-color, #94a3b8) !important;
   opacity: 0.6;
