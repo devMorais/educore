@@ -17,3 +17,6 @@ google-api-python-client
 google-auth>=2.48.1
 gTTS==2.5.4
 edge-tts==7.2.8
+
+# Teste automatizado (pytest)
+pytest==8.3.4
