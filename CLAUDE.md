@@ -67,6 +67,9 @@ Turmas (`/turmas`), Chat interno (`/admin/chat` — decisão: descontinuar, não
 - ✅ Exclusão (soft delete) restrita a autor ou `role=admin`, mesma regra pra tópico e resposta (`ForumController::canModerate()`).
 - ✅ Autor exposto como `user: {id, name, avatar, role}` via `->with('user:id,name,avatar,role')` — nunca email, mesmo padrão de outras listagens (`AdminController::auditLogs`).
 - 🐛 **Mesmo bug de CORS do D-04/D-09, achado uma terceira vez:** `forum.service.ts` também tinha `withCredentials: true` em toda chamada — removido. Se aparecer em outro service novo, é o mesmo bug (ver seção 6), não copiar o padrão.
+- 🐛 **Dois bugs de frontend pré-existentes, achados durante o teste manual e corrigidos junto** (o backend nunca existiu antes pra esses bugs aparecerem):
+  1. `forum.scss` tinha uma correção manual de cor pro reset global de `button` (ver comentário no arquivo) aplicada só em `.forum-header .p-button` e `.p-dialog .p-button` — **esqueceu** `.forum-form-resposta .p-button` (o botão "Responder" da thread), que ficava sem fundo, quase invisível, mas funcional (não estava desabilitado, só sem estilo). Estendida a mesma regra `::ng-deep` pro seletor que faltava.
+  2. `voltarParaLista()` em `forum.ts` trocava a visualização de volta pra lista sem recarregar os tópicos — `replies_count`/`last_reply_at` ficavam com o valor antigo na tela mesmo depois de responder/excluir, até um F5 manual. Agora chama `carregarTopicos()` ao voltar.
 
 ### Ainda não corrigido (não assuma que já existe)
 Billing/quota (100% inexistente, mapeado em `MULTITENANT-BILLING.md`), LGPD (termos/privacidade/exclusão de conta), storage de PDF ainda em disco local efêmero no Railway (some a cada redeploy), ai-service roda com 1 worker só (concorrência trava com 2+ usuários gerando ao mesmo tempo).

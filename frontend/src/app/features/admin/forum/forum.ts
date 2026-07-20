@@ -164,6 +164,9 @@ export class Forum {
     this.visualizacao.set('lista');
     this.topicoSelecionado.set(null);
     this.respostas.set([]);
+    // Recarrega a lista — replies_count/last_reply_at podem ter mudado
+    // enquanto o usuário estava na thread (nova resposta, exclusão etc.).
+    this.carregarTopicos();
   }
 
   carregarRespostas(): void {
