@@ -2,7 +2,7 @@
 
 > Lido automaticamente pelo Claude Code no início de qualquer sessão neste repositório. Objetivo: qualquer IA (Claude, ChatGPT, Copilot) que pegar uma demanda do Avante deve conseguir trabalhar sem precisar re-explorar o projeto do zero.
 > **Mantenha este arquivo atualizado.** Ao terminar qualquer demanda (`D-XX` do Avante) que mude arquitetura, convenção, endpoint novo ou infraestrutura, atualize a seção relevante aqui antes de abrir o PR. Se uma informação abaixo estiver desatualizada, corrija — não deixe o arquivo mentir.
-> Última revisão: 04/07/2026.
+> Última revisão: 20/07/2026.
 
 ---
 
@@ -60,6 +60,13 @@ Turmas (`/turmas`), Chat interno (`/admin/chat` — decisão: descontinuar, não
 - ✅ `DEBUG=False` setado no Railway (antes `/docs`/`/redoc` do ai-service ficavam públicos).
 - ✅ 794 arquivos mortos removidos (imagens de template, gerador Node.js morto do PPTX, `nixpacks.toml`, dependências não usadas).
 - ✅ 7 branches remotas obsoletas da Claudia apagadas (eram vazias ou já superadas).
+
+### D-16 — Rate limit em /audio e /html-view (20/07/2026) — CONCLUÍDA
+- ✅ `GET /documents/{id}/audio` protegido com `@limiter.limit(f"{settings.rate_generations_per_hour}/hour", key_func=get_user_identifier)` — mesmo padrão do `/generate` (dispara TTS via Gemini quando não há cache).
+- ✅ `GET /documents/{id}/html-view` protegido com `rate_export_per_hour` (mesmo limite de `/export-pptx`/`/export-html`, que geram o MESMO recurso — slides — via `_get_or_generate_slides()`).
+- ⚠️ **`/html-view` autentica diferente dos outros endpoints** — token vem de query param `?token=` (não header `Authorization`), pra funcionar com `window.open()` sem headers customizados. Isso quebra o `key_func` padrão (`get_user_identifier`, que só olha o header): sem ajuste, o limite cairia pra por-IP, não por-usuário. Criada a variante `get_user_identifier_from_query_token()` em `app/core/limiter.py` — qualquer NOVO endpoint que autentique via query param precisa da mesma variante, não do `get_user_identifier` padrão.
+- ✅ `view_html()` (o `/html-view`) precisou ganhar um parâmetro `request: Request` que não tinha antes — obrigatório pro decorator `@limiter.limit()` do slowapi funcionar.
+- 🧪 **Infra de teste (`tests/conftest.py`, `pytest` no `requirements.txt`) recriada aqui** — o D-15 já tinha criado a mesma coisa numa branch separada, ainda não mergeada na `main` nesse momento. Ao mergear D-15 e D-16, os dois `conftest.py` colidem/duplicam — manter só uma cópia.
 
 ### Ainda não corrigido (não assuma que já existe)
 Billing/quota (100% inexistente, mapeado em `MULTITENANT-BILLING.md`), LGPD (termos/privacidade/exclusão de conta), storage de PDF ainda em disco local efêmero no Railway (some a cada redeploy), ai-service roda com 1 worker só (concorrência trava com 2+ usuários gerando ao mesmo tempo).

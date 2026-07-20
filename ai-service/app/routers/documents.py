@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse, Response
 from app.core.database import get_connection
 from app.core.auth import get_current_user, verify_token
 from app.core.config import settings
-from app.core.limiter import limiter, get_user_identifier
+from app.core.limiter import limiter, get_user_identifier, get_user_identifier_from_query_token
 from typing import List
 from app.services.rag_service import rag_service
 from app.services.tts_service import tts_service
@@ -375,6 +375,7 @@ async def generate_content(
         200: {"content": {"audio/mpeg": {}}, "description": "Arquivo MP3 do áudio"},
     },
 )
+@limiter.limit(f"{settings.rate_generations_per_hour}/hour", key_func=get_user_identifier)
 async def get_audio(
     request: Request,
     document_id: int,
@@ -482,7 +483,9 @@ async def export_pptx(
     response_class=Response,
     responses={**_E401, **_E404, 200: {"content": {"text/html": {}}, "description": "HTML da apresentação"}},
 )
+@limiter.limit(f"{settings.rate_export_per_hour}/hour", key_func=get_user_identifier_from_query_token)
 async def view_html(
+    request: Request,
     document_id: int,
     token: str,
 ):
