@@ -2,7 +2,7 @@
 
 > Lido automaticamente pelo Claude Code no início de qualquer sessão neste repositório. Objetivo: qualquer IA (Claude, ChatGPT, Copilot) que pegar uma demanda do Avante deve conseguir trabalhar sem precisar re-explorar o projeto do zero.
 > **Mantenha este arquivo atualizado.** Ao terminar qualquer demanda (`D-XX` do Avante) que mude arquitetura, convenção, endpoint novo ou infraestrutura, atualize a seção relevante aqui antes de abrir o PR. Se uma informação abaixo estiver desatualizada, corrija — não deixe o arquivo mentir.
-> Última revisão: 04/07/2026.
+> Última revisão: 20/07/2026.
 
 ---
 
@@ -53,13 +53,20 @@ Em 04/07/2026 uma auditoria completa (ver `ANALISE-TECNICA-PRODUCAO.md`) achou q
 **Backlog de execução oficial:** `DEMANDAS-EDUCORE-COMERCIAL.md` — 49 demandas (`D-01` a `D-49`), full-stack, autossuficientes, organizadas em 8 fases/sprints. Cada uma já tem: descrição em formato de prompt pronto pra IA, passo a passo de Git, critérios de aceite. **Esta é a fonte de verdade do que falta fazer** — o board Avante (quadro "Educore", `board_id=7` no banco `u846585591_gestao_tarefas`) foi recriado a partir dela.
 
 ### Features com frontend pronto mas SEM backend (fachada) — corrigir na Fase 1
-Turmas (`/turmas`), Chat interno (`/admin/chat` — decisão: descontinuar, não terminar), Fórum (`/admin/forum`), Notificações in-app (sino do header), Recuperar senha (`/esqueci-senha`), Editar perfil (avatar/nome). Ver `D-01` a `D-08` no backlog.
+Turmas (`/turmas`), Chat interno (`/admin/chat` — decisão: descontinuar, não terminar), Notificações in-app (sino do header), Recuperar senha (`/esqueci-senha`), Editar perfil (avatar/nome). Ver `D-01`, `D-02`, `D-03`, `D-04`, `D-06` no backlog.
 
 ### Já corrigido nesta sessão (04/07/2026)
 - ✅ D-13: `AI_SERVICE_URL` movido pra `config/services.php` (antes quebrava com `config:cache`).
 - ✅ `DEBUG=False` setado no Railway (antes `/docs`/`/redoc` do ai-service ficavam públicos).
 - ✅ 794 arquivos mortos removidos (imagens de template, gerador Node.js morto do PPTX, `nixpacks.toml`, dependências não usadas).
 - ✅ 7 branches remotas obsoletas da Claudia apagadas (eram vazias ou já superadas).
+
+### D-05 — Fórum de discussão (20/07/2026) — CONCLUÍDA, saiu da lista de fachada
+- ✅ `ForumTopic`/`ForumReply` (tabelas `forum_topics`/`forum_replies`, primeiro uso de `SoftDeletes` no projeto) + `ForumController` com as 6 rotas que o frontend já esperava (`GET/POST /forum/topics`, `DELETE /forum/topics/{id}`, `GET/POST /forum/topics/{id}/replies`, `DELETE /forum/topics/{id}/replies/{id}`), todas atrás de `auth:sanctum` (qualquer autenticado, não só admin — apesar da tela viver em `/admin/forum`).
+- ✅ `replies_count`/`last_reply_at` em `forum_topics` são contadores DENORMALIZADOS mantidos manualmente no controller (`increment()`/`decrement()`), não computados via `withCount()` — é o que a migration pedia.
+- ✅ Exclusão (soft delete) restrita a autor ou `role=admin`, mesma regra pra tópico e resposta (`ForumController::canModerate()`).
+- ✅ Autor exposto como `user: {id, name, avatar, role}` via `->with('user:id,name,avatar,role')` — nunca email, mesmo padrão de outras listagens (`AdminController::auditLogs`).
+- 🐛 **Mesmo bug de CORS do D-04/D-09, achado uma terceira vez:** `forum.service.ts` também tinha `withCredentials: true` em toda chamada — removido. Se aparecer em outro service novo, é o mesmo bug (ver seção 6), não copiar o padrão.
 
 ### Ainda não corrigido (não assuma que já existe)
 Billing/quota (100% inexistente, mapeado em `MULTITENANT-BILLING.md`), LGPD (termos/privacidade/exclusão de conta), storage de PDF ainda em disco local efêmero no Railway (some a cada redeploy), ai-service roda com 1 worker só (concorrência trava com 2+ usuários gerando ao mesmo tempo).

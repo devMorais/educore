@@ -16,26 +16,17 @@ export class ForumService {
     if (filters.page)     params = params.set('page', filters.page.toString());
     if (filters.per_page) params = params.set('per_page', filters.per_page.toString());
 
-    return this.http.get<Paginated<ForumTopic>>(`${this.baseUrl}/forum/topics`, {
-      params,
-      withCredentials: true,
-    });
+    return this.http.get<Paginated<ForumTopic>>(`${this.baseUrl}/forum/topics`, { params });
   }
 
   // Cria um novo tópico
   createTopic(title: string, body: string): Observable<ForumTopic> {
-    return this.http.post<ForumTopic>(
-      `${this.baseUrl}/forum/topics`,
-      { title, body },
-      { withCredentials: true },
-    );
+    return this.http.post<ForumTopic>(`${this.baseUrl}/forum/topics`, { title, body });
   }
 
   // Remove um tópico (soft delete) — autor ou admin
   deleteTopic(id: number): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.baseUrl}/forum/topics/${id}`, {
-      withCredentials: true,
-    });
+    return this.http.delete<{ message: string }>(`${this.baseUrl}/forum/topics/${id}`);
   }
 
   // Lista respostas de um tópico, paginadas
@@ -46,24 +37,19 @@ export class ForumService {
 
     return this.http.get<Paginated<ForumReply>>(
       `${this.baseUrl}/forum/topics/${topicId}/replies`,
-      { params, withCredentials: true },
+      { params },
     );
   }
 
   // Cria uma nova resposta no tópico
   createReply(topicId: number, body: string): Observable<ForumReply> {
-    return this.http.post<ForumReply>(
-      `${this.baseUrl}/forum/topics/${topicId}/replies`,
-      { body },
-      { withCredentials: true },
-    );
+    return this.http.post<ForumReply>(`${this.baseUrl}/forum/topics/${topicId}/replies`, { body });
   }
 
   // Remove uma resposta (soft delete) — autor ou admin
   deleteReply(topicId: number, replyId: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(
       `${this.baseUrl}/forum/topics/${topicId}/replies/${replyId}`,
-      { withCredentials: true },
     );
   }
 }
