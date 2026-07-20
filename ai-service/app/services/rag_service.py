@@ -356,7 +356,9 @@ class RAGService:
         self.model = settings.generation_model
 
     # ──────────────────────────────────────────────────── pipeline
-    async def process_document(self, file_path: str, filename: str, document_id: int) -> dict:
+    async def process_document(
+        self, file_path: str, filename: str, document_id: int, user_id: int
+    ) -> dict:
         """
         Two-phase processing:
         Phase 1 (fast, ~10-30s): Upload to Gemini Files API → status='completed'
@@ -443,6 +445,9 @@ class RAGService:
                 (document_id,),
             )
             conn.commit()
+
+            await self._notify_document_completed(user_id, document_id, filename)
+
             return {"status": "completed", "document_id": document_id}
 
         except Exception as e:
@@ -455,6 +460,48 @@ class RAGService:
         finally:
             cursor.close()
             conn.close()
+
+    async def _notify_document_completed(
+        self, user_id: int, document_id: int, filename: str
+    ) -> None:
+        """
+        D-04: avisa o Laravel (POST /api/internal/notifications) que o
+        documento terminou de processar, pra criar a notificação in-app do
+        usuário. Chamada interna simples (chave compartilhada), best-effort —
+        uma falha aqui nunca deve derrubar o pipeline de processamento.
+        """
+        if not settings.laravel_internal_api_key:
+            logger.warning(
+                "LARAVEL_INTERNAL_API_KEY não configurada — notificação de "
+                f"conclusão do documento {document_id} não foi enviada."
+            )
+            return
+
+        try:
+            async with httpx.AsyncClient(timeout=5.0, verify=False) as client:
+                resposta = await client.post(
+                    f"{settings.laravel_api_url}/api/internal/notifications",
+                    headers={"X-Internal-Key": settings.laravel_internal_api_key},
+                    json={
+                        "user_id": user_id,
+                        "type": "document_completed",
+                        "title": "Documento processado",
+                        "body": f'Seu PDF "{filename}" terminou de processar e já está pronto para uso.',
+                        "data": {"document_id": document_id},
+                    },
+                )
+            if resposta.status_code >= 400:
+                logger.warning(
+                    f"Laravel recusou a notificação do documento {document_id}: "
+                    f"{resposta.status_code} {resposta.text[:200]}"
+                )
+            else:
+                logger.info(
+                    f"Notificação de conclusão enviada ao Laravel "
+                    f"(documento {document_id}, usuário {user_id})"
+                )
+        except httpx.RequestError as exc:
+            logger.warning(f"Falha ao notificar o Laravel (documento {document_id}): {exc}")
 
     # ──────────────────────────────────────────────────────── quiz
     def generate_quiz(self, document_id: int, num_questions: int = None) -> dict:

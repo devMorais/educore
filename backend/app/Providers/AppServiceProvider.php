@@ -82,6 +82,11 @@ class AppServiceProvider extends ServiceProvider
             (int) config('ratelimit.logout_per_minute')
         )->by('logout:' . $porUsuario($r))->response($resposta429));
 
+        // ── D-04: Notificações in-app: chave por usuário ──
+        RateLimiter::for('notifications', fn (Request $r) => Limit::perMinute(
+            (int) config('ratelimit.notifications_per_minute')
+        )->by('notifications:' . $porUsuario($r))->response($resposta429));
+
         // ── Geração/Export: chave por usuário (política canônica; aplicada no AI Service) ──
         RateLimiter::for('generations', fn (Request $r) => Limit::perHour(
             (int) config('ratelimit.generations_per_hour')

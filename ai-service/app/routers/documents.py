@@ -148,7 +148,7 @@ async def upload_document(
         conn.commit()
 
         background_tasks.add_task(
-            rag_service.process_document, file_path, file.filename, document_id
+            rag_service.process_document, file_path, file.filename, document_id, user_id
         )
 
         return {

@@ -193,6 +193,11 @@ DATABASE_URL=postgresql://postgres:123456@localhost:5432/edu_platform
 LLAMAPARSE_API_KEY=sua_chave_aqui
 PORT=8001
 
+# D-04: chave compartilhada com o Laravel pra POST /api/internal/notifications
+# (avisa quando um documento termina de processar). Precisa ter o MESMO valor
+# do INTERNAL_API_KEY em backend/.env — gere uma string aleatória qualquer.
+LARAVEL_INTERNAL_API_KEY=uma_chave_aleatoria_igual_nos_dois_env
+
 # Opcional — integração Google Slides (requer Google Workspace)
 # GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
 ```

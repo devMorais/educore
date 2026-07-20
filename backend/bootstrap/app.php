@@ -19,7 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Alias para controle de papéis (BS-006)
         $middleware->alias([
-            'role' => \App\Http\Middleware\CheckRole::class,
+            'role'         => \App\Http\Middleware\CheckRole::class,
+            // D-04: chave compartilhada simples p/ rotas internas (webhook do ai-service)
+            'internal-key' => \App\Http\Middleware\VerifyInternalApiKey::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
