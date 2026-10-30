@@ -50,7 +50,7 @@ return [
     |
     */
 
-    'expiration' => env('SANCTUM_EXPIRATION', 60 * 24), // 24 horas (BS-007)
+    'expiration' => (int) env('SANCTUM_EXPIRATION', 60 * 24), // 24 horas (BS-007)
 
     /*
     |--------------------------------------------------------------------------
